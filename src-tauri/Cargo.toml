@@ -5,6 +5,7 @@ description = "Path of Exile levelling companion"
 authors = ["Opoz"]
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 
 [lib]
 # `_lib` suffix avoids a bin/lib name clash on Windows (rust-lang/cargo#8519)
