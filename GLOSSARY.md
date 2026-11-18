@@ -66,7 +66,7 @@ The sum of the fastest individual act segments across all Runs in a Run Category
 _Avoid_: sum of best, gold splits
 
 **Pause**:
-A stretch of a Run that does not count toward elapsed time; either **Manual** (by hotkey) or **Automatic** (after login or in a Hideout).
+A stretch of a Run that does not count toward elapsed time; either **Manual** (by hotkey) or **Automatic** (at login or character select, or in a Hideout).
 
 ## Guide
 

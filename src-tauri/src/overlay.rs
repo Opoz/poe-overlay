@@ -37,6 +37,10 @@ pub fn create_timer_overlay(app: &AppHandle) -> tauri::Result<()> {
 pub fn set_interact(app: &AppHandle, on: bool) {
     if let Some(w) = app.get_webview_window(TIMER) {
         let _ = w.set_ignore_cursor_events(!on);
+        // Changing cursor handling rewrites the window's extended styles.
+        if let Some(h) = raw(&w) {
+            platform::make_non_activating(h);
+        }
     }
 }
 
@@ -75,7 +79,10 @@ impl Follower {
         let window = app.get_webview_window(TIMER)?;
         let overlay = raw(&window)?;
         let rect = game.and_then(platform::game_rect);
-        let active = game.is_some_and(|g| platform::foreground_window() == g) && rect.is_some();
+        // The Overlay itself may hold focus while being dragged in Interact Mode.
+        let foreground = platform::foreground_window();
+        let active =
+            game.is_some_and(|g| foreground == g || foreground == overlay) && rect.is_some();
 
         if active != self.active {
             // Hotkeys only exist while the game is focused, so they never

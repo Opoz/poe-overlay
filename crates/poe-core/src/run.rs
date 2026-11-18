@@ -38,7 +38,8 @@ impl Default for TimerSettings {
 pub enum PauseReason {
     /// By hotkey; only a hotkey resumes it.
     Manual,
-    /// The game client restarted; resumes on entering a campaign Area.
+    /// At login or character select (including after a client restart);
+    /// resumes on entering a campaign Area.
     Login,
     /// Entered a Hideout; resumes on entering a campaign Area.
     Hideout,
@@ -292,7 +293,7 @@ impl RunTimer {
         let at = self.clock.instant(record);
         let mut out = Vec::new();
         match &record.event {
-            LogEvent::LogOpened => {
+            LogEvent::LogOpened | LogEvent::LoginServer => {
                 self.each_run(|run| run.pause(PauseReason::Login, at));
             }
             LogEvent::AreaGenerated {
@@ -581,6 +582,18 @@ mod tests {
         s.area("1_1_1", 1).wait(10).restart().wait(300);
         assert_eq!(s.real_s(), 10);
         s.area("1_1_2", 2).wait(5);
+        assert_eq!(s.real_s(), 15);
+    }
+
+    #[test]
+    fn character_select_pauses_until_campaign_area() {
+        let mut s = Script::new();
+        s.area("1_1_1", 1).wait(10);
+        s.line("Async connecting to wdc.login.pathofexile.com:20489")
+            .wait(60);
+        assert_eq!(s.real_s(), 10);
+        assert_eq!(s.run().phase, Phase::Paused(PauseReason::Login));
+        s.area("1_1_1", 1).wait(5);
         assert_eq!(s.real_s(), 15);
     }
 

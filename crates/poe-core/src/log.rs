@@ -33,6 +33,9 @@ pub struct LogRecord {
 pub enum LogEvent {
     /// The game client started (a new session; precedes login).
     LogOpened,
+    /// The client connected to the login server: the player is at login or
+    /// character select, not in an Area.
+    LoginServer,
     /// An Area instance was generated. Precedes [`LogEvent::AreaEntered`] and
     /// is the authoritative Area signal (names are not unique, IDs are).
     AreaGenerated {
@@ -108,6 +111,11 @@ fn parse_message(msg: &str) -> Option<LogEvent> {
             area_id: area_id.to_owned(),
             area_level: level.parse().ok()?,
         });
+    }
+    if let Some(host) = msg.strip_prefix("Async connecting to ")
+        && host.contains("login.")
+    {
+        return Some(LogEvent::LoginServer);
     }
     if let Some(rest) = msg.strip_prefix("Successfully allocated passive skill id: ") {
         let (id, name) = parse_passive(rest)?;
@@ -294,6 +302,16 @@ mod tests {
                 area_name: "The Twilight Strand".into(),
                 seconds: 0.773652
             })
+        );
+    }
+
+    #[test]
+    fn login_server() {
+        assert_eq!(
+            event(
+                "2026/11/18 18:25:30 5374640 890d9dbe [INFO Client 30704] Async connecting to wdc.login.pathofexile.com:20489"
+            ),
+            Some(LogEvent::LoginServer)
         );
     }
 
