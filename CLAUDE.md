@@ -16,3 +16,7 @@ Path of Exile 1 levelling companion: Tauri v2 + SolidJS. See `docs/PLAN.md` for 
 - `pnpm test`: frontend tests
 - `pnpm check`: Biome lint/format + `tsc`
 - `cargo clippy --workspace -- -D warnings` / `cargo fmt --all`
+
+## Branches
+
+- Work happens on `dev` (CI runs there). `main` only gets changes after they have been verified in-game; merge `dev` into `main` once the player confirms.
