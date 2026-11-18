@@ -78,7 +78,7 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
   - [x] Run timer (auto start/split/finish, pauses, load-removed time), PB/Best Possible Time
   - [x] Tailer with resume-from-offset, settings/session/history storage
   - [x] Timer Overlay (click-through, non-activating, follows game window, Interact Mode drag), tray, hotkeys while focused
-  - [ ] Per-Character Profiles
+  - [x] Per-Character Profiles (assume last Character after character select; switch on level up; manual pick)
   - [ ] Verify in-game: overlay over borderless PoE, hotkeys, DPI scaling
 - [ ] **M1.5**: passive tree POC: render export, Calibration over the in-game tree.
 - [ ] **M2**: Guide Overlay, auto-advance, Bandit Choice, Direction Hints.

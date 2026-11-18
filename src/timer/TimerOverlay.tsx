@@ -3,7 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { createSignal, For, onCleanup, Show } from "solid-js";
 import { onEvent } from "../events";
 import { formatDelta, formatDuration } from "../format";
-import type { SplitRow } from "../types";
+import { PAUSE_LABEL, type SplitRow } from "../types";
 import { useTimerView } from "../useTimerView";
 
 export default function TimerOverlay() {
@@ -24,7 +24,7 @@ export default function TimerOverlay() {
 	const statusLabel = () => {
 		const p = view()?.phase;
 		if (!p) return "No run: enter The Twilight Strand";
-		if (p.phase === "paused") return `Paused (${p.reason})`;
+		if (p.phase === "paused") return `Paused (${PAUSE_LABEL[p.reason]})`;
 		if (p.phase === "finished") return "Finished";
 		return view()?.currentAct ? `Act ${view()?.currentAct}` : "";
 	};

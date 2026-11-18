@@ -30,8 +30,14 @@ A named in-game character with a class and level, as reported by the Client Log.
 _Avoid_: toon, char
 
 **Profile**:
-Everything the app keeps for one Character: imported Build, Run Category, Guide progress and Run history.
+Everything the app keeps for one Character: imported Build, Run Category, Guide progress and its current Run.
 _Avoid_: account, save
+
+**Active Character**:
+The Character believed to be played: the last one to level up, or the one the player picked. Only its Run counts.
+
+**Pending Run**:
+A Run started by a fresh Twilight Strand before any Character has claimed it by reaching level 2.
 
 ## Runs and timing
 

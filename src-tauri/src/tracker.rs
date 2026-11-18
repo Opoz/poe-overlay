@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use poe_core::{
     clock::Millis,
+    profile::Profile,
     run::{Command, Run, RunTimer, TimerEvent, TimerSettings},
     tail::LogTail,
     view::TimerView,
@@ -35,9 +36,7 @@ impl Tracker {
             pause_in_hideout: settings.pause_in_hideout,
         });
         timer.category = Some(settings.category.clone());
-        if let Some(run) = session.run.clone() {
-            timer.restore(run);
-        }
+        timer.restore(session.timer.clone());
         // Catch up on anything logged while the app was closed.
         let tail = session
             .log_path
@@ -100,6 +99,19 @@ impl Tracker {
         self.save_session();
     }
 
+    pub fn select_character(&mut self, name: &str) {
+        self.timer.select(name, now_ms());
+        self.save_session();
+    }
+
+    pub fn profiles(&self) -> Vec<Profile> {
+        self.timer.profiles().cloned().collect()
+    }
+
+    pub fn active_character(&self) -> Option<String> {
+        self.timer.active().map(str::to_owned)
+    }
+
     pub fn view(&self) -> TimerView {
         let category = self
             .timer
@@ -139,7 +151,7 @@ impl Tracker {
         self.storage.save_session(&Session {
             log_path: self.log_path(),
             log_offset: offset,
-            run: self.timer.save(now_ms()),
+            timer: self.timer.save(now_ms()),
         });
         self.saved_offset = Some(offset);
     }

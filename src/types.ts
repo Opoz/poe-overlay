@@ -1,6 +1,13 @@
 // Mirrors of the Rust types sent over IPC (crates/poe-core, src-tauri).
 
-export type PauseReason = "manual" | "login" | "hideout";
+export type PauseReason = "manual" | "login" | "hideout" | "otherCharacter";
+
+export const PAUSE_LABEL: Record<PauseReason, string> = {
+	manual: "paused",
+	login: "at login",
+	hideout: "in hideout",
+	otherCharacter: "other character",
+};
 
 export type Phase =
 	| { phase: "running" }
@@ -42,6 +49,19 @@ export interface Run {
 	category: string | null;
 	splits: (SplitTime | null)[];
 	phase: Phase;
+}
+
+export interface Profile {
+	name: string;
+	class: string | null;
+	level: number;
+	lastSeen: number;
+	run: Run | null;
+}
+
+export interface Characters {
+	active: string | null;
+	profiles: Profile[];
 }
 
 export interface OverlayPlacement {

@@ -3,11 +3,20 @@
 //! Driven by Log Records ([`RunTimer::on_record`]) and manual hotkey
 //! [`Command`]s. All times are [`Millis`] on the local wall-clock scale.
 //!
-//! - A Run starts when a level-1 Character's Twilight Strand (`1_1_1`) is generated.
+//! Each Character has a Profile holding its own Run; only the active
+//! Character's Run counts. The Client Log names a Character only when it levels
+//! up, so after character select the previous Character is assumed until a
+//! different one levels up (or the player picks one by hand).
+//!
+//! - A Run starts when a level-1 Twilight Strand (`1_1_1`) is generated. It is
+//!   *pending* until the next level up: to level 2 claims it for that Character;
+//!   any other level means an existing Character walked back, and it is dropped.
 //! - Act N's Split is taken on first reaching act N+1's Town; act 10's on the Epilogue,
 //!   which also finishes the Run.
 //! - Real time counts everything except Pauses. Load-removed time additionally
 //!   subtracts loading screens that happened while the Run was running.
+
+use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
@@ -15,6 +24,7 @@ use crate::{
     area::{ACTS, AreaKind},
     clock::{LogClock, Millis},
     log::{LogEvent, LogRecord},
+    profile::Profile,
 };
 
 const TWILIGHT_STRAND: &str = "1_1_1";
@@ -43,6 +53,8 @@ pub enum PauseReason {
     Login,
     /// Entered a Hideout; resumes on entering a campaign Area.
     Hideout,
+    /// Another Character is being played; resumes when this one is played again.
+    OtherCharacter,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -193,9 +205,12 @@ impl Run {
             (Phase::Running, AreaKind::Hideout) if settings.pause_in_hideout => {
                 self.pause(PauseReason::Hideout, at)
             }
-            (Phase::Paused(PauseReason::Login | PauseReason::Hideout), k) if k.resumes_run() => {
-                self.resume(at)
-            }
+            (
+                Phase::Paused(
+                    PauseReason::Login | PauseReason::Hideout | PauseReason::OtherCharacter,
+                ),
+                k,
+            ) if k.resumes_run() => self.resume(at),
             _ => {}
         }
         let split_act = match kind {
@@ -240,8 +255,30 @@ pub enum TimerEvent {
     },
     /// A finished Run, ready to save to history.
     Finished(Run),
-    /// An unfinished Run that was reset or replaced by a new Character's Run.
+    /// An unfinished Run that was reset, or replaced by a new Run for a reused
+    /// Character name.
     Abandoned(Run),
+}
+
+/// Everything the timer needs to resume in a later app session.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct TimerState {
+    pub profiles: BTreeMap<String, Profile>,
+    /// The Character believed to be played.
+    pub active: Option<String>,
+    /// A Run started by a fresh Twilight Strand, not yet claimed by a Character.
+    pub pending: Option<Run>,
+}
+
+impl TimerState {
+    fn live_mut(&mut self) -> Option<&mut Run> {
+        if self.pending.is_some() {
+            return self.pending.as_mut();
+        }
+        let name = self.active.as_ref()?;
+        self.profiles.get_mut(name)?.run.as_mut()
+    }
 }
 
 #[derive(Debug, Default)]
@@ -250,11 +287,7 @@ pub struct RunTimer {
     /// Run Category given to newly started Runs.
     pub category: Option<String>,
     clock: LogClock,
-    current: Option<Run>,
-    /// A possible new Run, started by a Twilight Strand while another Run is in
-    /// progress. Becomes current if the next level up is to level 2; dropped
-    /// otherwise (an existing Character just walked back there).
-    candidate: Option<Run>,
+    state: TimerState,
 }
 
 impl RunTimer {
@@ -265,28 +298,58 @@ impl RunTimer {
         }
     }
 
-    /// The current (possibly finished) Run.
+    /// The live Run: the pending one, else the active Character's.
     pub fn run(&self) -> Option<&Run> {
-        self.current.as_ref()
+        self.state.pending.as_ref().or_else(|| {
+            let name = self.state.active.as_ref()?;
+            self.state.profiles.get(name)?.run.as_ref()
+        })
     }
 
-    /// The current Run with elapsed time brought up to `now`, ready to persist.
-    pub fn save(&self, now: Millis) -> Option<Run> {
-        let mut run = self.current.clone()?;
-        if run.phase == Phase::Running {
+    fn live(&mut self) -> Option<&mut Run> {
+        self.state.live_mut()
+    }
+
+    pub fn active(&self) -> Option<&str> {
+        self.state.active.as_deref()
+    }
+
+    pub fn profiles(&self) -> impl Iterator<Item = &Profile> {
+        self.state.profiles.values()
+    }
+
+    /// State with the live Run's time brought up to `now`, ready to persist.
+    pub fn save(&self, now: Millis) -> TimerState {
+        let mut state = self.state.clone();
+        if let Some(run) = state.live_mut()
+            && run.phase == Phase::Running
+        {
             run.settle(now);
         }
-        Some(run)
+        state
     }
 
-    /// Resume tracking a Run from [`RunTimer::save`] in a previous app session. A running Run is
-    /// restored as paused for login, since time passed while the app was closed.
-    pub fn restore(&mut self, mut run: Run) {
-        if run.phase == Phase::Running {
+    /// Resume from [`RunTimer::save`]. A running Run comes back paused for
+    /// login, since time passed while the app was closed.
+    pub fn restore(&mut self, state: TimerState) {
+        self.state = state;
+        if let Some(run) = self.live()
+            && run.phase == Phase::Running
+        {
             run.phase = Phase::Paused(PauseReason::Login);
         }
-        self.current = Some(run);
-        self.candidate = None;
+    }
+
+    /// The player says which Character they are playing.
+    pub fn select(&mut self, name: &str, now: Millis) {
+        if !self.state.profiles.contains_key(name) || self.active() == Some(name) {
+            return;
+        }
+        if let Some(run) = self.live() {
+            run.pause(PauseReason::OtherCharacter, now);
+        }
+        self.state.pending = None;
+        self.state.active = Some(name.to_owned());
     }
 
     pub fn on_record(&mut self, record: &LogRecord) -> Vec<TimerEvent> {
@@ -294,7 +357,9 @@ impl RunTimer {
         let mut out = Vec::new();
         match &record.event {
             LogEvent::LogOpened | LogEvent::LoginServer => {
-                self.each_run(|run| run.pause(PauseReason::Login, at));
+                if let Some(run) = self.live() {
+                    run.pause(PauseReason::Login, at);
+                }
             }
             LogEvent::AreaGenerated {
                 area_id,
@@ -305,10 +370,7 @@ impl RunTimer {
                 }
                 let kind = AreaKind::of(area_id);
                 let settings = self.settings;
-                if let Some(c) = &mut self.candidate {
-                    c.on_area(kind, &settings, at);
-                }
-                if let Some(run) = &mut self.current {
+                if let Some(run) = self.live() {
                     out.extend(run.on_area(kind, &settings, at));
                 }
             }
@@ -316,14 +378,14 @@ impl RunTimer {
                 character,
                 class,
                 level,
-            } => out.extend(self.level_up(character, class, *level)),
+            } => out.extend(self.level_up(character, class, *level, at)),
             LogEvent::LoadingScreen { seconds, .. } => {
                 let ms = (seconds * 1000.0).round() as Millis;
-                self.each_run(|run| {
-                    if run.phase == Phase::Running {
-                        run.load_ms += ms;
-                    }
-                });
+                if let Some(run) = self.live()
+                    && run.phase == Phase::Running
+                {
+                    run.load_ms += ms;
+                }
             }
             _ => {}
         }
@@ -334,22 +396,32 @@ impl RunTimer {
         let mut out = Vec::new();
         match command {
             Command::Start => {
-                if self.current.as_ref().is_none_or(Run::is_finished) {
-                    self.current = Some(Run::new(now, self.category.clone()));
-                    self.candidate = None;
+                if self.run().is_none_or(Run::is_finished) {
+                    let run = Run::new(now, self.category.clone());
+                    let active = self.state.active.clone();
+                    match active.and_then(|n| self.state.profiles.get_mut(&n)) {
+                        Some(profile) => profile.run = Some(run),
+                        None => self.state.pending = Some(run),
+                    }
                     out.push(TimerEvent::Started);
                 }
             }
             Command::Reset => {
-                self.candidate = None;
-                if let Some(run) = self.current.take()
+                let run = match self.state.pending.take() {
+                    Some(run) => Some(run),
+                    None => {
+                        let active = self.state.active.clone();
+                        active.and_then(|n| self.state.profiles.get_mut(&n)?.run.take())
+                    }
+                };
+                if let Some(run) = run
                     && !run.is_finished()
                 {
                     out.push(TimerEvent::Abandoned(run));
                 }
             }
             Command::TogglePause => {
-                if let Some(run) = &mut self.current {
+                if let Some(run) = self.live() {
                     match run.phase {
                         Phase::Running => run.pause(PauseReason::Manual, now),
                         Phase::Paused(_) => run.resume(now),
@@ -358,7 +430,7 @@ impl RunTimer {
                 }
             }
             Command::Split => {
-                if let Some(run) = &mut self.current
+                if let Some(run) = self.live()
                     && let Some(act) = run.next_split_act()
                     && run.split(act, now)
                 {
@@ -369,7 +441,7 @@ impl RunTimer {
                 }
             }
             Command::UndoSplit => {
-                if let Some(act) = self.current.as_mut().and_then(Run::undo_split) {
+                if let Some(act) = self.live().and_then(Run::undo_split) {
                     out.push(TimerEvent::SplitUndone { act });
                 }
             }
@@ -377,49 +449,55 @@ impl RunTimer {
         out
     }
 
-    fn each_run(&mut self, mut f: impl FnMut(&mut Run)) {
-        self.current
-            .iter_mut()
-            .chain(self.candidate.iter_mut())
-            .for_each(&mut f);
-    }
-
     fn twilight_strand(&mut self, at: Millis) -> Vec<TimerEvent> {
-        match &self.current {
-            None => {}
-            Some(run) if run.is_finished() => {}
-            // Same fresh Character re-entering before its first level up.
-            Some(run) if run.character.is_none() => return vec![],
-            Some(_) => {
-                self.candidate = Some(Run::new(at, self.category.clone()));
-                return vec![];
-            }
+        if self.state.pending.is_some() {
+            // The same fresh Character re-entering before its first level up.
+            return vec![];
         }
-        self.current = Some(Run::new(at, self.category.clone()));
+        if let Some(run) = self.live() {
+            run.pause(PauseReason::OtherCharacter, at);
+        }
+        self.state.pending = Some(Run::new(at, self.category.clone()));
         vec![TimerEvent::Started]
     }
 
-    fn level_up(&mut self, character: &str, class: &str, level: u32) -> Vec<TimerEvent> {
+    fn level_up(&mut self, name: &str, class: &str, level: u32, at: Millis) -> Vec<TimerEvent> {
         let mut out = Vec::new();
-        if let Some(candidate) = self.candidate.take()
-            && level == 2
+        let claimed = self.state.pending.take().filter(|_| level == 2);
+
+        if self.active() != Some(name)
+            && let Some(run) = self.live()
         {
-            if let Some(old) = self.current.replace(candidate)
+            run.pause(PauseReason::OtherCharacter, at);
+        }
+        self.state.active = Some(name.to_owned());
+
+        let profile = self
+            .state
+            .profiles
+            .entry(name.to_owned())
+            .or_insert_with(|| Profile::new(name));
+        profile.class = Some(class.to_owned());
+        profile.level = level;
+        profile.last_seen = at;
+
+        if let Some(mut run) = claimed {
+            run.character = Some(name.to_owned());
+            run.class = Some(class.to_owned());
+            // A reused name: the old Character's unfinished Run is over.
+            if let Some(old) = profile.run.replace(run)
                 && !old.is_finished()
             {
                 out.push(TimerEvent::Abandoned(old));
             }
-            out.push(TimerEvent::Started);
-        }
-        if let Some(run) = &mut self.current {
-            match &run.character {
-                None => {
-                    run.character = Some(character.to_owned());
-                    run.class = Some(class.to_owned());
-                }
-                // Ascending changes the class name.
-                Some(name) if name == character => run.class = Some(class.to_owned()),
-                Some(_) => {}
+        } else if let Some(run) = &mut profile.run {
+            run.class = Some(class.to_owned());
+            // Levelling up proves this Character is in an Area right now.
+            if matches!(
+                run.phase,
+                Phase::Paused(PauseReason::Login | PauseReason::OtherCharacter)
+            ) {
+                run.resume(at);
             }
         }
         out
@@ -623,39 +701,76 @@ mod tests {
     }
 
     #[test]
-    fn returning_character_does_not_restart_run() {
+    fn returning_character_keeps_its_run() {
         let mut s = Script::new();
-        s.area("1_1_1", 1)
-            .wait(5)
-            .level("Exile", 2)
-            .wait(100)
-            .area("1_2_town", 23);
-        s.wait(10)
-            .area("1_1_1", 1)
-            .wait(10)
-            .level("Exile", 20)
-            .wait(10);
-        assert_eq!(s.real_s(), 135);
+        s.area("1_1_1", 1).wait(5).level("Exile", 2).wait(100);
+        s.area("1_2_town", 23).wait(10);
+        // Walks back to the Twilight Strand: looks like a new Character until
+        // the next level up shows otherwise. That gap is not counted.
+        s.area("1_1_1", 1).wait(10).level("Exile", 20).wait(10);
+        assert_eq!(s.run().character.as_deref(), Some("Exile"));
         assert_eq!(s.split_s(1), Some(105));
-        assert_eq!(
-            s.events
-                .iter()
-                .filter(|e| **e == TimerEvent::Started)
-                .count(),
-            1
-        );
+        assert_eq!(s.real_s(), 125);
+        assert_eq!(s.timer.profiles().count(), 1);
     }
 
     #[test]
-    fn new_character_replaces_unfinished_run() {
+    fn new_character_gets_its_own_run_and_old_one_waits() {
         let mut s = Script::new();
         s.area("1_1_1", 1).wait(5).level("Old", 2).wait(100);
         s.area("1_1_1", 1).wait(20).level("New", 2).wait(10);
         assert_eq!(s.run().character.as_deref(), Some("New"));
         assert_eq!(s.real_s(), 30, "new Run counts from its Twilight Strand");
-        assert!(s.events.iter().any(
-            |e| matches!(e, TimerEvent::Abandoned(r) if r.character.as_deref() == Some("Old"))
-        ));
+        assert!(
+            !s.events
+                .iter()
+                .any(|e| matches!(e, TimerEvent::Abandoned(_)))
+        );
+
+        // Back on the old Character: its Run resumes where it stopped.
+        s.restart().wait(60).area("1_1_2", 2).wait(5);
+        assert_eq!(
+            s.run().character.as_deref(),
+            Some("New"),
+            "assumed until a level up"
+        );
+        s.level("Old", 3).wait(10);
+        assert_eq!(s.timer.active(), Some("Old"));
+        assert_eq!(s.real_s(), 115);
+        let new = s.timer.profiles().find(|p| p.name == "New").unwrap();
+        assert_eq!(
+            new.run.as_ref().unwrap().phase,
+            Phase::Paused(PauseReason::OtherCharacter)
+        );
+    }
+
+    #[test]
+    fn reused_name_abandons_old_run() {
+        let mut s = Script::new();
+        s.area("1_1_1", 1).wait(5).level("Exile", 2).wait(100);
+        s.area("1_1_1", 1).wait(20).level("Exile", 2).wait(10);
+        assert_eq!(s.real_s(), 30);
+        assert!(
+            s.events
+                .iter()
+                .any(|e| matches!(e, TimerEvent::Abandoned(_)))
+        );
+        assert_eq!(s.timer.profiles().count(), 1);
+    }
+
+    #[test]
+    fn manual_select_switches_live_run() {
+        let mut s = Script::new();
+        s.area("1_1_1", 1).wait(5).level("A", 2).wait(10);
+        s.area("1_1_1", 1).wait(5).level("B", 2).wait(10);
+        let now = s.now();
+        s.timer.select("A", now);
+        assert_eq!(s.timer.active(), Some("A"));
+        assert_eq!(s.real_s(), 15, "selected Run stays paused until played");
+        s.area("1_1_2", 2).wait(5);
+        assert_eq!(s.real_s(), 20);
+        s.timer.select("Nobody", now);
+        assert_eq!(s.timer.active(), Some("A"));
     }
 
     #[test]
@@ -693,7 +808,7 @@ mod tests {
     fn restored_running_run_waits_for_campaign_area() {
         let mut s = Script::new();
         s.area("1_1_1", 1).wait(10);
-        let saved = s.timer.save(s.now()).unwrap();
+        let saved = s.timer.save(s.now());
         let mut t = Script::new();
         t.second = 1000;
         t.timer.restore(saved);

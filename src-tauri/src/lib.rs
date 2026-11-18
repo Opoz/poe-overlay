@@ -120,6 +120,28 @@ fn get_history(state: tauri::State<AppState>) -> Vec<Run> {
     state.tracker.lock().unwrap().history().to_vec()
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Characters {
+    active: Option<String>,
+    profiles: Vec<poe_core::profile::Profile>,
+}
+
+#[tauri::command]
+fn get_characters(state: tauri::State<AppState>) -> Characters {
+    let tracker = state.tracker.lock().unwrap();
+    Characters {
+        active: tracker.active_character(),
+        profiles: tracker.profiles(),
+    }
+}
+
+#[tauri::command]
+fn select_character(app: AppHandle, state: tauri::State<AppState>, name: String) {
+    state.tracker.lock().unwrap().select_character(&name);
+    emit_view(&app);
+}
+
 #[tauri::command]
 fn get_interact(state: tauri::State<AppState>) -> bool {
     state.interact.load(Ordering::SeqCst)
@@ -257,6 +279,8 @@ pub fn run() {
             get_history,
             get_interact,
             get_status,
+            get_characters,
+            select_character,
         ])
         .on_window_event(|window, event| {
             // Closing the main window sends it to the tray.

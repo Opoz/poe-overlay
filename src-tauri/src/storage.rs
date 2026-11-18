@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use poe_core::run::Run;
+use poe_core::run::{Run, TimerState};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 pub fn data_dir() -> PathBuf {
@@ -54,7 +54,8 @@ pub struct Session {
     pub log_path: Option<PathBuf>,
     /// Byte offset into `log_path` already processed.
     pub log_offset: u64,
-    pub run: Option<Run>,
+    /// Profiles, the active Character and any pending Run.
+    pub timer: TimerState,
 }
 
 pub struct Storage {
