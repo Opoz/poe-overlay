@@ -1,0 +1,255 @@
+:root {
+	--bg: #121316;
+	--panel: #1b1d22;
+	--line: #2c2f36;
+	--text: #e6e3dc;
+	--muted: #8d8a83;
+	--accent: #c8a45a;
+	--ahead: #4cc38a;
+	--behind: #e5534b;
+	--gold: #f2c94c;
+	color-scheme: dark;
+	font-family: "Segoe UI", system-ui, sans-serif;
+	font-size: 14px;
+	color: var(--text);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+}
+
+/* Overlay windows are transparent; only the panel is drawn. */
+html[data-window="timer"],
+html[data-window="timer"] body {
+	background: transparent;
+	overflow: hidden;
+	user-select: none;
+}
+
+.overlay {
+	margin: 4px;
+	padding: 8px 10px;
+	border-radius: 8px;
+	background: rgb(14 15 18 / 0.82);
+	border: 1px solid transparent;
+	font-variant-numeric: tabular-nums;
+}
+
+.overlay.interact {
+	border: 1px dashed var(--accent);
+	cursor: move;
+}
+
+.timer header {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	font-size: 12px;
+	color: var(--muted);
+}
+
+.timer .hint {
+	color: var(--accent);
+}
+
+.timer .clock {
+	font-size: 30px;
+	font-weight: 600;
+	line-height: 1.1;
+	margin-top: 2px;
+}
+
+.timer[data-phase="paused"] .clock {
+	color: var(--muted);
+}
+
+.timer[data-phase="finished"] .clock {
+	color: var(--ahead);
+}
+
+.timer .clock-sub {
+	font-size: 12px;
+	color: var(--muted);
+	margin-bottom: 6px;
+}
+
+.splits {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.splits li {
+	display: grid;
+	grid-template-columns: 1fr auto 64px;
+	gap: 8px;
+	padding: 1px 4px;
+	border-radius: 4px;
+	color: var(--muted);
+}
+
+.splits li.done {
+	color: var(--text);
+}
+
+.splits li.current {
+	background: rgb(200 164 90 / 0.15);
+	color: var(--text);
+}
+
+.splits .time {
+	text-align: right;
+}
+
+.delta.ahead {
+	color: var(--ahead);
+}
+
+.delta.behind {
+	color: var(--behind);
+}
+
+.delta.gold {
+	color: var(--gold);
+}
+
+.timer .footer {
+	margin-top: 6px;
+	font-size: 12px;
+	color: var(--muted);
+}
+
+/* Main window */
+.main {
+	max-width: 900px;
+	margin: 0 auto;
+	padding: 20px 16px 40px;
+}
+
+.main h1 {
+	font-size: 20px;
+	color: var(--accent);
+	margin: 0 0 16px;
+}
+
+.card {
+	background: var(--panel);
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	padding: 12px 16px;
+	margin-bottom: 12px;
+}
+
+.card h2 {
+	font-size: 13px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--muted);
+	margin: 0 0 8px;
+}
+
+.card p {
+	margin: 4px 0;
+}
+
+.muted {
+	color: var(--muted);
+}
+
+.dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--behind);
+	margin-right: 8px;
+}
+
+.dot.on {
+	background: var(--ahead);
+}
+
+.buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+button {
+	background: #262931;
+	color: var(--text);
+	border: 1px solid var(--line);
+	border-radius: 6px;
+	padding: 6px 10px;
+	font: inherit;
+	cursor: pointer;
+}
+
+button:hover {
+	border-color: var(--accent);
+}
+
+button.danger:hover {
+	border-color: var(--behind);
+}
+
+kbd {
+	font-size: 11px;
+	color: var(--muted);
+	margin-left: 4px;
+}
+
+.form {
+	display: grid;
+	gap: 10px;
+}
+
+.form label {
+	display: grid;
+	gap: 4px;
+	color: var(--muted);
+}
+
+.form label.check {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--text);
+}
+
+.form label.disabled {
+	color: var(--muted);
+}
+
+input:not([type="checkbox"]) {
+	background: #101115;
+	color: var(--text);
+	border: 1px solid var(--line);
+	border-radius: 6px;
+	padding: 6px 8px;
+	font: inherit;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-variant-numeric: tabular-nums;
+}
+
+th,
+td {
+	text-align: left;
+	padding: 4px 8px;
+	border-bottom: 1px solid var(--line);
+}
+
+th {
+	color: var(--muted);
+	font-weight: 500;
+}

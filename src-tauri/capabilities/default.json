@@ -1,7 +1,7 @@
 {
 	"$schema": "../gen/schemas/desktop-schema.json",
 	"identifier": "default",
-	"description": "Capability for the main window",
-	"windows": ["main"],
-	"permissions": ["core:default", "opener:default"]
+	"description": "Main window and Overlays",
+	"windows": ["main", "timer"],
+	"permissions": ["core:default", "core:window:allow-start-dragging"]
 }

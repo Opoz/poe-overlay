@@ -5,3 +5,5 @@ pub mod clock;
 pub mod log;
 pub mod pb;
 pub mod run;
+pub mod tail;
+pub mod view;

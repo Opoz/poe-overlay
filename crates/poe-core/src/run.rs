@@ -269,6 +269,25 @@ impl RunTimer {
         self.current.as_ref()
     }
 
+    /// The current Run with elapsed time brought up to `now`, ready to persist.
+    pub fn save(&self, now: Millis) -> Option<Run> {
+        let mut run = self.current.clone()?;
+        if run.phase == Phase::Running {
+            run.settle(now);
+        }
+        Some(run)
+    }
+
+    /// Resume tracking a Run from [`RunTimer::save`] in a previous app session. A running Run is
+    /// restored as paused for login, since time passed while the app was closed.
+    pub fn restore(&mut self, mut run: Run) {
+        if run.phase == Phase::Running {
+            run.phase = Phase::Paused(PauseReason::Login);
+        }
+        self.current = Some(run);
+        self.candidate = None;
+    }
+
     pub fn on_record(&mut self, record: &LogRecord) -> Vec<TimerEvent> {
         let at = self.clock.instant(record);
         let mut out = Vec::new();
@@ -655,6 +674,20 @@ mod tests {
         s.cmd(Command::UndoSplit).wait(5);
         assert!(!s.run().is_finished());
         assert_eq!(s.real_s(), 125);
+    }
+
+    #[test]
+    fn restored_running_run_waits_for_campaign_area() {
+        let mut s = Script::new();
+        s.area("1_1_1", 1).wait(10);
+        let saved = s.timer.save(s.now()).unwrap();
+        let mut t = Script::new();
+        t.second = 1000;
+        t.timer.restore(saved);
+        t.wait(10);
+        assert_eq!(t.real_s(), 10);
+        t.area("1_1_2", 2).wait(5);
+        assert_eq!(t.real_s(), 15);
     }
 
     #[test]

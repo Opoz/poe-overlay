@@ -15,7 +15,7 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
 - `src/`: SolidJS + TypeScript frontend; renders state only.
 - Game state from the Client Log only ([ADR 0002](adr/0002-client-log-is-the-only-game-state.md)).
 - Overlays are separate click-through windows; borderless game mode required ([ADR 0005](adr/0005-overlays-are-separate-click-through-windows.md)).
-- Storage under `%APPDATA%\poe-overlay`: `settings.toml`, run history / PBs / profiles as JSON.
+- Storage under `%APPDATA%\com.opoz.poe-overlay`: `settings.toml`, run history / PBs / profiles as JSON.
 
 ## Behaviour decisions
 
@@ -74,6 +74,12 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
 ## Milestones
 
 - [ ] **M1**: shell, settings, Client Log tailer + parser, Replay, Area tracking, Character/Profile detection, timer Overlay with splits/PBs.
+  - [x] Client Log parser, Replay, fixture from a real run
+  - [x] Run timer (auto start/split/finish, pauses, load-removed time), PB/Best Possible Time
+  - [x] Tailer with resume-from-offset, settings/session/history storage
+  - [x] Timer Overlay (click-through, non-activating, follows game window, Interact Mode drag), tray, hotkeys while focused
+  - [ ] Per-Character Profiles
+  - [ ] Verify in-game: overlay over borderless PoE, hotkeys, DPI scaling
 - [ ] **M1.5**: passive tree POC: render export, Calibration over the in-game tree.
 - [ ] **M2**: Guide Overlay, auto-advance, Bandit Choice, Direction Hints.
 - [ ] **M3**: PoB import, gem links panel, Quest/Vendor Rewards in Guide, Vendor Regex, full tree Overlay.
