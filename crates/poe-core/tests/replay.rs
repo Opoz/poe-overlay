@@ -100,3 +100,42 @@ fn ticks_are_monotonic_within_the_session() {
     let ticks: Vec<u64> = fixture().iter().filter_map(|r| r.tick_ms).collect();
     assert!(ticks.windows(2).all(|w| w[1] >= w[0]));
 }
+
+#[test]
+fn timer_replays_the_run_through_act_8() {
+    use poe_core::run::{RunTimer, TimerEvent, TimerSettings};
+
+    let mut timer = RunTimer::new(TimerSettings::default());
+    let mut events = Vec::new();
+    for record in fixture() {
+        events.extend(timer.on_record(&record));
+    }
+    let run = timer.run().unwrap();
+    assert_eq!(
+        events.iter().filter(|e| **e == TimerEvent::Started).count(),
+        1
+    );
+    assert_eq!(run.character.as_deref(), Some("TestExile"));
+    assert_eq!(run.class.as_deref(), Some("Necromancer"));
+    assert!(
+        run.splits[..8].iter().all(Option::is_some),
+        "acts 1-8 split"
+    );
+    assert!(
+        run.splits[8..].iter().all(Option::is_none),
+        "act 9 in progress"
+    );
+    assert_eq!(run.current_act(), Some(9));
+
+    let splits: Vec<_> = run.splits.iter().flatten().collect();
+    assert!(splits.windows(2).all(|w| w[1].real_ms > w[0].real_ms));
+    assert!(splits.iter().all(|s| s.load_removed_ms < s.real_ms));
+    for (act, s) in splits.iter().enumerate() {
+        println!(
+            "act {}: real {}s, load-removed {}s",
+            act + 1,
+            s.real_ms / 1000,
+            s.load_removed_ms / 1000
+        );
+    }
+}

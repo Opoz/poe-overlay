@@ -27,8 +27,9 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
 ### Timer
 
 - Auto-start: a new level-1 Character enters The Twilight Strand.
-- Splits on first entry to each act's Town (10 splits); ends on reaching the epilogue (Oriath after Kitava). Optional extra split on first map.
-- Real time only (no load removal). Automatic Pause after login and (optionally) in Hideout; resumes on entering a campaign Area unless manually paused.
+- Act N's Split on first reaching act N+1's Town; act 10's on the Epilogue (Karui Shores, `2_11_endgame_town`), which finishes the Run. Optional extra split on first map.
+- If a Twilight Strand appears while a Run with a known Character is in progress, a candidate Run starts; it replaces the current Run only if the next level up is to level 2.
+- Real Time and Load-Removed Time both tracked (loading screens are in the Client Log); compared independently. Automatic Pause after login and (optionally) in Hideout; resumes on entering a campaign Area unless manually paused.
 - Manual hotkeys: pause, split, undo split, reset.
 - PBs and Best Possible Time per Run Category; every Run saved; Runs tab with table + per-act chart.
 

@@ -36,11 +36,21 @@ _Avoid_: account, save
 ## Runs and timing
 
 **Run**:
-One attempt at the campaign by one Character, from first entering The Twilight Strand to the epilogue.
+One attempt at the campaign by one Character, from its first Twilight Strand to reaching the Epilogue.
 _Avoid_: attempt, session
 
+**Epilogue**:
+Karui Shores, the Town reached after defeating Kitava; reaching it finishes a Run.
+
+**Real Time**:
+Elapsed Run time excluding Pauses.
+
+**Load-Removed Time**:
+Real Time minus loading screens that occurred while the Run was not paused.
+_Avoid_: game time, IGT
+
 **Split**:
-The elapsed time at which a Run reached a milestone, normally first entry into an act's Town.
+The Real and Load-Removed Time at which a Run completed an act: first reaching the next act's Town, or the Epilogue for act 10.
 _Avoid_: lap, checkpoint
 
 **Run Category**:
