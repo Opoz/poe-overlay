@@ -95,20 +95,53 @@ pub fn client_log_path(game: RawHwnd) -> Option<PathBuf> {
         .find(|p| p.exists())
 }
 
-/// Make a window never take focus when clicked and stay out of Alt+Tab, so
-/// the game keeps keyboard focus even while an Overlay is being dragged.
-pub fn make_non_activating(window: RawHwnd) {
+/// Turn a window into an Overlay: layered (so it can be click-through and
+/// faded), never takes focus when clicked, and stays out of Alt+Tab.
+///
+/// Done directly rather than through Tauri: Tauri re-applies its own idea of
+/// the window's state (including "hidden", since we show it without
+/// activating) whenever it changes these styles itself.
+pub fn make_overlay(window: RawHwnd, opacity: f64) {
     use windows::Win32::UI::WindowsAndMessaging::{
-        GWL_EXSTYLE, GetWindowLongPtrW, SetWindowLongPtrW, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW,
+        WS_EX_LAYERED, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT,
+    };
+    update_ex_style(
+        window,
+        WS_EX_LAYERED.0 | WS_EX_NOACTIVATE.0 | WS_EX_TOOLWINDOW.0 | WS_EX_TRANSPARENT.0,
+        0,
+    );
+    set_opacity(window, opacity);
+}
+
+/// Click-through on: the mouse goes to the game underneath.
+pub fn set_click_through(window: RawHwnd, on: bool) {
+    use windows::Win32::UI::WindowsAndMessaging::WS_EX_TRANSPARENT;
+    if on {
+        update_ex_style(window, WS_EX_TRANSPARENT.0, 0);
+    } else {
+        update_ex_style(window, 0, WS_EX_TRANSPARENT.0);
+    }
+}
+
+pub fn set_opacity(window: RawHwnd, opacity: f64) {
+    use windows::Win32::{
+        Foundation::COLORREF,
+        UI::WindowsAndMessaging::{LWA_ALPHA, SetLayeredWindowAttributes},
+    };
+    let alpha = (opacity.clamp(0.1, 1.0) * 255.0).round() as u8;
+    unsafe {
+        let _ = SetLayeredWindowAttributes(hwnd(window), COLORREF(0), alpha, LWA_ALPHA);
+    }
+}
+
+fn update_ex_style(window: RawHwnd, add: u32, remove: u32) {
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GWL_EXSTYLE, GetWindowLongPtrW, SetWindowLongPtrW,
     };
     let h = hwnd(window);
     unsafe {
-        let style = GetWindowLongPtrW(h, GWL_EXSTYLE);
-        SetWindowLongPtrW(
-            h,
-            GWL_EXSTYLE,
-            style | (WS_EX_NOACTIVATE.0 | WS_EX_TOOLWINDOW.0) as isize,
-        );
+        let style = GetWindowLongPtrW(h, GWL_EXSTYLE) as u32;
+        SetWindowLongPtrW(h, GWL_EXSTYLE, ((style | add) & !remove) as isize);
     }
 }
 

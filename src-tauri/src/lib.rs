@@ -269,7 +269,13 @@ pub fn run() {
         })
         .setup(|app| {
             setup_tray(app)?;
-            overlay::create_timer_overlay(app.handle())?;
+            let opacity = app
+                .state::<AppState>()
+                .settings
+                .lock()
+                .unwrap()
+                .overlay_opacity;
+            overlay::create_timer_overlay(app.handle(), opacity)?;
             spawn_tracking_loop(app.handle().clone());
             Ok(())
         })

@@ -14,7 +14,7 @@ use crate::{
 
 pub const TIMER: &str = "timer";
 
-pub fn create_timer_overlay(app: &AppHandle) -> tauri::Result<()> {
+pub fn create_timer_overlay(app: &AppHandle, opacity: f64) -> tauri::Result<()> {
     let window = WebviewWindowBuilder::new(app, TIMER, WebviewUrl::App("index.html".into()))
         .title("poe-overlay timer")
         .inner_size(280.0, 340.0)
@@ -27,20 +27,15 @@ pub fn create_timer_overlay(app: &AppHandle) -> tauri::Result<()> {
         .focused(false)
         .visible(false)
         .build()?;
-    window.set_ignore_cursor_events(true)?;
     if let Some(h) = raw(&window) {
-        platform::make_non_activating(h);
+        platform::make_overlay(h, opacity);
     }
     Ok(())
 }
 
 pub fn set_interact(app: &AppHandle, on: bool) {
-    if let Some(w) = app.get_webview_window(TIMER) {
-        let _ = w.set_ignore_cursor_events(!on);
-        // Changing cursor handling rewrites the window's extended styles.
-        if let Some(h) = raw(&w) {
-            platform::make_non_activating(h);
-        }
+    if let Some(h) = app.get_webview_window(TIMER).as_ref().and_then(raw) {
+        platform::set_click_through(h, !on);
     }
 }
 

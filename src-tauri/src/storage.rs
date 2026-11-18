@@ -42,7 +42,7 @@ impl Default for Settings {
             category: "Default".into(),
             pause_in_hideout: true,
             timer_overlay: OverlayPlacement { x: 0.01, y: 0.25 },
-            overlay_opacity: 0.85,
+            overlay_opacity: 1.0,
         }
     }
 }
