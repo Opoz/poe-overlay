@@ -1,0 +1,954 @@
+2026/11/17 20:54:27 ***** LOG FILE OPENING *****
+2026/11/17 20:55:46 12749281 1186a803 [DEBUG Client 4976] Generating level 1 area "1_1_1" with seed 3205783847
+2026/11/17 20:55:47 12749921 cffb06be [INFO Client 4976] : You have entered The Twilight Strand.
+2026/11/17 20:55:48 12751078 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Twilight Strand) Duration = 1.87185 seconds
+2026/11/17 20:58:14 12897406 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 2
+2026/11/17 20:58:21 12904281 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
+2026/11/17 20:58:22 12905125 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/17 20:58:24 12907468 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 3.26164 seconds
+2026/11/17 21:01:38 13101609 1186a803 [DEBUG Client 4976] Generating level 2 area "1_1_2" with seed 3216074607
+2026/11/17 21:01:39 13102265 cffb06be [INFO Client 4976] : You have entered The Coast.
+2026/11/17 21:01:40 13103546 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Coast) Duration = 2.08844 seconds
+2026/11/17 21:01:42 13104671 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
+2026/11/17 21:01:42 13105468 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/17 21:01:45 13108078 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 3.52453 seconds
+2026/11/17 21:01:47 13110078 1186a803 [DEBUG Client 4976] Generating level 2 area "1_1_2" with seed 3216074607
+2026/11/17 21:01:48 13110781 cffb06be [INFO Client 4976] : You have entered The Coast.
+2026/11/17 21:01:49 13111937 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Coast) Duration = 1.99674 seconds
+2026/11/17 21:01:56 13119156 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: spell_damage721, name: Spell Damage and Mana
+2026/11/17 21:05:39 13342593 1186a803 [DEBUG Client 4976] Generating level 3 area "1_1_2a" with seed 1262844387
+2026/11/17 21:05:40 13343156 cffb06be [INFO Client 4976] : You have entered The Tidal Island.
+2026/11/17 21:05:40 13343296 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Tidal Island) Duration = 0.831122 seconds
+2026/11/17 21:05:54 13356812 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 3
+2026/11/17 21:05:58 13360781 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: intelligence922, name: Intelligence
+2026/11/17 21:07:37 13460203 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
+2026/11/17 21:07:38 13460796 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/17 21:07:38 13460890 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 0.803653 seconds
+2026/11/17 21:09:34 13576906 1186a803 [DEBUG Client 4976] Generating level 2 area "1_1_2" with seed 3216074607
+2026/11/17 21:09:35 13577703 cffb06be [INFO Client 4976] : You have entered The Coast.
+2026/11/17 21:09:35 13577781 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Coast) Duration = 1.18291 seconds
+2026/11/17 21:09:40 13582921 1186a803 [DEBUG Client 4976] Generating level 4 area "1_1_3" with seed 4165576159
+2026/11/17 21:09:40 13583484 cffb06be [INFO Client 4976] : You have entered The Mud Flats.
+2026/11/17 21:09:40 13583578 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Mud Flats) Duration = 0.735317 seconds
+2026/11/17 21:09:51 13594140 1186a803 [DEBUG Client 4976] Generating level 2 area "1_1_2" with seed 3216074607
+2026/11/17 21:09:52 13594703 cffb06be [INFO Client 4976] : You have entered The Coast.
+2026/11/17 21:09:52 13594765 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Coast) Duration = 0.74765 seconds
+2026/11/17 21:11:36 13698656 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 4
+2026/11/17 21:11:50 13712843 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: intelligence920, name: Intelligence
+2026/11/17 21:12:16 13739187 1186a803 [DEBUG Client 4976] Generating level 4 area "1_1_3" with seed 4165576159
+2026/11/17 21:12:16 13739578 cffb06be [INFO Client 4976] : You have entered The Mud Flats.
+2026/11/17 21:12:16 13739609 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Mud Flats) Duration = 0.469192 seconds
+2026/11/17 21:13:56 13839609 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 5
+2026/11/17 21:14:20 13863421 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: intelligence918, name: Intelligence
+2026/11/17 21:15:51 13954218 1186a803 [DEBUG Client 4976] Generating level 5 area "1_1_4_1" with seed 42657313
+2026/11/17 21:15:52 13954687 cffb06be [INFO Client 4976] : You have entered The Submerged Passage.
+2026/11/17 21:15:52 13954796 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Submerged Passage) Duration = 0.719468 seconds
+2026/11/17 21:16:16 13979531 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
+2026/11/17 21:16:17 13980234 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/17 21:16:19 13982609 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 3.24806 seconds
+2026/11/17 21:18:07 14090093 1186a803 [DEBUG Client 4976] Generating level 5 area "1_1_4_1" with seed 42657313
+2026/11/17 21:18:07 14090562 cffb06be [INFO Client 4976] : You have entered The Submerged Passage.
+2026/11/17 21:18:08 14090656 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Submerged Passage) Duration = 0.682073 seconds
+2026/11/17 21:18:50 14133593 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 6
+2026/11/17 21:18:57 14139703 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: strength828, name: Strength
+2026/11/17 21:19:49 14191734 1186a803 [DEBUG Client 4976] Generating level 6 area "1_1_4_0" with seed 3618992459
+2026/11/17 21:19:49 14192312 cffb06be [INFO Client 4976] : You have entered The Flooded Depths.
+2026/11/17 21:19:49 14192343 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Flooded Depths) Duration = 0.98101 seconds
+2026/11/17 21:21:39 14302187 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 7
+2026/11/17 21:21:42 14305218 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: minion_duration2624_, name: Minion Damage and Duration
+2026/11/17 21:22:33 14355921 1186a803 [DEBUG Client 4976] Generating level 5 area "1_1_4_1" with seed 42657313
+2026/11/17 21:22:33 14356578 cffb06be [INFO Client 4976] : You have entered The Submerged Passage.
+2026/11/17 21:22:34 14356718 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Submerged Passage) Duration = 0.914596 seconds
+2026/11/17 21:22:49 14371843 1186a803 [DEBUG Client 4976] Generating level 6 area "1_1_5" with seed 480926147
+2026/11/17 21:22:49 14372515 cffb06be [INFO Client 4976] : You have entered The Ledge.
+2026/11/17 21:22:50 14372640 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ledge) Duration = 0.905324 seconds
+2026/11/17 21:24:46 14489328 cffb06be [INFO Client 4976] : TestExile has been slain.
+2026/11/17 21:25:44 14547250 1186a803 [DEBUG Client 4976] Generating level 7 area "1_1_6" with seed 1755399587
+2026/11/17 21:25:45 14547921 cffb06be [INFO Client 4976] : You have entered The Climb.
+2026/11/17 21:25:45 14548171 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Climb) Duration = 1.03033 seconds
+2026/11/17 21:26:11 14574359 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 8
+2026/11/17 21:26:14 14577296 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: minion_duration2625, name: Minion Damage and Duration
+2026/11/17 21:27:32 14655593 1186a803 [DEBUG Client 4976] Generating level 8 area "1_1_7_1" with seed 1951229027
+2026/11/17 21:27:33 14655984 cffb06be [INFO Client 4976] : You have entered The Lower Prison.
+2026/11/17 21:27:33 14656093 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Lower Prison) Duration = 0.566558 seconds
+2026/11/17 21:27:45 14668328 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
+2026/11/17 21:27:46 14669078 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/17 21:27:49 14672218 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 4.01363 seconds
+2026/11/17 21:29:07 14749828 1186a803 [DEBUG Client 4976] Generating level 8 area "1_1_7_1" with seed 1951229027
+2026/11/17 21:29:07 14750203 cffb06be [INFO Client 4976] : You have entered The Lower Prison.
+2026/11/17 21:29:07 14750265 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Lower Prison) Duration = 0.495164 seconds
+2026/11/17 21:29:20 14763609 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: minion_duration_notable2626, name: Enduring Bond
+2026/11/17 21:31:48 14911328 1186a803 [DEBUG Client 4976] Generating level 9 area "1_1_7_2" with seed 848448104
+2026/11/17 21:31:49 14911890 cffb06be [INFO Client 4976] : You have entered The Upper Prison.
+2026/11/17 21:31:49 14911953 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Upper Prison) Duration = 0.765526 seconds
+2026/11/17 21:31:53 14915718 1186a803 [DEBUG Client 4976] Generating level 8 area "1_1_7_1" with seed 1951229027
+2026/11/17 21:31:53 14916125 cffb06be [INFO Client 4976] : You have entered The Lower Prison.
+2026/11/17 21:31:53 14916171 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Lower Prison) Duration = 0.502519 seconds
+2026/11/17 21:33:16 14999437 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 9
+2026/11/17 21:36:35 15198531 1186a803 [DEBUG Client 4976] Generating level 9 area "1_1_7_2" with seed 848448104
+2026/11/17 21:36:36 15199203 cffb06be [INFO Client 4976] : You have entered The Upper Prison.
+2026/11/17 21:36:36 15199328 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Upper Prison) Duration = 0.922953 seconds
+2026/11/17 21:38:46 15329093 cffb06be [INFO Client 4976] : TestExile has been slain.
+2026/11/17 21:41:24 15487500 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
+2026/11/17 21:41:25 15488218 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/17 21:41:30 15492796 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 5.44024 seconds
+2026/11/17 21:43:10 15593546 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutCourts" with seed 1
+2026/11/17 21:43:11 15594281 cffb06be [INFO Client 4976] : You have entered Stately Hideout.
+2026/11/17 21:43:12 15595218 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Stately Hideout) Duration = 1.80797 seconds
+2026/11/17 21:43:18 15601375 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
+2026/11/17 21:43:19 15602390 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/17 21:43:21 15604500 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 3.34055 seconds
+2026/11/17 21:44:27 15669703 1186a803 [DEBUG Client 4976] Generating level 10 area "1_1_8" with seed 1857716861
+2026/11/17 21:44:27 15670234 cffb06be [INFO Client 4976] : You have entered Prisoner's Gate.
+2026/11/17 21:44:27 15670312 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Prisoner's Gate) Duration = 0.732184 seconds
+2026/11/17 21:45:25 15727656 1186a803 [DEBUG Client 4976] Generating level 11 area "1_1_9" with seed 806425412
+2026/11/17 21:45:25 15728312 cffb06be [INFO Client 4976] : You have entered The Ship Graveyard.
+2026/11/17 21:45:26 15728937 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ship Graveyard) Duration = 1.45035 seconds
+2026/11/17 21:46:17 15780062 1186a803 [DEBUG Client 4976] Generating level 12 area "1_1_9a" with seed 685438353
+2026/11/17 21:46:17 15780515 cffb06be [INFO Client 4976] : You have entered The Ship Graveyard Cave.
+2026/11/17 21:46:18 15780843 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ship Graveyard Cave) Duration = 0.881976 seconds
+2026/11/17 21:46:50 15813000 1186a803 [DEBUG Client 4976] Generating level 11 area "1_1_9" with seed 806425412
+2026/11/17 21:46:50 15813562 cffb06be [INFO Client 4976] : You have entered The Ship Graveyard.
+2026/11/17 21:46:51 15813640 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ship Graveyard) Duration = 0.756156 seconds
+2026/11/17 21:48:22 15904859 1186a803 [DEBUG Client 4976] Generating level 12 area "1_1_11_1" with seed 2835220306
+2026/11/17 21:48:22 15905312 cffb06be [INFO Client 4976] : You have entered The Cavern of Wrath.
+2026/11/17 21:48:22 15905359 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Cavern of Wrath) Duration = 0.601653 seconds
+2026/11/17 21:48:27 15910406 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
+2026/11/17 21:48:28 15911093 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/17 21:48:31 15913765 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 3.46111 seconds
+2026/11/17 21:50:15 16018484 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: savant901, name: Arcanist's Dominion
+2026/11/17 22:00:44 16647343 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutSewer" with seed 1
+2026/11/17 22:00:46 16648812 cffb06be [INFO Client 4976] : You have entered Undercity Hideout.
+2026/11/17 22:00:47 16649765 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Undercity Hideout) Duration = 2.95328 seconds
+2026/11/17 22:01:07 16670078 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutCourts" with seed 1
+2026/11/17 22:01:08 16671062 cffb06be [INFO Client 4976] : You have entered Stately Hideout.
+2026/11/17 22:01:08 16671156 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Stately Hideout) Duration = 1.25108 seconds
+2026/11/17 22:04:07 16850250 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutCourts" with seed 1
+2026/11/17 22:04:09 16851656 cffb06be [INFO Client 4976] : You have entered Stately Hideout.
+2026/11/17 22:04:10 16852812 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Stately Hideout) Duration = 3.68128 seconds
+2026/11/17 22:05:19 16922312 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutCourts" with seed 1
+2026/11/17 22:05:20 16923031 cffb06be [INFO Client 4976] : You have entered Stately Hideout.
+2026/11/17 22:05:20 16923500 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Stately Hideout) Duration = 1.277 seconds
+2026/11/17 22:05:34 16936875 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutCourts" with seed 1
+2026/11/17 22:05:34 16937437 cffb06be [INFO Client 4976] : You have entered Stately Hideout.
+2026/11/17 22:05:34 16937515 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Stately Hideout) Duration = 0.747748 seconds
+2026/11/17 22:20:23 17825718 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutCourts" with seed 1
+2026/11/17 22:20:24 17826671 cffb06be [INFO Client 4976] : You have entered Stately Hideout.
+2026/11/17 22:20:24 17827218 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Stately Hideout) Duration = 1.61935 seconds
+2026/11/17 22:21:46 17909437 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutCourts" with seed 1
+2026/11/17 22:21:47 17910265 cffb06be [INFO Client 4976] : You have entered Stately Hideout.
+2026/11/17 22:21:47 17910328 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Stately Hideout) Duration = 0.980612 seconds
+2026/11/17 22:22:27 17950406 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
+2026/11/17 22:22:28 17950984 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/17 22:22:28 17951156 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 0.84219 seconds
+2026/11/17 22:25:35 18137687 1186a803 [DEBUG Client 4976] Generating level 12 area "1_1_11_1" with seed 1771863722
+2026/11/17 22:25:35 18138171 cffb06be [INFO Client 4976] : You have entered The Cavern of Wrath.
+2026/11/17 22:25:35 18138218 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Cavern of Wrath) Duration = 0.634724 seconds
+2026/11/17 22:25:55 18157828 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 10
+2026/11/17 22:26:22 18184750 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_11_2" with seed 985667316
+2026/11/17 22:26:22 18185203 cffb06be [INFO Client 4976] : You have entered The Cavern of Anger.
+2026/11/17 22:26:22 18185281 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Cavern of Anger) Duration = 0.658305 seconds
+2026/11/17 22:26:31 18193640 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: minion_damage285, name: Minion Damage
+2026/11/17 22:28:22 18305296 1186a803 [DEBUG Client 4976] Generating level 13 area "1_2_1" with seed 1021095125
+2026/11/17 22:28:23 18305796 cffb06be [INFO Client 4976] : You have entered The Southern Forest.
+2026/11/17 22:28:23 18306046 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Southern Forest) Duration = 0.848389 seconds
+2026/11/17 22:28:43 18326468 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_town" with seed 1
+2026/11/17 22:28:44 18327046 cffb06be [INFO Client 4976] : You have entered The Forest Encampment.
+2026/11/17 22:28:45 18328328 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Forest Encampment) Duration = 1.98952 seconds
+2026/11/17 22:28:55 18338312 1186a803 [DEBUG Client 4976] Generating level 14 area "1_2_2" with seed 1386502702
+2026/11/17 22:28:56 18338796 cffb06be [INFO Client 4976] : You have entered The Old Fields.
+2026/11/17 22:28:56 18339000 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Old Fields) Duration = 0.795856 seconds
+2026/11/17 22:29:05 18348609 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 11
+2026/11/17 22:29:29 18371890 1186a803 [DEBUG Client 4976] Generating level 15 area "1_2_3" with seed 2503493203
+2026/11/17 22:29:29 18372531 cffb06be [INFO Client 4976] : You have entered The Crossroads.
+2026/11/17 22:29:30 18372671 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crossroads) Duration = 0.906534 seconds
+2026/11/17 22:29:33 18376203 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: lord_of_the_dead1122, name: Lord of the Dead
+2026/11/17 22:30:08 18411046 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 12
+2026/11/17 22:30:22 18424906 1186a803 [DEBUG Client 4976] Generating level 15 area "1_2_6_1" with seed 3758450957
+2026/11/17 22:30:22 18425328 cffb06be [INFO Client 4976] : You have entered The Chamber of Sins Level 1.
+2026/11/17 22:30:22 18425390 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Chamber of Sins Level 1) Duration = 0.58806 seconds
+2026/11/17 22:30:24 18427031 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: life_mana1639, name: Mana and Life
+2026/11/17 22:31:24 18487343 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_town" with seed 1
+2026/11/17 22:31:25 18487906 cffb06be [INFO Client 4976] : You have entered The Forest Encampment.
+2026/11/17 22:31:25 18488062 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Forest Encampment) Duration = 0.815125 seconds
+2026/11/17 22:31:39 18502234 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
+2026/11/17 22:31:40 18502671 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/17 22:31:40 18502765 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 0.620786 seconds
+2026/11/17 22:33:09 18591750 1186a803 [DEBUG Client 4976] Generating level 15 area "1_2_6_1" with seed 3758450957
+2026/11/17 22:33:09 18592171 cffb06be [INFO Client 4976] : You have entered The Chamber of Sins Level 1.
+2026/11/17 22:33:09 18592265 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Chamber of Sins Level 1) Duration = 0.63281 seconds
+2026/11/17 22:33:28 18610734 1186a803 [DEBUG Client 4976] Generating level 16 area "1_2_6_2" with seed 3015499539
+2026/11/17 22:33:28 18611281 cffb06be [INFO Client 4976] : You have entered The Chamber of Sins Level 2.
+2026/11/17 22:33:28 18611531 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Chamber of Sins Level 2) Duration = 0.910137 seconds
+2026/11/17 22:33:46 18628812 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 13
+2026/11/17 22:36:05 18768171 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
+2026/11/17 22:36:06 18769078 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/17 22:36:08 18770843 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 2.78785 seconds
+2026/11/17 22:36:21 18783984 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: life_mana_notable1638, name: Heart and Soul
+2026/11/17 22:36:31 18794015 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_town" with seed 1
+2026/11/17 22:36:31 18794390 cffb06be [INFO Client 4976] : You have entered The Forest Encampment.
+2026/11/17 22:36:31 18794531 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Forest Encampment) Duration = 0.632466 seconds
+2026/11/17 22:36:48 18811468 1186a803 [DEBUG Client 4976] Generating level 15 area "1_2_7" with seed 59923299
+2026/11/17 22:36:49 18812343 cffb06be [INFO Client 4976] : You have entered The Riverways.
+2026/11/17 22:36:49 18812578 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Riverways) Duration = 1.25872 seconds
+2026/11/17 22:37:00 18823015 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 14
+2026/11/17 22:37:23 18845953 cffb06be [INFO Client 4976] : TestExile has been slain.
+2026/11/17 22:37:30 18853109 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: stun_ignore1680, name: Avoid Interruption while Casting and Elemental Resistances
+2026/11/17 22:38:07 18889656 1186a803 [DEBUG Client 4976] Generating level 17 area "1_2_9" with seed 3498720565
+2026/11/17 22:38:07 18890375 cffb06be [INFO Client 4976] : You have entered The Western Forest.
+2026/11/17 22:38:08 18890687 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Western Forest) Duration = 1.18417 seconds
+2026/11/17 22:38:21 18904250 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 15
+2026/11/17 22:38:24 18907171 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: stun_ignore_str_dex1678, name: Practical Application
+2026/11/17 22:38:49 18931703 1186a803 [DEBUG Client 4976] Generating level 18 area "1_2_10" with seed 909789154
+2026/11/17 22:38:49 18932078 cffb06be [INFO Client 4976] : You have entered The Weaver's Chambers.
+2026/11/17 22:38:49 18932156 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Weaver's Chambers) Duration = 0.560075 seconds
+2026/11/17 22:39:39 18981796 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 16
+2026/11/17 22:39:43 18985843 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: intelligence882, name: Intelligence
+2026/11/17 22:41:36 19099093 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_town" with seed 1
+2026/11/17 22:41:37 19099953 cffb06be [INFO Client 4976] : You have entered The Forest Encampment.
+2026/11/17 22:41:39 19101937 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Forest Encampment) Duration = 2.97279 seconds
+2026/11/17 22:43:23 19206078 1186a803 [DEBUG Client 4976] Generating level 15 area "1_2_3" with seed 2503493203
+2026/11/17 22:43:24 19206703 cffb06be [INFO Client 4976] : You have entered The Crossroads.
+2026/11/17 22:43:24 19206781 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crossroads) Duration = 0.827508 seconds
+2026/11/17 22:44:27 19269687 1186a803 [DEBUG Client 4976] Generating level 16 area "1_2_4" with seed 2205882464
+2026/11/17 22:44:27 19270437 cffb06be [INFO Client 4976] : You have entered The Broken Bridge.
+2026/11/17 22:44:27 19270609 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Broken Bridge) Duration = 1.09327 seconds
+2026/11/17 22:44:29 19272562 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 17
+2026/11/17 22:44:38 19281250 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: dexterity869, name: Dexterity
+2026/11/17 22:45:48 19351609 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_town" with seed 1
+2026/11/17 22:45:49 19352312 cffb06be [INFO Client 4976] : You have entered The Forest Encampment.
+2026/11/17 22:45:51 19353703 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Forest Encampment) Duration = 2.2098 seconds
+2026/11/17 22:46:23 19385890 1186a803 [DEBUG Client 4976] Generating level 15 area "1_2_7" with seed 1930513357
+2026/11/17 22:46:24 19386656 cffb06be [INFO Client 4976] : You have entered The Riverways.
+2026/11/17 22:46:24 19386765 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Riverways) Duration = 1.00804 seconds
+2026/11/17 22:46:31 19394328 1186a803 [DEBUG Client 4976] Generating level 19 area "1_2_12" with seed 3293294476
+2026/11/17 22:46:32 19394828 cffb06be [INFO Client 4976] : You have entered The Wetlands.
+2026/11/17 22:46:32 19394906 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Wetlands) Duration = 0.722286 seconds
+2026/11/17 22:47:25 19447656 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 18
+2026/11/17 22:47:42 19465250 1186a803 [DEBUG Client 4976] Generating level 17 area "1_2_9" with seed 3387408229
+2026/11/17 22:47:43 19465953 cffb06be [INFO Client 4976] : You have entered The Western Forest.
+2026/11/17 22:47:43 19466093 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Western Forest) Duration = 0.971891 seconds
+2026/11/17 22:49:26 19569421 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_town" with seed 1
+2026/11/17 22:49:27 19570125 cffb06be [INFO Client 4976] : You have entered The Forest Encampment.
+2026/11/17 22:49:27 19570437 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Forest Encampment) Duration = 1.13573 seconds
+2026/11/17 22:49:38 19581515 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
+2026/11/17 22:49:39 19582062 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/17 22:49:39 19582593 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 1.20418 seconds
+2026/11/17 22:50:00 19602640 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: intelligence885, name: Intelligence
+2026/11/17 22:50:00 19603218 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: minion_damage1152, name: Minion Life
+2026/11/17 22:50:01 19603890 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: minion_life1124, name: Minion Life
+2026/11/17 22:50:05 19608281 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_town" with seed 1
+2026/11/17 22:50:06 19608765 cffb06be [INFO Client 4976] : You have entered The Forest Encampment.
+2026/11/17 22:50:06 19608937 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Forest Encampment) Duration = 0.750583 seconds
+2026/11/17 22:50:14 19617171 1186a803 [DEBUG Client 4976] Generating level 15 area "1_2_3" with seed 2503493203
+2026/11/17 22:50:15 19617890 cffb06be [INFO Client 4976] : You have entered The Crossroads.
+2026/11/17 22:50:15 19618234 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crossroads) Duration = 1.17404 seconds
+2026/11/17 22:50:24 19627390 1186a803 [DEBUG Client 4976] Generating level 16 area "1_2_15" with seed 3099482123
+2026/11/17 22:50:25 19628171 cffb06be [INFO Client 4976] : You have entered The Fellshrine Ruins.
+2026/11/17 22:50:25 19628250 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Fellshrine Ruins) Duration = 1.00054 seconds
+2026/11/17 22:51:02 19665437 1186a803 [DEBUG Client 4976] Generating level 17 area "1_2_5_1" with seed 516454557
+2026/11/17 22:51:03 19665843 cffb06be [INFO Client 4976] : You have entered The Crypt Level 1.
+2026/11/17 22:51:03 19665906 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crypt Level 1) Duration = 0.578207 seconds
+2026/11/17 22:52:01 19724375 1186a803 [DEBUG Client 4976] Generating level 18 area "1_2_5_2" with seed 891697398
+2026/11/17 22:52:02 19724859 cffb06be [INFO Client 4976] : You have entered The Crypt Level 2.
+2026/11/17 22:52:02 19724921 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crypt Level 2) Duration = 0.687167 seconds
+2026/11/17 22:52:07 19730171 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 19
+2026/11/17 22:52:10 19733421 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: additional_minions1150, name: Sacrifice
+2026/11/17 22:53:01 19784500 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_town" with seed 1
+2026/11/17 22:53:02 19785125 cffb06be [INFO Client 4976] : You have entered The Forest Encampment.
+2026/11/17 22:53:03 19785890 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Forest Encampment) Duration = 1.4926 seconds
+2026/11/17 22:53:13 19796609 1186a803 [DEBUG Client 4976] Generating level 19 area "1_2_12" with seed 3293294476
+2026/11/17 22:53:14 19797203 cffb06be [INFO Client 4976] : You have entered The Wetlands.
+2026/11/17 22:53:14 19797296 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Wetlands) Duration = 0.793108 seconds
+2026/11/17 22:53:18 19801593 1186a803 [DEBUG Client 4976] Generating level 20 area "1_2_11" with seed 482911678
+2026/11/17 22:53:19 19802109 cffb06be [INFO Client 4976] : You have entered The Vaal Ruins.
+2026/11/17 22:53:19 19802234 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Vaal Ruins) Duration = 0.783257 seconds
+2026/11/17 22:53:27 19809765 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: minion_damage769, name: Minion Attack and Cast Speed
+2026/11/17 22:54:18 19861031 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 20
+2026/11/17 22:54:24 19867218 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: player_and_minion_notable2237, name: Spiritual Command
+2026/11/17 22:55:20 19922875 1186a803 [DEBUG Client 4976] Generating level 21 area "1_2_8" with seed 309231599
+2026/11/17 22:55:21 19923625 cffb06be [INFO Client 4976] : You have entered The Northern Forest.
+2026/11/17 22:55:21 19923734 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Northern Forest) Duration = 0.95605 seconds
+2026/11/17 22:56:23 19986500 1186a803 [DEBUG Client 4976] Generating level 22 area "1_2_14_2" with seed 2541307567
+2026/11/17 22:56:24 19987218 cffb06be [INFO Client 4976] : You have entered The Caverns.
+2026/11/17 22:56:24 19987312 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Caverns) Duration = 0.923849 seconds
+2026/11/17 22:56:55 20018328 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 21
+2026/11/17 22:57:33 20056296 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_14_3" with seed 4171621163
+2026/11/17 22:57:34 20056750 cffb06be [INFO Client 4976] : You have entered The Ancient Pyramid.
+2026/11/17 22:57:34 20056796 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ancient Pyramid) Duration = 0.616902 seconds
+2026/11/17 23:00:15 20218593 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_town" with seed 1
+2026/11/17 23:00:16 20219296 cffb06be [INFO Client 4976] : You have entered The Forest Encampment.
+2026/11/17 23:00:17 20219625 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Forest Encampment) Duration = 1.13686 seconds
+2026/11/17 23:00:20 20223531 1186a803 [DEBUG Client 4976] Generating level 23 area "1_3_1" with seed 2119351360
+2026/11/17 23:00:21 20223984 cffb06be [INFO Client 4976] : You have entered The City of Sarn.
+2026/11/17 23:00:21 20224187 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The City of Sarn) Duration = 0.778558 seconds
+2026/11/17 23:01:03 20266296 1186a803 [DEBUG Client 4976] Generating level 33 area "1_3_town" with seed 1
+2026/11/17 23:01:04 20267281 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/17 23:01:09 20271625 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 5.50198 seconds
+2026/11/17 23:01:56 20319546 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_town" with seed 1
+2026/11/17 23:01:57 20319984 cffb06be [INFO Client 4976] : You have entered The Forest Encampment.
+2026/11/17 23:01:57 20320484 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Forest Encampment) Duration = 1.08375 seconds
+2026/11/17 23:03:20 20403593 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
+2026/11/17 23:03:21 20404265 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/17 23:03:23 20406109 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 2.65216 seconds
+2026/11/17 23:04:00 20443562 1186a803 [DEBUG Client 4976] Generating level 23 area "1_3_1" with seed 2119351360
+2026/11/17 23:04:01 20444015 cffb06be [INFO Client 4976] : You have entered The City of Sarn.
+2026/11/17 23:04:01 20444203 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The City of Sarn) Duration = 0.751992 seconds
+2026/11/17 23:04:03 20446109 1186a803 [DEBUG Client 4976] Generating level 33 area "1_3_town" with seed 1
+2026/11/17 23:04:04 20447078 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/17 23:04:06 20449234 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 3.27873 seconds
+2026/11/17 23:04:21 20463828 1186a803 [DEBUG Client 4976] Generating level 24 area "1_3_2" with seed 759252976
+2026/11/17 23:04:21 20464390 cffb06be [INFO Client 4976] : You have entered The Slums.
+2026/11/17 23:04:21 20464453 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Slums) Duration = 0.740567 seconds
+2026/11/17 23:04:35 20477656 1186a803 [DEBUG Client 4976] Generating level 33 area "1_3_town" with seed 1
+2026/11/17 23:04:35 20478578 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/17 23:04:36 20478625 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 1.14434 seconds
+2026/11/17 23:04:44 20487062 1186a803 [DEBUG Client 4976] Generating level 24 area "1_3_2" with seed 759252976
+2026/11/17 23:04:45 20487625 cffb06be [INFO Client 4976] : You have entered The Slums.
+2026/11/17 23:04:45 20487671 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Slums) Duration = 0.737615 seconds
+2026/11/17 23:05:24 20527234 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 22
+2026/11/17 23:05:29 20532109 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: spellcaster_notable1873, name: Retribution
+2026/11/17 23:06:04 20566703 1186a803 [DEBUG Client 4976] Generating level 25 area "1_3_3_1" with seed 598255579
+2026/11/17 23:06:04 20567234 cffb06be [INFO Client 4976] : You have entered The Crematorium.
+2026/11/17 23:06:04 20567359 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crematorium) Duration = 0.811032 seconds
+2026/11/17 23:07:13 20636109 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 23
+2026/11/17 23:07:31 20654187 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: life1407, name: Life
+2026/11/17 23:07:58 20681031 1186a803 [DEBUG Client 4976] Generating level 33 area "1_3_town" with seed 1
+2026/11/17 23:07:59 20682171 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/17 23:08:03 20686296 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 5.37156 seconds
+2026/11/17 23:08:39 20722484 1186a803 [DEBUG Client 4976] Generating level 24 area "1_3_2" with seed 759252976
+2026/11/17 23:08:40 20723062 cffb06be [INFO Client 4976] : You have entered The Slums.
+2026/11/17 23:08:40 20723218 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Slums) Duration = 0.847183 seconds
+2026/11/17 23:08:54 20737109 1186a803 [DEBUG Client 4976] Generating level 26 area "1_3_10_1" with seed 2565785750
+2026/11/17 23:08:55 20738000 cffb06be [INFO Client 4976] : You have entered The Sewers.
+2026/11/17 23:08:55 20738250 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sewers) Duration = 1.31078 seconds
+2026/11/17 23:12:49 20972484 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 24
+2026/11/17 23:13:01 20983703 1186a803 [DEBUG Client 4976] Generating level 26 area "1_3_5" with seed 3647926343
+2026/11/17 23:13:01 20984390 cffb06be [INFO Client 4976] : You have entered The Marketplace.
+2026/11/17 23:13:01 20984562 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Marketplace) Duration = 0.995335 seconds
+2026/11/17 23:13:08 20991234 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: discipline_and_training1194, name: Discipline and Training
+2026/11/17 23:13:45 21028312 1186a803 [DEBUG Client 4976] Generating level 33 area "1_3_town" with seed 1
+2026/11/17 23:13:46 21029328 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/17 23:13:48 21031484 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 3.28302 seconds
+2026/11/17 23:15:22 21124937 1186a803 [DEBUG Client 4976] Generating level 26 area "1_3_5" with seed 3647926343
+2026/11/17 23:15:23 21125656 cffb06be [INFO Client 4976] : You have entered The Marketplace.
+2026/11/17 23:15:23 21125781 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Marketplace) Duration = 0.986981 seconds
+2026/11/17 23:15:28 21131015 1186a803 [DEBUG Client 4976] Generating level 27 area "1_3_6" with seed 3570728221
+2026/11/17 23:15:29 21131656 cffb06be [INFO Client 4976] : You have entered The Catacombs.
+2026/11/17 23:15:29 21131718 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Catacombs) Duration = 0.857581 seconds
+2026/11/17 23:17:19 21242156 1186a803 [DEBUG Client 4976] Generating level 33 area "1_3_town" with seed 1
+2026/11/17 23:17:20 21243156 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/17 23:17:21 21244093 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 2.04049 seconds
+2026/11/17 23:17:35 21258390 1186a803 [DEBUG Client 4976] Generating level 26 area "1_3_5" with seed 3647926343
+2026/11/17 23:17:36 21258968 cffb06be [INFO Client 4976] : You have entered The Marketplace.
+2026/11/17 23:17:36 21259093 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Marketplace) Duration = 0.846623 seconds
+2026/11/17 23:18:20 21302937 1186a803 [DEBUG Client 4976] Generating level 27 area "1_3_7" with seed 1957124938
+2026/11/17 23:18:21 21303875 cffb06be [INFO Client 4976] : You have entered The Battlefront.
+2026/11/17 23:18:21 21304015 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Battlefront) Duration = 1.2301 seconds
+2026/11/17 23:18:32 21315593 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: damage_and_minion_damage2226, name: Minion Attack and Cast Speed
+2026/11/17 23:19:18 21361453 1186a803 [DEBUG Client 4976] Generating level 29 area "1_3_9" with seed 3415390067
+2026/11/17 23:19:19 21362078 cffb06be [INFO Client 4976] : You have entered The Docks.
+2026/11/17 23:19:19 21362390 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Docks) Duration = 1.08158 seconds
+2026/11/17 23:19:33 21375937 1186a803 [DEBUG Client 4976] Generating level 33 area "1_3_town" with seed 1
+2026/11/17 23:19:34 21377062 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/17 23:19:36 21379375 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 3.59983 seconds
+2026/11/17 23:19:41 21384578 1186a803 [DEBUG Client 4976] Generating level 27 area "1_3_7" with seed 1957124938
+2026/11/17 23:19:42 21385359 cffb06be [INFO Client 4976] : You have entered The Battlefront.
+2026/11/17 23:19:42 21385593 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Battlefront) Duration = 1.1383 seconds
+2026/11/17 23:19:54 21396718 1186a803 [DEBUG Client 4976] Generating level 27 area "1_3_8_1" with seed 540912419
+2026/11/17 23:19:54 21397281 cffb06be [INFO Client 4976] : You have entered The Solaris Temple Level 1.
+2026/11/17 23:19:54 21397437 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Solaris Temple Level 1) Duration = 0.87905 seconds
+2026/11/17 23:20:33 21436265 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 25
+2026/11/17 23:20:40 21443515 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: intelligence904, name: Intelligence
+2026/11/17 23:20:53 21455984 1186a803 [DEBUG Client 4976] Generating level 28 area "1_3_8_2" with seed 1712873798
+2026/11/17 23:20:54 21456640 cffb06be [INFO Client 4976] : You have entered The Solaris Temple Level 2.
+2026/11/17 23:20:54 21456687 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Solaris Temple Level 2) Duration = 0.813725 seconds
+2026/11/17 23:22:10 21532656 1186a803 [DEBUG Client 4976] Generating level 26 area "1_3_10_1" with seed 2565785750
+2026/11/17 23:22:10 21533312 cffb06be [INFO Client 4976] : You have entered The Sewers.
+2026/11/17 23:22:10 21533484 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sewers) Duration = 0.939542 seconds
+2026/11/17 23:22:22 21545000 1186a803 [DEBUG Client 4976] Generating level 29 area "1_3_13" with seed 1331033143
+2026/11/17 23:22:23 21545765 cffb06be [INFO Client 4976] : You have entered The Ebony Barracks.
+2026/11/17 23:22:23 21545875 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ebony Barracks) Duration = 0.964657 seconds
+2026/11/17 23:23:26 21609562 1186a803 [DEBUG Client 4976] Generating level 29 area "1_3_14_1" with seed 587785546
+2026/11/17 23:23:27 21610093 cffb06be [INFO Client 4976] : You have entered The Lunaris Temple Level 1.
+2026/11/17 23:23:27 21610140 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Lunaris Temple Level 1) Duration = 0.688343 seconds
+2026/11/17 23:24:11 21653812 1186a803 [DEBUG Client 4976] Generating level 30 area "1_3_14_2" with seed 3556326049
+2026/11/17 23:24:12 21654671 cffb06be [INFO Client 4976] : You have entered The Lunaris Temple Level 2.
+2026/11/17 23:24:12 21654812 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Lunaris Temple Level 2) Duration = 1.12354 seconds
+2026/11/17 23:25:06 21708750 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 26
+2026/11/17 23:27:30 21852828 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: life187, name: Life and Energy Shield
+2026/11/17 23:27:37 21860437 1186a803 [DEBUG Client 4976] Generating level 33 area "1_3_town" with seed 1
+2026/11/17 23:27:38 21861468 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/17 23:27:40 21863453 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 3.14416 seconds
+2026/11/17 23:28:32 21915359 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: life182, name: Life and Energy Shield
+2026/11/17 23:28:46 21929171 1186a803 [DEBUG Client 4976] Generating level 29 area "1_3_13" with seed 1331033143
+2026/11/17 23:28:47 21929921 cffb06be [INFO Client 4976] : You have entered The Ebony Barracks.
+2026/11/17 23:28:47 21930000 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ebony Barracks) Duration = 0.963806 seconds
+2026/11/17 23:29:01 21944328 1186a803 [DEBUG Client 4976] Generating level 30 area "1_3_15" with seed 3569632994
+2026/11/17 23:29:02 21945296 cffb06be [INFO Client 4976] : You have entered The Imperial Gardens.
+2026/11/17 23:29:02 21945562 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Imperial Gardens) Duration = 1.41078 seconds
+2026/11/17 23:30:20 22022671 1186a803 [DEBUG Client 4976] Generating level 32 area "1_3_18_1" with seed 3908443758
+2026/11/17 23:30:20 22023296 cffb06be [INFO Client 4976] : You have entered The Sceptre of God.
+2026/11/17 23:30:20 22023468 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sceptre of God) Duration = 0.908701 seconds
+2026/11/17 23:31:06 22069265 1186a803 [DEBUG Client 4976] Generating level 33 area "1_3_18_2" with seed 876770064
+2026/11/17 23:31:07 22070000 cffb06be [INFO Client 4976] : You have entered The Upper Sceptre of God.
+2026/11/17 23:31:07 22070046 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Upper Sceptre of God) Duration = 0.899227 seconds
+2026/11/17 23:31:12 22074687 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 27
+2026/11/17 23:31:16 22079515 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: life1161, name: Life and Energy Shield
+2026/11/17 23:33:24 22207515 cffb06be [INFO Client 4976] : TestExile has been slain.
+2026/11/17 23:36:18 22381562 1186a803 [DEBUG Client 4976] Generating level 33 area "1_4_1" with seed 590884512
+2026/11/17 23:36:19 22382312 cffb06be [INFO Client 4976] : You have entered The Aqueduct.
+2026/11/17 23:36:20 22382796 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Aqueduct) Duration = 1.34837 seconds
+2026/11/17 23:37:28 22451062 1186a803 [DEBUG Client 4976] Generating level 40 area "1_4_town" with seed 1
+2026/11/17 23:37:29 22451906 cffb06be [INFO Client 4976] : You have entered Highgate.
+2026/11/17 23:37:31 22454312 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Highgate) Duration = 3.39982 seconds
+2026/11/17 23:38:44 22526843 1186a803 [DEBUG Client 4976] Generating level 33 area "1_3_town" with seed 1
+2026/11/17 23:38:45 22527656 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/17 23:38:46 22529093 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 2.40505 seconds
+2026/11/17 23:41:45 22708296 1186a803 [DEBUG Client 4976] Generating level 30 area "1_3_15" with seed 3569632994
+2026/11/17 23:41:46 22709218 cffb06be [INFO Client 4976] : You have entered The Imperial Gardens.
+2026/11/17 23:41:46 22709359 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Imperial Gardens) Duration = 1.18212 seconds
+2026/11/17 23:43:20 22803296 1186a803 [DEBUG Client 4976] Generating level 33 area "1_3_town" with seed 1
+2026/11/17 23:43:21 22804375 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/17 23:43:22 22805515 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 2.41145 seconds
+2026/11/17 23:43:32 22815234 1186a803 [DEBUG Client 4976] Generating level 17 area "1_2_5_1" with seed 1463695165
+2026/11/17 23:43:33 22815750 cffb06be [INFO Client 4976] : You have entered The Crypt Level 1.
+2026/11/17 23:43:33 22815921 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crypt Level 1) Duration = 0.820543 seconds
+2026/11/17 23:45:15 22918015 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_town" with seed 1
+2026/11/17 23:45:16 22918812 cffb06be [INFO Client 4976] : You have entered The Forest Encampment.
+2026/11/17 23:45:18 22921171 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Forest Encampment) Duration = 3.34368 seconds
+2026/11/17 23:46:36 22998984 1186a803 [DEBUG Client 4976] Generating level 33 area "1_3_town" with seed 1
+2026/11/17 23:46:37 22999656 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/17 23:46:38 23001453 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 2.60862 seconds
+2026/11/17 23:46:52 23015125 1186a803 [DEBUG Client 4976] Generating level 33 area "Labyrinth_Airlock" with seed 980482620
+2026/11/17 23:46:52 23015593 cffb06be [INFO Client 4976] : You have entered Aspirants' Plaza.
+2026/11/17 23:46:53 23015750 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Aspirants' Plaza) Duration = 0.776653 seconds
+2026/11/17 23:47:02 23025468 1186a803 [DEBUG Client 4976] Generating level 33 area "1_Labyrinth_OH_straight" with seed 3173103176
+2026/11/17 23:47:03 23026281 cffb06be [INFO Client 4976] : You have entered Estate Path.
+2026/11/17 23:47:03 23026500 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Estate Path) Duration = 1.20296 seconds
+2026/11/17 23:48:05 23087828 1186a803 [DEBUG Client 4976] Generating level 33 area "1_Labyrinth_boss_1" with seed 44834093
+2026/11/17 23:48:05 23088343 cffb06be [INFO Client 4976] : You have entered Aspirant's Trial.
+2026/11/17 23:48:05 23088390 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Aspirant's Trial) Duration = 0.677882 seconds
+2026/11/17 23:49:06 23149171 1186a803 [DEBUG Client 4976] Generating level 33 area "1_Labyrinth_P_branch_bottleneck_2" with seed 3830845991
+2026/11/17 23:49:07 23149796 cffb06be [INFO Client 4976] : You have entered Sanitorium Halls.
+2026/11/17 23:49:07 23149875 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Sanitorium Halls) Duration = 0.839171 seconds
+2026/11/17 23:49:46 23189078 1186a803 [DEBUG Client 4976] Generating level 33 area "1_Labyrinth_boss_2" with seed 854485739
+2026/11/17 23:49:46 23189500 cffb06be [INFO Client 4976] : You have entered Aspirant's Trial.
+2026/11/17 23:49:46 23189531 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Aspirant's Trial) Duration = 0.548065 seconds
+2026/11/17 23:51:08 23271031 1186a803 [DEBUG Client 4976] Generating level 33 area "1_Labyrinth_EH_block_branch" with seed 1660849924
+2026/11/17 23:51:08 23271609 cffb06be [INFO Client 4976] : You have entered Mansion Halls.
+2026/11/17 23:51:09 23271671 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Mansion Halls) Duration = 0.735831 seconds
+2026/11/17 23:52:19 23342125 1186a803 [DEBUG Client 4976] Generating level 33 area "1_Labyrinth_OH_quad_#" with seed 3499726635
+2026/11/17 23:52:20 23342671 cffb06be [INFO Client 4976] : You have entered Estate Crossing.
+2026/11/17 23:52:20 23342750 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Estate Crossing) Duration = 0.732691 seconds
+2026/11/17 23:52:51 23373937 1186a803 [DEBUG Client 4976] Generating level 33 area "1_Labyrinth_boss_2_end" with seed 1001633889
+2026/11/17 23:52:51 23374312 cffb06be [INFO Client 4976] : You have entered Aspirant's Trial.
+2026/11/17 23:52:51 23374359 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Aspirant's Trial) Duration = 0.523111 seconds
+2026/11/17 23:53:55 23438515 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 28
+2026/11/17 23:55:43 23546156 1186a803 [DEBUG Client 4976] Generating level 33 area "1_3_town" with seed 1
+2026/11/17 23:55:44 23547078 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/17 23:55:47 23549765 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 3.73753 seconds
+2026/11/17 23:59:01 23743671 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutCourts" with seed 1
+2026/11/17 23:59:01 23744312 cffb06be [INFO Client 4976] : You have entered Stately Hideout.
+2026/11/17 23:59:01 23744593 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Stately Hideout) Duration = 1.02178 seconds
+2026/11/17 23:59:15 23758031 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutCourts" with seed 1
+2026/11/17 23:59:15 23758609 cffb06be [INFO Client 4976] : You have entered Stately Hideout.
+2026/11/17 23:59:16 23758703 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Stately Hideout) Duration = 0.842926 seconds
+2026/11/18 00:00:43 23845625 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: fitness1212, name: Purity of Flesh
+2026/11/18 00:01:06 23868937 1186a803 [DEBUG Client 4976] Generating level 40 area "1_4_town" with seed 1
+2026/11/18 00:01:07 23869843 cffb06be [INFO Client 4976] : You have entered Highgate.
+2026/11/18 00:01:10 23872796 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Highgate) Duration = 3.98049 seconds
+2026/11/18 00:01:20 23882750 1186a803 [DEBUG Client 4976] Generating level 34 area "1_4_2" with seed 2626776185
+2026/11/18 00:01:20 23883296 cffb06be [INFO Client 4976] : You have entered The Dried Lake.
+2026/11/18 00:01:20 23883500 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Dried Lake) Duration = 0.866744 seconds
+2026/11/18 00:04:04 24047015 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 29
+2026/11/18 00:06:00 24163546 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: intelligence912, name: Intelligence
+2026/11/18 00:07:21 24243953 1186a803 [DEBUG Client 4976] Generating level 40 area "1_4_town" with seed 1
+2026/11/18 00:07:22 24244812 cffb06be [INFO Client 4976] : You have entered Highgate.
+2026/11/18 00:07:22 24245250 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Highgate) Duration = 1.46361 seconds
+2026/11/18 00:07:47 24269859 1186a803 [DEBUG Client 4976] Generating level 34 area "1_4_3_1" with seed 1211919022
+2026/11/18 00:07:47 24270406 cffb06be [INFO Client 4976] : You have entered The Mines Level 1.
+2026/11/18 00:07:48 24270750 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Mines Level 1) Duration = 1.00898 seconds
+2026/11/18 00:08:01 24284515 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 30
+2026/11/18 00:12:34 24556859 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: intelligence917, name: Intelligence
+2026/11/18 00:13:15 24597625 1186a803 [DEBUG Client 4976] Generating level 35 area "1_4_3_2" with seed 4110702299
+2026/11/18 00:13:15 24598156 cffb06be [INFO Client 4976] : You have entered The Mines Level 2.
+2026/11/18 00:13:15 24598265 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Mines Level 2) Duration = 0.774836 seconds
+2026/11/18 00:15:22 24725015 1186a803 [DEBUG Client 4976] Generating level 36 area "1_4_3_3" with seed 2962939082
+2026/11/18 00:15:22 24725453 cffb06be [INFO Client 4976] : You have entered The Crystal Veins.
+2026/11/18 00:15:22 24725500 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crystal Veins) Duration = 0.584181 seconds
+2026/11/18 00:16:13 24776390 1186a803 [DEBUG Client 4976] Generating level 40 area "1_4_town" with seed 1
+2026/11/18 00:16:14 24777109 cffb06be [INFO Client 4976] : You have entered Highgate.
+2026/11/18 00:16:14 24777562 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Highgate) Duration = 1.29683 seconds
+2026/11/18 00:17:01 24824203 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: speed_and_minion_speed2231, name: Minion Damage and Attack and Cast Speed
+2026/11/18 00:17:17 24840546 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: AscendancyNecromancer6, name: Minion Damage, Aura Effect
+2026/11/18 00:17:19 24841703 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: AscendancyNecromancer12, name: Commander of Darkness
+2026/11/18 00:17:31 24854218 1186a803 [DEBUG Client 4976] Generating level 36 area "1_4_3_3" with seed 2962939082
+2026/11/18 00:17:32 24854734 cffb06be [INFO Client 4976] : You have entered The Crystal Veins.
+2026/11/18 00:17:32 24854796 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crystal Veins) Duration = 0.711853 seconds
+2026/11/18 00:17:37 24859921 1186a803 [DEBUG Client 4976] Generating level 37 area "1_4_5_1" with seed 224110884
+2026/11/18 00:17:38 24860656 cffb06be [INFO Client 4976] : You have entered Daresso's Dream.
+2026/11/18 00:17:38 24860843 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Daresso's Dream) Duration = 1.08508 seconds
+2026/11/18 00:18:34 24916906 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 31
+2026/11/18 00:20:47 25049953 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 32
+2026/11/18 00:21:17 25079718 1186a803 [DEBUG Client 4976] Generating level 38 area "1_4_5_2" with seed 2201820401
+2026/11/18 00:21:17 25080578 cffb06be [INFO Client 4976] : You have entered The Grand Arena.
+2026/11/18 00:21:18 25080703 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Grand Arena) Duration = 1.10823 seconds
+2026/11/18 00:21:36 25099390 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: speed_and_minion_speed2230, name: Minion Damage and Attack and Cast Speed
+2026/11/18 00:21:37 25099843 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: player_and_minion_notable2238, name: Redemption
+2026/11/18 00:23:07 25190125 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 33
+2026/11/18 00:24:21 25264484 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: accuracy_minion_accuracy_and_resists2235, name: Minion Damage
+2026/11/18 00:25:19 25322406 1186a803 [DEBUG Client 4976] Generating level 40 area "1_4_town" with seed 1
+2026/11/18 00:25:20 25323093 cffb06be [INFO Client 4976] : You have entered Highgate.
+2026/11/18 00:25:20 25323390 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Highgate) Duration = 1.11923 seconds
+2026/11/18 00:25:35 25338109 1186a803 [DEBUG Client 4976] Generating level 36 area "1_4_3_3" with seed 2962939082
+2026/11/18 00:25:35 25338578 cffb06be [INFO Client 4976] : You have entered The Crystal Veins.
+2026/11/18 00:25:36 25338656 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crystal Veins) Duration = 3.21516 seconds
+2026/11/18 00:25:41 25344312 1186a803 [DEBUG Client 4976] Generating level 37 area "1_4_4_1" with seed 456337354
+2026/11/18 00:25:42 25345093 cffb06be [INFO Client 4976] : You have entered Kaom's Dream.
+2026/11/18 00:25:42 25345421 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Kaom's Dream) Duration = 1.25011 seconds
+2026/11/18 00:26:53 25415625 1186a803 [DEBUG Client 4976] Generating level 38 area "1_4_4_3" with seed 630052081
+2026/11/18 00:26:53 25416437 cffb06be [INFO Client 4976] : You have entered Kaom's Stronghold.
+2026/11/18 00:26:53 25416515 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Kaom's Stronghold) Duration = 0.981971 seconds
+2026/11/18 00:28:26 25508718 1186a803 [DEBUG Client 4976] Generating level 40 area "1_4_town" with seed 1
+2026/11/18 00:28:26 25509484 cffb06be [INFO Client 4976] : You have entered Highgate.
+2026/11/18 00:28:27 25509812 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Highgate) Duration = 1.20181 seconds
+2026/11/18 00:28:30 25512687 1186a803 [DEBUG Client 4976] Generating level 36 area "1_4_3_3" with seed 2962939082
+2026/11/18 00:28:30 25513562 cffb06be [INFO Client 4976] : You have entered The Crystal Veins.
+2026/11/18 00:28:31 25513656 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crystal Veins) Duration = 1.10752 seconds
+2026/11/18 00:28:55 25538234 1186a803 [DEBUG Client 4976] Generating level 38 area "1_4_6_1" with seed 81958591
+2026/11/18 00:28:56 25538796 cffb06be [INFO Client 4976] : You have entered The Belly of the Beast Level 1.
+2026/11/18 00:28:56 25538953 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Belly of the Beast Level 1) Duration = 0.866017 seconds
+2026/11/18 00:29:34 25577140 1186a803 [DEBUG Client 4976] Generating level 39 area "1_4_6_2" with seed 649775969
+2026/11/18 00:29:34 25577625 cffb06be [INFO Client 4976] : You have entered The Belly of the Beast Level 2.
+2026/11/18 00:29:35 25577671 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Belly of the Beast Level 2) Duration = 0.635063 seconds
+2026/11/18 00:29:56 25599546 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 34
+2026/11/18 00:30:04 25606859 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: player_and_minion_notable2240, name: Spiritual Aid
+2026/11/18 00:31:02 25665515 cffb06be [INFO Client 4976] : TestExile has been slain.
+2026/11/18 00:31:52 25715265 1186a803 [DEBUG Client 4976] Generating level 40 area "1_4_6_3" with seed 546313849
+2026/11/18 00:31:53 25716109 cffb06be [INFO Client 4976] : You have entered The Harvest.
+2026/11/18 00:31:54 25716687 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Harvest) Duration = 1.52416 seconds
+2026/11/18 00:36:55 26018562 1186a803 [DEBUG Client 4976] Generating level 40 area "1_4_town" with seed 1
+2026/11/18 00:36:56 26019421 cffb06be [INFO Client 4976] : You have entered Highgate.
+2026/11/18 00:36:57 26020156 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Highgate) Duration = 1.68991 seconds
+2026/11/18 00:38:02 26085234 1186a803 [DEBUG Client 4976] Generating level 40 area "1_4_7" with seed 2479658152
+2026/11/18 00:38:03 26085796 cffb06be [INFO Client 4976] : You have entered The Ascent.
+2026/11/18 00:38:03 26086062 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ascent) Duration = 0.941385 seconds
+2026/11/18 00:38:26 26108921 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 35
+2026/11/18 00:39:24 26167171 1186a803 [DEBUG Client 4976] Generating level 41 area "1_5_1" with seed 190508809
+2026/11/18 00:39:25 26167843 cffb06be [INFO Client 4976] : You have entered The Slave Pens.
+2026/11/18 00:39:25 26167984 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Slave Pens) Duration = 0.961167 seconds
+2026/11/18 00:40:26 26228890 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 36
+2026/11/18 00:41:02 26265484 1186a803 [DEBUG Client 4976] Generating level 45 area "1_5_town" with seed 1
+2026/11/18 00:41:03 26266156 cffb06be [INFO Client 4976] : You have entered Overseer's Tower.
+2026/11/18 00:41:05 26268546 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Overseer's Tower) Duration = 3.1875 seconds
+2026/11/18 00:41:41 26303734 1186a803 [DEBUG Client 4976] Generating level 40 area "1_4_town" with seed 1
+2026/11/18 00:41:41 26304343 cffb06be [INFO Client 4976] : You have entered Highgate.
+2026/11/18 00:41:42 26305203 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Highgate) Duration = 1.62986 seconds
+2026/11/18 00:42:43 26366343 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutCourts" with seed 1
+2026/11/18 00:42:44 26367031 cffb06be [INFO Client 4976] : You have entered Stately Hideout.
+2026/11/18 00:42:44 26367562 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Stately Hideout) Duration = 1.3255 seconds
+2026/11/18 00:43:16 26398968 1186a803 [DEBUG Client 4976] Generating level 40 area "1_4_town" with seed 1
+2026/11/18 00:43:17 26399875 cffb06be [INFO Client 4976] : You have entered Highgate.
+2026/11/18 00:43:17 26400562 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Highgate) Duration = 1.76039 seconds
+2026/11/18 00:43:20 26403203 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutCourts" with seed 1
+2026/11/18 00:43:21 26403812 cffb06be [INFO Client 4976] : You have entered Stately Hideout.
+2026/11/18 00:43:21 26404062 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Stately Hideout) Duration = 0.924268 seconds
+2026/11/18 00:44:13 26455859 1186a803 [DEBUG Client 4976] Generating level 15 area "1_2_7" with seed 4282501605
+2026/11/18 00:44:14 26456843 cffb06be [INFO Client 4976] : You have entered The Riverways.
+2026/11/18 00:44:14 26457156 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Riverways) Duration = 1.4267 seconds
+2026/11/18 00:44:41 26483765 1186a803 [DEBUG Client 4976] Generating level 15 area "1_2_3" with seed 4159164323
+2026/11/18 00:44:41 26484500 cffb06be [INFO Client 4976] : You have entered The Crossroads.
+2026/11/18 00:44:42 26484734 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crossroads) Duration = 1.06304 seconds
+2026/11/18 00:44:46 26489515 1186a803 [DEBUG Client 4976] Generating level 16 area "1_2_4" with seed 353932464
+2026/11/18 00:44:47 26490296 cffb06be [INFO Client 4976] : You have entered The Broken Bridge.
+2026/11/18 00:44:48 26490625 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Broken Bridge) Duration = 1.22091 seconds
+2026/11/18 00:45:59 26561953 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_town" with seed 1
+2026/11/18 00:46:00 26562718 cffb06be [INFO Client 4976] : You have entered The Forest Encampment.
+2026/11/18 00:46:01 26563671 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Forest Encampment) Duration = 1.80627 seconds
+2026/11/18 00:46:07 26570140 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: accuracy_minion_accuracy_and_resists2234, name: Minion Damage
+2026/11/18 00:46:17 26580578 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: aura_area_of_effect1205, name: Aura Area of Effect
+2026/11/18 00:46:26 26588703 1186a803 [DEBUG Client 4976] Generating level 45 area "1_5_town" with seed 1
+2026/11/18 00:46:26 26589453 cffb06be [INFO Client 4976] : You have entered Overseer's Tower.
+2026/11/18 00:46:28 26591093 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Overseer's Tower) Duration = 2.586 seconds
+2026/11/18 00:46:31 26594000 1186a803 [DEBUG Client 4976] Generating level 41 area "1_5_2" with seed 78881133
+2026/11/18 00:46:32 26594718 cffb06be [INFO Client 4976] : You have entered The Control Blocks.
+2026/11/18 00:46:32 26594812 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Control Blocks) Duration = 0.911002 seconds
+2026/11/18 00:47:51 26673828 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 37
+2026/11/18 00:47:59 26682140 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: reduced_mana_reservation1198, name: Reservation Efficiency
+2026/11/18 00:48:32 26715218 1186a803 [DEBUG Client 4976] Generating level 42 area "1_5_3" with seed 4290534247
+2026/11/18 00:48:33 26716343 cffb06be [INFO Client 4976] : You have entered Oriath Square.
+2026/11/18 00:48:34 26716640 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Oriath Square) Duration = 1.59976 seconds
+2026/11/18 00:49:40 26783625 1186a803 [DEBUG Client 4976] Generating level 42 area "1_5_4" with seed 1037346681
+2026/11/18 00:49:41 26784125 cffb06be [INFO Client 4976] : You have entered The Templar Courts.
+2026/11/18 00:49:41 26784234 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Templar Courts) Duration = 0.727606 seconds
+2026/11/18 00:49:57 26799828 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 38
+2026/11/18 00:50:52 26854640 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: reduced_mana_reservation1197, name: Reservation Efficiency
+2026/11/18 00:51:35 26898093 1186a803 [DEBUG Client 4976] Generating level 43 area "1_5_5" with seed 597822622
+2026/11/18 00:51:36 26898906 cffb06be [INFO Client 4976] : You have entered The Chamber of Innocence.
+2026/11/18 00:51:36 26899093 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Chamber of Innocence) Duration = 1.09862 seconds
+2026/11/18 00:52:40 26962718 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 39
+2026/11/18 00:53:20 27003125 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: aura_effect_reservation_cost_notable1559, name: Sovereignty
+2026/11/18 00:54:42 27085234 1186a803 [DEBUG Client 4976] Generating level 45 area "1_5_town" with seed 1
+2026/11/18 00:54:43 27085796 cffb06be [INFO Client 4976] : You have entered Overseer's Tower.
+2026/11/18 00:54:43 27086343 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Overseer's Tower) Duration = 1.20034 seconds
+2026/11/18 00:55:00 27103093 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutCourts" with seed 1
+2026/11/18 00:55:01 27103781 cffb06be [INFO Client 4976] : You have entered Stately Hideout.
+2026/11/18 00:55:01 27104046 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Stately Hideout) Duration = 1.05026 seconds
+2026/11/18 00:56:06 27169343 1186a803 [DEBUG Client 4976] Generating level 60 area "HideoutCourts" with seed 1
+2026/11/18 00:56:07 27169921 cffb06be [INFO Client 4976] : You have entered Stately Hideout.
+2026/11/18 00:56:07 27170031 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Stately Hideout) Duration = 0.811367 seconds
+2026/11/18 00:56:23 27186375 1186a803 [DEBUG Client 4976] Generating level 43 area "1_5_5" with seed 597822622
+2026/11/18 00:56:24 27187015 cffb06be [INFO Client 4976] : You have entered The Chamber of Innocence.
+2026/11/18 00:56:24 27187078 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Chamber of Innocence) Duration = 0.768839 seconds
+2026/11/18 00:57:48 27271562 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 40
+2026/11/18 01:01:03 27466296 1186a803 [DEBUG Client 4976] Generating level 44 area "1_5_4b" with seed 3022843244
+2026/11/18 01:01:04 27466828 cffb06be [INFO Client 4976] : You have entered The Torched Courts.
+2026/11/18 01:01:04 27466921 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Torched Courts) Duration = 0.700726 seconds
+2026/11/18 01:01:37 27500390 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 41
+2026/11/18 01:02:21 27544171 1186a803 [DEBUG Client 4976] Generating level 44 area "1_5_3b" with seed 1930052568
+2026/11/18 01:02:22 27545109 cffb06be [INFO Client 4976] : You have entered The Ruined Square.
+2026/11/18 01:02:23 27545828 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ruined Square) Duration = 1.75151 seconds
+2026/11/18 01:03:02 27585546 1186a803 [DEBUG Client 4976] Generating level 44 area "1_5_6" with seed 2911794314
+2026/11/18 01:03:03 27585984 cffb06be [INFO Client 4976] : You have entered The Ossuary.
+2026/11/18 01:03:03 27586062 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ossuary) Duration = 0.572332 seconds
+2026/11/18 01:03:51 27634234 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 42
+2026/11/18 01:04:23 27665796 1186a803 [DEBUG Client 4976] Generating level 44 area "1_5_3b" with seed 1930052568
+2026/11/18 01:04:24 27666687 cffb06be [INFO Client 4976] : You have entered The Ruined Square.
+2026/11/18 01:04:24 27666781 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ruined Square) Duration = 1.0646 seconds
+2026/11/18 01:05:43 27746328 1186a803 [DEBUG Client 4976] Generating level 44 area "1_5_7" with seed 2801925573
+2026/11/18 01:05:44 27746765 cffb06be [INFO Client 4976] : You have entered The Reliquary.
+2026/11/18 01:05:44 27746859 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Reliquary) Duration = 0.597779 seconds
+2026/11/18 01:06:31 27794515 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 43
+2026/11/18 01:07:38 27861250 1186a803 [DEBUG Client 4976] Generating level 45 area "1_5_town" with seed 1
+2026/11/18 01:07:39 27861984 cffb06be [INFO Client 4976] : You have entered Overseer's Tower.
+2026/11/18 01:07:40 27863140 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Overseer's Tower) Duration = 1.97174 seconds
+2026/11/18 01:11:58 28121406 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: player_and_minion_notable2236, name: Righteous Army
+2026/11/18 01:11:59 28122375 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: mana388, name: Mana Regeneration and Life
+2026/11/18 01:12:00 28122906 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: mana397, name: Mana Regeneration and Life
+2026/11/18 01:13:24 28207015 1186a803 [DEBUG Client 4976] Generating level 44 area "1_5_3b" with seed 1930052568
+2026/11/18 01:13:25 28207937 cffb06be [INFO Client 4976] : You have entered The Ruined Square.
+2026/11/18 01:13:25 28208062 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ruined Square) Duration = 1.13938 seconds
+2026/11/18 01:13:37 28220218 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: life_mana_notable1730, name: Quick Recovery
+2026/11/18 01:13:39 28221921 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: life1405, name: Life
+2026/11/18 01:13:55 28238531 1186a803 [DEBUG Client 4976] Generating level 45 area "1_5_8" with seed 2395444541
+2026/11/18 01:13:57 28239859 cffb06be [INFO Client 4976] : You have entered The Cathedral Rooftop.
+2026/11/18 01:13:58 28241109 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Cathedral Rooftop) Duration = 2.73693 seconds
+2026/11/18 01:18:01 28483734 1186a803 [DEBUG Client 4976] Generating level 50 area "2_6_town" with seed 1
+2026/11/18 01:18:02 28484703 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/18 01:18:03 28485843 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 2.25198 seconds
+2026/11/18 01:26:57 29020218 1186a803 [DEBUG Client 4976] Generating level 45 area "2_6_2" with seed 1345731409
+2026/11/18 01:26:58 29021046 cffb06be [INFO Client 4976] : You have entered The Coast.
+2026/11/18 01:26:58 29021343 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Coast) Duration = 1.21188 seconds
+2026/11/18 01:27:47 29070031 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 44
+2026/11/18 01:28:00 29083609 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: melee_notable1874, name: Sanctity
+2026/11/18 01:28:06 29089453 1186a803 [DEBUG Client 4976] Generating level 46 area "2_6_4" with seed 3061957414
+2026/11/18 01:28:07 29090218 cffb06be [INFO Client 4976] : You have entered The Mud Flats.
+2026/11/18 01:28:07 29090609 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Mud Flats) Duration = 1.30118 seconds
+2026/11/18 01:31:11 29274078 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 45
+2026/11/18 01:32:19 29341656 1186a803 [DEBUG Client 4976] Generating level 46 area "2_6_5" with seed 1185083431
+2026/11/18 01:32:19 29342281 cffb06be [INFO Client 4976] : You have entered The Karui Fortress.
+2026/11/18 01:32:19 29342484 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Karui Fortress) Duration = 0.925302 seconds
+2026/11/18 01:32:28 29351359 1186a803 [DEBUG Client 4976] Generating level 46 area "2_6_4" with seed 3061957414
+2026/11/18 01:32:29 29351906 cffb06be [INFO Client 4976] : You have entered The Mud Flats.
+2026/11/18 01:32:29 29352031 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Mud Flats) Duration = 0.747566 seconds
+2026/11/18 01:32:32 29355187 1186a803 [DEBUG Client 4976] Generating level 46 area "2_6_5" with seed 919998809
+2026/11/18 01:32:33 29355656 cffb06be [INFO Client 4976] : You have entered The Karui Fortress.
+2026/11/18 01:32:33 29355703 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Karui Fortress) Duration = 0.576078 seconds
+2026/11/18 01:34:29 29471937 1186a803 [DEBUG Client 4976] Generating level 46 area "2_6_6" with seed 364462077
+2026/11/18 01:34:30 29472640 cffb06be [INFO Client 4976] : You have entered The Ridge.
+2026/11/18 01:34:30 29472734 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ridge) Duration = 0.925785 seconds
+2026/11/18 01:34:53 29496390 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: intelligence101, name: Intelligence
+2026/11/18 01:36:21 29584578 1186a803 [DEBUG Client 4976] Generating level 47 area "2_6_7_1" with seed 2345974639
+2026/11/18 01:36:22 29585125 cffb06be [INFO Client 4976] : You have entered The Lower Prison.
+2026/11/18 01:36:22 29585390 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Lower Prison) Duration = 0.938747 seconds
+2026/11/18 01:36:29 29592218 1186a803 [DEBUG Client 4976] Generating level 50 area "2_6_town" with seed 1
+2026/11/18 01:36:30 29592953 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/18 01:36:30 29593562 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 1.4893 seconds
+2026/11/18 01:36:37 29599968 1186a803 [DEBUG Client 4976] Generating level 45 area "2_6_1" with seed 3344171319
+2026/11/18 01:36:37 29600468 cffb06be [INFO Client 4976] : You have entered The Twilight Strand.
+2026/11/18 01:36:37 29600609 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Twilight Strand) Duration = 0.773652 seconds
+2026/11/18 01:36:51 29613843 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 46
+2026/11/18 01:37:58 29680640 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: mana_spell_block2610, name: Mana and Spell Block
+2026/11/18 01:38:08 29691265 1186a803 [DEBUG Client 4976] Generating level 50 area "2_6_town" with seed 1
+2026/11/18 01:38:09 29691984 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/18 01:38:10 29693328 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 2.24394 seconds
+2026/11/18 01:38:35 29718421 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: mana_spell_block_notable2611, name: Mystic Bulwark
+2026/11/18 01:42:00 29923578 1186a803 [DEBUG Client 4976] Generating level 47 area "2_6_7_1" with seed 2345974639
+2026/11/18 01:42:01 29924171 cffb06be [INFO Client 4976] : You have entered The Lower Prison.
+2026/11/18 01:42:01 29924484 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Lower Prison) Duration = 1.02559 seconds
+2026/11/18 01:44:07 30049875 1186a803 [DEBUG Client 4976] Generating level 47 area "2_6_7_2" with seed 2049210254
+2026/11/18 01:44:07 30050609 cffb06be [INFO Client 4976] : You have entered Shavronne's Tower.
+2026/11/18 01:44:08 30050718 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Shavronne's Tower) Duration = 0.979128 seconds
+2026/11/18 01:46:53 30216171 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 47
+2026/11/18 01:50:26 30428625 1186a803 [DEBUG Client 4976] Generating level 47 area "2_6_8" with seed 2379181860
+2026/11/18 01:50:26 30429234 cffb06be [INFO Client 4976] : You have entered Prisoner's Gate.
+2026/11/18 01:50:26 30429484 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Prisoner's Gate) Duration = 0.937087 seconds
+2026/11/18 01:52:56 30578703 1186a803 [DEBUG Client 4976] Generating level 48 area "2_6_9" with seed 3027541528
+2026/11/18 01:52:56 30579562 cffb06be [INFO Client 4976] : You have entered The Western Forest.
+2026/11/18 01:52:57 30579796 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Western Forest) Duration = 1.17836 seconds
+2026/11/18 01:53:55 30637968 1186a803 [DEBUG Client 4976] Generating level 48 area "2_6_10" with seed 263072742
+2026/11/18 01:53:56 30638765 cffb06be [INFO Client 4976] : You have entered The Riverways.
+2026/11/18 01:53:56 30638859 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Riverways) Duration = 1.0303 seconds
+2026/11/18 01:54:14 30657281 1186a803 [DEBUG Client 4976] Generating level 48 area "2_6_11" with seed 4046932832
+2026/11/18 01:54:15 30657906 cffb06be [INFO Client 4976] : You have entered The Wetlands.
+2026/11/18 01:54:15 30657984 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Wetlands) Duration = 0.782093 seconds
+2026/11/18 01:54:27 30669921 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 48
+2026/11/18 01:54:53 30696015 1186a803 [DEBUG Client 4976] Generating level 50 area "2_6_town" with seed 1
+2026/11/18 01:54:54 30697187 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/18 01:54:58 30700640 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 4.71546 seconds
+2026/11/18 01:55:03 30706484 1186a803 [DEBUG Client 4976] Generating level 48 area "2_6_10" with seed 263072742
+2026/11/18 01:55:04 30707343 cffb06be [INFO Client 4976] : You have entered The Riverways.
+2026/11/18 01:55:05 30707671 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Riverways) Duration = 1.3698 seconds
+2026/11/18 01:55:09 30711656 1186a803 [DEBUG Client 4976] Generating level 48 area "2_6_11" with seed 4046932832
+2026/11/18 01:55:09 30712328 cffb06be [INFO Client 4976] : You have entered The Wetlands.
+2026/11/18 01:55:10 30712765 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Wetlands) Duration = 1.23362 seconds
+2026/11/18 01:55:55 30757703 1186a803 [DEBUG Client 4976] Generating level 50 area "2_6_town" with seed 1
+2026/11/18 01:55:55 30758515 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/18 01:55:57 30760203 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 2.56628 seconds
+2026/11/18 01:56:26 30788921 1186a803 [DEBUG Client 4976] Generating level 48 area "2_6_10" with seed 263072742
+2026/11/18 01:56:27 30789796 cffb06be [INFO Client 4976] : You have entered The Riverways.
+2026/11/18 01:56:27 30789984 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Riverways) Duration = 1.17818 seconds
+2026/11/18 01:56:46 30809468 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: damage_and_minion_damage2227, name: Minion Damage and Life
+2026/11/18 01:56:47 30809875 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: damage_and_minion_damage2228, name: Minion Damage and Life
+2026/11/18 01:56:49 30812484 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: shield_damage_elemental2554, name: Spell Block
+2026/11/18 01:57:49 30872203 1186a803 [DEBUG Client 4976] Generating level 49 area "2_6_12" with seed 1732983262
+2026/11/18 01:57:50 30872890 cffb06be [INFO Client 4976] : You have entered The Southern Forest.
+2026/11/18 01:57:50 30873218 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Southern Forest) Duration = 1.15574 seconds
+2026/11/18 01:59:25 30968281 1186a803 [DEBUG Client 4976] Generating level 49 area "2_6_13" with seed 1382528231
+2026/11/18 01:59:26 30969156 cffb06be [INFO Client 4976] : You have entered The Cavern of Anger.
+2026/11/18 01:59:26 30969250 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Cavern of Anger) Duration = 1.07844 seconds
+2026/11/18 02:00:12 31014625 1186a803 [DEBUG Client 4976] Generating level 49 area "2_6_14" with seed 1858732744
+2026/11/18 02:00:12 31015562 cffb06be [INFO Client 4976] : You have entered The Beacon.
+2026/11/18 02:00:13 31015875 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Beacon) Duration = 1.38565 seconds
+2026/11/18 02:00:44 31047406 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 49
+2026/11/18 02:01:22 31085156 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: shield_damage_elemental2555, name: Spell Block and Elemental Resistances
+2026/11/18 02:03:17 31199843 1186a803 [DEBUG Client 4976] Generating level 50 area "2_6_15" with seed 151606319
+2026/11/18 02:03:18 31200828 cffb06be [INFO Client 4976] : You have entered The Brine King's Reef.
+2026/11/18 02:03:18 31201109 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Brine King's Reef) Duration = 1.37315 seconds
+2026/11/18 02:03:38 31220984 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 50
+2026/11/18 02:05:17 31319953 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: shield_damage_elemental2556, name: Spell Block and Elemental Resistances
+2026/11/18 02:06:56 31418859 1186a803 [DEBUG Client 4976] Generating level 50 area "2_6_town" with seed 1
+2026/11/18 02:06:57 31419953 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
+2026/11/18 02:06:59 31422140 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Lioneye's Watch) Duration = 3.38207 seconds
+2026/11/18 02:07:38 31460906 1186a803 [DEBUG Client 4976] Generating level 55 area "2_7_town" with seed 1
+2026/11/18 02:07:38 31461625 cffb06be [INFO Client 4976] : You have entered The Bridge Encampment.
+2026/11/18 02:07:40 31463609 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Bridge Encampment) Duration = 2.87872 seconds
+2026/11/18 02:07:48 31471515 1186a803 [DEBUG Client 4976] Generating level 50 area "2_7_1" with seed 4167553134
+2026/11/18 02:07:49 31472187 cffb06be [INFO Client 4976] : You have entered The Broken Bridge.
+2026/11/18 02:07:49 31472312 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Broken Bridge) Duration = 0.897476 seconds
+2026/11/18 02:08:12 31495187 1186a803 [DEBUG Client 4976] Generating level 51 area "2_7_2" with seed 2428782159
+2026/11/18 02:08:13 31495921 cffb06be [INFO Client 4976] : You have entered The Crossroads.
+2026/11/18 02:08:13 31496218 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crossroads) Duration = 1.21799 seconds
+2026/11/18 02:08:30 31512687 1186a803 [DEBUG Client 4976] Generating level 51 area "2_7_3" with seed 1783494376
+2026/11/18 02:08:30 31513390 cffb06be [INFO Client 4976] : You have entered The Fellshrine Ruins.
+2026/11/18 02:08:31 31513781 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Fellshrine Ruins) Duration = 1.20792 seconds
+2026/11/18 02:09:09 31552093 1186a803 [DEBUG Client 4976] Generating level 51 area "2_7_4" with seed 2052021834
+2026/11/18 02:09:10 31552703 cffb06be [INFO Client 4976] : You have entered The Crypt.
+2026/11/18 02:09:10 31553093 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crypt) Duration = 1.08324 seconds
+2026/11/18 02:11:20 31682984 1186a803 [DEBUG Client 4976] Generating level 55 area "2_7_town" with seed 1
+2026/11/18 02:11:21 31683921 cffb06be [INFO Client 4976] : You have entered The Bridge Encampment.
+2026/11/18 02:11:22 31684890 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Bridge Encampment) Duration = 2.06693 seconds
+2026/11/18 02:12:03 31726562 1186a803 [DEBUG Client 4976] Generating level 51 area "2_7_2" with seed 2428782159
+2026/11/18 02:12:04 31727343 cffb06be [INFO Client 4976] : You have entered The Crossroads.
+2026/11/18 02:12:04 31727484 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Crossroads) Duration = 1.07162 seconds
+2026/11/18 02:12:15 31738406 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 51
+2026/11/18 02:12:23 31746421 1186a803 [DEBUG Client 4976] Generating level 52 area "2_7_5_1" with seed 4081286760
+2026/11/18 02:12:24 31747046 cffb06be [INFO Client 4976] : You have entered The Chamber of Sins Level 1.
+2026/11/18 02:12:24 31747296 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Chamber of Sins Level 1) Duration = 1.00002 seconds
+2026/11/18 02:12:28 31750734 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: shield_damage_elemental_notable2557, name: Safeguard
+2026/11/18 02:13:00 31782906 1186a803 [DEBUG Client 4976] Generating level 52 area "2_7_5_map" with seed 4143591077
+2026/11/18 02:13:01 31783812 cffb06be [INFO Client 4976] : You have entered Maligaro's Sanctum.
+2026/11/18 02:13:01 31784281 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Maligaro's Sanctum) Duration = 1.44611 seconds
+2026/11/18 02:14:57 31900078 1186a803 [DEBUG Client 4976] Generating level 52 area "2_7_5_1" with seed 4081286760
+2026/11/18 02:14:57 31900578 cffb06be [INFO Client 4976] : You have entered The Chamber of Sins Level 1.
+2026/11/18 02:14:58 31900875 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Chamber of Sins Level 1) Duration = 0.862028 seconds
+2026/11/18 02:15:34 31937515 1186a803 [DEBUG Client 4976] Generating level 52 area "2_7_5_2" with seed 789317560
+2026/11/18 02:15:35 31938171 cffb06be [INFO Client 4976] : You have entered The Chamber of Sins Level 2.
+2026/11/18 02:15:35 31938375 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Chamber of Sins Level 2) Duration = 0.928652 seconds
+2026/11/18 02:17:24 32046812 1186a803 [DEBUG Client 4976] Generating level 53 area "2_7_6" with seed 2168368883
+2026/11/18 02:17:24 32047234 cffb06be [INFO Client 4976] : You have entered The Den.
+2026/11/18 02:17:24 32047328 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Den) Duration = 0.582388 seconds
+2026/11/18 02:17:46 32069453 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 52
+2026/11/18 02:18:02 32085234 1186a803 [DEBUG Client 4976] Generating level 53 area "2_7_7" with seed 1577340273
+2026/11/18 02:18:03 32086062 cffb06be [INFO Client 4976] : You have entered The Ashen Fields.
+2026/11/18 02:18:03 32086421 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ashen Fields) Duration = 1.25936 seconds
+2026/11/18 02:19:53 32196625 1186a803 [DEBUG Client 4976] Generating level 53 area "2_7_8" with seed 2312540527
+2026/11/18 02:19:55 32197640 cffb06be [INFO Client 4976] : You have entered The Northern Forest.
+2026/11/18 02:19:55 32198218 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Northern Forest) Duration = 1.66666 seconds
+2026/11/18 02:20:33 32236328 1186a803 [DEBUG Client 4976] Generating level 54 area "2_7_10" with seed 1410333753
+2026/11/18 02:20:34 32237484 cffb06be [INFO Client 4976] : You have entered The Causeway.
+2026/11/18 02:20:35 32237796 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Causeway) Duration = 1.5569 seconds
+2026/11/18 02:21:38 32300765 1186a803 [DEBUG Client 4976] Generating level 54 area "2_7_11" with seed 1128383406
+2026/11/18 02:21:39 32301953 cffb06be [INFO Client 4976] : You have entered The Vaal City.
+2026/11/18 02:21:39 32302109 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Vaal City) Duration = 1.43078 seconds
+2026/11/18 02:22:27 32350078 1186a803 [DEBUG Client 4976] Generating level 55 area "2_7_town" with seed 1
+2026/11/18 02:22:28 32350968 cffb06be [INFO Client 4976] : You have entered The Bridge Encampment.
+2026/11/18 02:22:30 32353406 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Bridge Encampment) Duration = 3.4175 seconds
+2026/11/18 02:23:28 32411000 1186a803 [DEBUG Client 4976] Generating level 53 area "2_7_8" with seed 2312540527
+2026/11/18 02:23:29 32412062 cffb06be [INFO Client 4976] : You have entered The Northern Forest.
+2026/11/18 02:23:29 32412421 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Northern Forest) Duration = 1.53781 seconds
+2026/11/18 02:23:33 32416265 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: strength786, name: Strength
+2026/11/18 02:23:34 32416937 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: strength1000, name: Strength
+2026/11/18 02:23:40 32422843 1186a803 [DEBUG Client 4976] Generating level 53 area "2_7_9" with seed 1301816780
+2026/11/18 02:23:41 32423718 cffb06be [INFO Client 4976] : You have entered The Dread Thicket.
+2026/11/18 02:23:41 32423812 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Dread Thicket) Duration = 1.09903 seconds
+2026/11/18 02:24:37 32479734 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 53
+2026/11/18 02:25:17 32520218 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: strength814, name: Strength
+2026/11/18 02:26:01 32563968 1186a803 [DEBUG Client 4976] Generating level 55 area "2_7_town" with seed 1
+2026/11/18 02:26:02 32564953 cffb06be [INFO Client 4976] : You have entered The Bridge Encampment.
+2026/11/18 02:26:03 32565750 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Bridge Encampment) Duration = 1.88105 seconds
+2026/11/18 02:26:16 32579343 1186a803 [DEBUG Client 4976] Generating level 54 area "2_7_11" with seed 1128383406
+2026/11/18 02:26:18 32580656 cffb06be [INFO Client 4976] : You have entered The Vaal City.
+2026/11/18 02:26:18 32580859 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Vaal City) Duration = 1.62398 seconds
+2026/11/18 02:26:27 32589750 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: strength827, name: Strength
+2026/11/18 02:26:33 32595937 1186a803 [DEBUG Client 4976] Generating level 54 area "2_7_12_1" with seed 1805904018
+2026/11/18 02:26:34 32596656 cffb06be [INFO Client 4976] : You have entered The Temple of Decay Level 1.
+2026/11/18 02:26:34 32596718 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Temple of Decay Level 1) Duration = 0.911548 seconds
+2026/11/18 02:28:31 32714343 1186a803 [DEBUG Client 4976] Generating level 55 area "2_7_12_2" with seed 4079460362
+2026/11/18 02:28:32 32715046 cffb06be [INFO Client 4976] : You have entered The Temple of Decay Level 2.
+2026/11/18 02:28:32 32715421 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Temple of Decay Level 2) Duration = 1.16347 seconds
+2026/11/18 02:28:55 32738031 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 54
+2026/11/18 02:30:06 32808828 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: life_reduced_mana_cost1934, name: Life and Cost Efficiency
+2026/11/18 02:32:42 32965046 1186a803 [DEBUG Client 4976] Generating level 55 area "2_8_1" with seed 2749172697
+2026/11/18 02:32:43 32965828 cffb06be [INFO Client 4976] : You have entered The Sarn Ramparts.
+2026/11/18 02:32:43 32966000 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Ramparts) Duration = 1.03695 seconds
+2026/11/18 02:34:08 33050781 1186a803 [DEBUG Client 4976] Generating level 60 area "2_8_town" with seed 1
+2026/11/18 02:34:09 33051765 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/18 02:34:09 33052531 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 2.00347 seconds
+2026/11/18 02:34:49 33092390 1186a803 [DEBUG Client 4976] Generating level 56 area "2_8_2_1" with seed 478263923
+2026/11/18 02:34:50 33092937 cffb06be [INFO Client 4976] : You have entered The Toxic Conduits.
+2026/11/18 02:34:50 33093031 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Toxic Conduits) Duration = 0.743607 seconds
+2026/11/18 02:35:11 33114062 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 55
+2026/11/18 02:35:16 33118953 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: life_reduced_mana_cost1936, name: Life and Cost Efficiency
+2026/11/18 02:36:53 33216515 1186a803 [DEBUG Client 4976] Generating level 56 area "2_8_2_2" with seed 1406097948
+2026/11/18 02:36:54 33217109 cffb06be [INFO Client 4976] : You have entered Doedre's Cesspool.
+2026/11/18 02:36:54 33217218 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Doedre's Cesspool) Duration = 0.86403 seconds
+2026/11/18 02:39:21 33363796 1186a803 [DEBUG Client 4976] Generating level 57 area "2_8_8" with seed 1303961173
+2026/11/18 02:39:22 33364781 cffb06be [INFO Client 4976] : You have entered The Quay.
+2026/11/18 02:39:22 33365000 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Quay) Duration = 1.30049 seconds
+2026/11/18 02:39:57 33399859 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 56
+2026/11/18 02:40:26 33428796 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: life_reduced_mana_cost1935, name: Life and Cost Efficiency
+2026/11/18 02:42:55 33577671 1186a803 [DEBUG Client 4976] Generating level 57 area "2_8_9" with seed 3683616242
+2026/11/18 02:42:55 33578437 cffb06be [INFO Client 4976] : You have entered The Grain Gate.
+2026/11/18 02:42:56 33578703 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Grain Gate) Duration = 1.10254 seconds
+2026/11/18 02:43:42 33624984 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 57
+2026/11/18 02:44:37 33679656 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: life_reduced_mana_notable1937, name: Tireless
+2026/11/18 02:46:48 33811234 1186a803 [DEBUG Client 4976] Generating level 58 area "2_8_14" with seed 1214229687
+2026/11/18 02:46:49 33811984 cffb06be [INFO Client 4976] : You have entered The Hidden Underbelly.
+2026/11/18 02:46:49 33812140 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Hidden Underbelly) Duration = 0.984567 seconds
+2026/11/18 02:47:35 33858406 1186a803 [DEBUG Client 4976] Generating level 58 area "2_8_11" with seed 1679442202
+2026/11/18 02:47:36 33859203 cffb06be [INFO Client 4976] : You have entered The Solaris Concourse.
+2026/11/18 02:47:36 33859593 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Solaris Concourse) Duration = 1.29809 seconds
+2026/11/18 02:48:05 33888203 1186a803 [DEBUG Client 4976] Generating level 59 area "2_8_12_1" with seed 812228134
+2026/11/18 02:48:06 33888968 cffb06be [INFO Client 4976] : You have entered The Solaris Temple Level 1.
+2026/11/18 02:48:06 33889125 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Solaris Temple Level 1) Duration = 1.0005 seconds
+2026/11/18 02:48:33 33916609 1186a803 [DEBUG Client 4976] Generating level 60 area "2_8_town" with seed 1
+2026/11/18 02:48:35 33917828 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/18 02:48:35 33918078 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 1.56049 seconds
+2026/11/18 02:48:38 33921031 1186a803 [DEBUG Client 4976] Generating level 58 area "2_8_14" with seed 1214229687
+2026/11/18 02:48:39 33921671 cffb06be [INFO Client 4976] : You have entered The Hidden Underbelly.
+2026/11/18 02:48:39 33922187 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Hidden Underbelly) Duration = 1.23641 seconds
+2026/11/18 02:48:52 33935468 1186a803 [DEBUG Client 4976] Generating level 57 area "2_8_5" with seed 3893816011
+2026/11/18 02:48:53 33936250 cffb06be [INFO Client 4976] : You have entered The Bath House.
+2026/11/18 02:48:53 33936343 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Bath House) Duration = 1.00406 seconds
+2026/11/18 02:49:21 33964203 1186a803 [DEBUG Client 4976] Generating level 58 area "2_8_6" with seed 3115644919
+2026/11/18 02:49:22 33965140 cffb06be [INFO Client 4976] : You have entered The Lunaris Concourse.
+2026/11/18 02:49:22 33965312 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Lunaris Concourse) Duration = 1.17846 seconds
+2026/11/18 02:50:00 34002890 1186a803 [DEBUG Client 4976] Generating level 60 area "2_8_town" with seed 1
+2026/11/18 02:50:01 34003984 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/18 02:50:01 34004140 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 1.34159 seconds
+2026/11/18 02:50:03 34005875 1186a803 [DEBUG Client 4976] Generating level 57 area "2_8_5" with seed 3893816011
+2026/11/18 02:50:04 34006625 cffb06be [INFO Client 4976] : You have entered The Bath House.
+2026/11/18 02:50:04 34006968 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Bath House) Duration = 1.20419 seconds
+2026/11/18 02:51:12 34075265 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 58
+2026/11/18 02:51:28 34090656 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: shield_block32, name: Elemental Resistances with a Shield
+2026/11/18 02:52:31 34154390 1186a803 [DEBUG Client 4976] Generating level 58 area "2_8_4" with seed 1197470029
+2026/11/18 02:52:32 34155546 cffb06be [INFO Client 4976] : You have entered The High Gardens.
+2026/11/18 02:52:33 34156000 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The High Gardens) Duration = 1.7949 seconds
+2026/11/18 02:54:15 34258578 1186a803 [DEBUG Client 4976] Generating level 60 area "2_8_town" with seed 1
+2026/11/18 02:54:17 34259656 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/18 02:54:17 34259921 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 1.45578 seconds
+2026/11/18 02:55:00 34302781 1186a803 [DEBUG Client 4976] Generating level 59 area "2_8_12_1" with seed 812228134
+2026/11/18 02:55:00 34303515 cffb06be [INFO Client 4976] : You have entered The Solaris Temple Level 1.
+2026/11/18 02:55:01 34303984 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Solaris Temple Level 1) Duration = 1.26944 seconds
+2026/11/18 02:55:06 34309390 1186a803 [DEBUG Client 4976] Generating level 59 area "2_8_12_2" with seed 3022132418
+2026/11/18 02:55:07 34310265 cffb06be [INFO Client 4976] : You have entered The Solaris Temple Level 2.
+2026/11/18 02:55:07 34310343 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Solaris Temple Level 2) Duration = 1.12601 seconds
+2026/11/18 02:55:10 34312875 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: shield_defences1063, name: Shield Block and Elemental Resistances with a Shield
+2026/11/18 02:55:10 34313328 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: shield_mastery34, name: Sanctuary
+2026/11/18 02:56:27 34390593 1186a803 [DEBUG Client 4976] Generating level 60 area "2_8_town" with seed 1
+2026/11/18 02:56:28 34391531 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/18 02:56:29 34392171 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 1.67398 seconds
+2026/11/18 02:56:32 34395140 1186a803 [DEBUG Client 4976] Generating level 58 area "2_8_6" with seed 3115644919
+2026/11/18 02:56:33 34396093 cffb06be [INFO Client 4976] : You have entered The Lunaris Concourse.
+2026/11/18 02:56:33 34396250 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Lunaris Concourse) Duration = 1.18957 seconds
+2026/11/18 02:57:05 34428031 1186a803 [DEBUG Client 4976] Generating level 59 area "2_8_7_1_" with seed 3464636880
+2026/11/18 02:57:06 34428859 cffb06be [INFO Client 4976] : You have entered The Lunaris Temple Level 1.
+2026/11/18 02:57:06 34429187 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Lunaris Temple Level 1) Duration = 1.28632 seconds
+2026/11/18 02:59:02 34545031 1186a803 [DEBUG Client 4976] Generating level 59 area "2_8_7_2" with seed 1865914673
+2026/11/18 02:59:03 34546000 cffb06be [INFO Client 4976] : You have entered The Lunaris Temple Level 2.
+2026/11/18 02:59:03 34546312 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Lunaris Temple Level 2) Duration = 1.35735 seconds
+2026/11/18 03:01:28 34691140 1186a803 [DEBUG Client 4976] Generating level 60 area "2_8_town" with seed 1
+2026/11/18 03:01:29 34692218 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
+2026/11/18 03:01:29 34692578 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 1.52478 seconds
+2026/11/18 03:01:34 34696765 1186a803 [DEBUG Client 4976] Generating level 58 area "2_8_6" with seed 3115644919
+2026/11/18 03:01:34 34697593 cffb06be [INFO Client 4976] : You have entered The Lunaris Concourse.
+2026/11/18 03:01:35 34697875 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Lunaris Concourse) Duration = 1.19276 seconds
+2026/11/18 03:01:51 34714234 1186a803 [DEBUG Client 4976] Generating level 60 area "2_8_13" with seed 3840935250
+2026/11/18 03:01:52 34715312 cffb06be [INFO Client 4976] : You have entered The Harbour Bridge.
+2026/11/18 03:01:52 34715406 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Harbour Bridge) Duration = 1.29584 seconds
+2026/11/18 03:02:50 34773578 1186a803 [DEBUG Client 4976] Generating level 61 area "2_9_1" with seed 883204529
+2026/11/18 03:02:51 34774453 cffb06be [INFO Client 4976] : You have entered The Blood Aqueduct.
+2026/11/18 03:02:52 34774843 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Blood Aqueduct) Duration = 1.34093 seconds
+2026/11/18 03:03:24 34807015 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 59
+2026/11/18 03:04:16 34859546 1186a803 [DEBUG Client 4976] Generating level 67 area "2_9_town" with seed 1
+2026/11/18 03:04:18 34860703 cffb06be [INFO Client 4976] : You have entered Highgate.
+2026/11/18 03:04:20 34862984 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Highgate) Duration = 3.57063 seconds
+2026/11/18 03:04:32 34874640 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: dexterity973, name: Dexterity
+2026/11/18 03:04:54 34897234 1186a803 [DEBUG Client 4976] Generating level 61 area "2_9_2" with seed 1879017507
+2026/11/18 03:04:55 34898578 cffb06be [INFO Client 4976] : You have entered The Descent.
+2026/11/18 03:04:56 34898921 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Descent) Duration = 1.78286 seconds
+2026/11/18 03:06:09 34972281 1186a803 [DEBUG Client 4976] Generating level 61 area "2_9_3" with seed 3627772662
+2026/11/18 03:06:10 34973281 cffb06be [INFO Client 4976] : You have entered The Vastiri Desert.
+2026/11/18 03:06:11 34973640 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Vastiri Desert) Duration = 1.57886 seconds
+2026/11/18 03:07:25 35048562 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 60
+2026/11/18 03:07:30 35053609 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: minion_damage1126, name: Chaos Resistance and Minion Damage
+2026/11/18 03:07:51 35074078 1186a803 [DEBUG Client 4976] Generating level 62 area "2_9_5" with seed 3732305058
+2026/11/18 03:07:52 35074765 cffb06be [INFO Client 4976] : You have entered The Foothills.
+2026/11/18 03:07:52 35075421 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Foothills) Duration = 1.44631 seconds
+2026/11/18 03:08:38 35121296 1186a803 [DEBUG Client 4976] Generating level 62 area "2_9_7" with seed 2568397251
+2026/11/18 03:08:39 35122046 cffb06be [INFO Client 4976] : You have entered The Tunnel.
+2026/11/18 03:08:39 35122406 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Tunnel) Duration = 1.21783 seconds
+2026/11/18 03:08:41 35123953 1186a803 [DEBUG Client 4976] Generating level 62 area "2_9_5" with seed 3732305058
+2026/11/18 03:08:41 35124531 cffb06be [INFO Client 4976] : You have entered The Foothills.
+2026/11/18 03:08:42 35124656 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Foothills) Duration = 0.774589 seconds
+2026/11/18 03:09:12 35154812 1186a803 [DEBUG Client 4976] Generating level 62 area "2_9_6" with seed 1442294633
+2026/11/18 03:09:12 35155625 cffb06be [INFO Client 4976] : You have entered The Boiling Lake.
+2026/11/18 03:09:13 35155859 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Boiling Lake) Duration = 1.14403 seconds
+2026/11/18 03:09:51 35194312 1186a803 [DEBUG Client 4976] Generating level 67 area "2_9_town" with seed 1
+2026/11/18 03:09:52 35195359 cffb06be [INFO Client 4976] : You have entered Highgate.
+2026/11/18 03:09:54 35196984 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Highgate) Duration = 2.77754 seconds
+2026/11/18 03:10:14 35217296 1186a803 [DEBUG Client 4976] Generating level 61 area "2_9_3" with seed 3627772662
+2026/11/18 03:10:15 35218109 cffb06be [INFO Client 4976] : You have entered The Vastiri Desert.
+2026/11/18 03:10:16 35218687 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Vastiri Desert) Duration = 1.52857 seconds
+2026/11/18 03:10:27 35230015 1186a803 [DEBUG Client 4976] Generating level 61 area "2_9_4" with seed 4029977452
+2026/11/18 03:10:28 35230859 cffb06be [INFO Client 4976] : You have entered The Oasis.
+2026/11/18 03:10:28 35231312 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Oasis) Duration = 1.43643 seconds
+2026/11/18 03:11:05 35267828 cffb06be [INFO Client 4976] : TestExile has been slain.
+2026/11/18 03:13:47 35430125 1186a803 [DEBUG Client 4976] Generating level 67 area "2_9_town" with seed 1
+2026/11/18 03:13:48 35431046 cffb06be [INFO Client 4976] : You have entered Highgate.
+2026/11/18 03:13:49 35431781 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Highgate) Duration = 1.76756 seconds
+2026/11/18 03:14:01 35444312 1186a803 [DEBUG Client 4976] Generating level 62 area "2_9_5" with seed 3732305058
+2026/11/18 03:14:02 35445250 cffb06be [INFO Client 4976] : You have entered The Foothills.
+2026/11/18 03:14:03 35445640 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Foothills) Duration = 1.4054 seconds
+2026/11/18 03:14:19 35462390 1186a803 [DEBUG Client 4976] Generating level 62 area "2_9_7" with seed 2568397251
+2026/11/18 03:14:20 35463125 cffb06be [INFO Client 4976] : You have entered The Tunnel.
+2026/11/18 03:14:20 35463421 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Tunnel) Duration = 1.23527 seconds
+2026/11/18 03:17:13 35636515 1186a803 [DEBUG Client 4976] Generating level 63 area "2_9_8" with seed 531147165
+2026/11/18 03:17:14 35637312 cffb06be [INFO Client 4976] : You have entered The Quarry.
+2026/11/18 03:17:15 35638484 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Quarry) Duration = 2.02367 seconds
+2026/11/18 03:18:17 35700468 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: minion_damage1127, name: Chaos Resistance and Minion Damage
+2026/11/18 03:19:34 35777015 1186a803 [DEBUG Client 4976] Generating level 67 area "2_9_town" with seed 1
+2026/11/18 03:19:35 35777859 cffb06be [INFO Client 4976] : You have entered Highgate.
+2026/11/18 03:19:36 35779296 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Highgate) Duration = 2.4103 seconds
