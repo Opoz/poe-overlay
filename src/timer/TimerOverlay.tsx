@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
-import { createSignal, For, Show } from "solid-js";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { createSignal, For, onCleanup, Show } from "solid-js";
 import { onEvent } from "../events";
 import { formatDelta, formatDuration } from "../format";
 import type { SplitRow } from "../types";
@@ -11,6 +12,13 @@ export default function TimerOverlay() {
 
 	onEvent<boolean>("interact-mode", setInteract);
 	invoke<boolean>("get_interact").then(setInteract);
+
+	// In Interact Mode the whole panel is a drag handle.
+	const startDrag = (e: MouseEvent) => {
+		if (interact() && e.button === 0) getCurrentWindow().startDragging();
+	};
+	document.addEventListener("mousedown", startDrag);
+	onCleanup(() => document.removeEventListener("mousedown", startDrag));
 
 	const phase = () => view()?.phase?.phase ?? "idle";
 	const statusLabel = () => {
@@ -26,9 +34,8 @@ export default function TimerOverlay() {
 			class="overlay timer"
 			classList={{ interact: interact() }}
 			data-phase={phase()}
-			data-tauri-drag-region={interact() ? true : undefined}
 		>
-			<header data-tauri-drag-region={interact() ? true : undefined}>
+			<header>
 				<span class="status">{statusLabel()}</span>
 				<Show when={interact()}>
 					<span class="hint">drag · Alt+E to lock</span>
