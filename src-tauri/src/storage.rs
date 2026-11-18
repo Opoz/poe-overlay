@@ -6,7 +6,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use poe_core::run::{Run, TimerState};
+use poe_core::{
+    run::{Run, TimerState},
+    tree::TreeOverlay,
+};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 pub fn data_dir() -> PathBuf {
@@ -56,6 +59,8 @@ pub struct Session {
     pub log_offset: u64,
     /// Profiles, the active Character and any pending Run.
     pub timer: TimerState,
+    /// Tree Overlay visibility and Calibration.
+    pub tree: TreeOverlay,
 }
 
 pub struct Storage {

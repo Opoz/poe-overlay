@@ -25,7 +25,9 @@ body {
 
 /* Overlay windows are transparent; only the panel is drawn. */
 html[data-window="timer"],
-html[data-window="timer"] body {
+html[data-window="timer"] body,
+html[data-window="tree"],
+html[data-window="tree"] body {
 	background: transparent;
 	overflow: hidden;
 	user-select: none;
@@ -260,4 +262,33 @@ tr.active td {
 
 .playing {
 	color: var(--accent);
+}
+
+.tree-overlay {
+	position: fixed;
+	inset: 0;
+}
+
+.tree-overlay canvas {
+	position: absolute;
+	inset: 0;
+}
+
+.tree-overlay.calibrating {
+	cursor: crosshair;
+	background: rgb(0 0 0 / 0.01);
+}
+
+.tree-prompt {
+	position: absolute;
+	top: 12%;
+	left: 50%;
+	transform: translateX(-50%);
+	max-width: 70%;
+	padding: 10px 14px;
+	border-radius: 8px;
+	background: rgb(14 15 18 / 0.9);
+	border: 1px solid var(--accent);
+	font-size: 15px;
+	text-align: center;
 }

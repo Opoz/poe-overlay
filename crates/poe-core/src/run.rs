@@ -314,6 +314,18 @@ impl RunTimer {
         self.state.active.as_deref()
     }
 
+    fn active_profile_mut(&mut self) -> Option<&mut Profile> {
+        let name = self.state.active.as_ref()?;
+        self.state.profiles.get_mut(name)
+    }
+
+    /// Replace a Character's passives (e.g. rebuilt from the whole Client Log).
+    pub fn set_passives(&mut self, name: &str, passives: std::collections::BTreeSet<String>) {
+        if let Some(p) = self.state.profiles.get_mut(name) {
+            p.passives = passives;
+        }
+    }
+
     pub fn profiles(&self) -> impl Iterator<Item = &Profile> {
         self.state.profiles.values()
     }
@@ -379,6 +391,16 @@ impl RunTimer {
                 class,
                 level,
             } => out.extend(self.level_up(character, class, *level, at)),
+            LogEvent::PassiveAllocated { id, .. } => {
+                if let Some(p) = self.active_profile_mut() {
+                    p.passives.insert(id.clone());
+                }
+            }
+            LogEvent::PassiveUnallocated { id, .. } => {
+                if let Some(p) = self.active_profile_mut() {
+                    p.passives.remove(id);
+                }
+            }
             LogEvent::LoadingScreen { seconds, .. } => {
                 let ms = (seconds * 1000.0).round() as Millis;
                 if let Some(run) = self.live()
@@ -484,6 +506,8 @@ impl RunTimer {
         if let Some(mut run) = claimed {
             run.character = Some(name.to_owned());
             run.class = Some(class.to_owned());
+            // A reused name: a new Character, so its old passives are gone too.
+            profile.passives.clear();
             // A reused name: the old Character's unfinished Run is over.
             if let Some(old) = profile.run.replace(run)
                 && !old.is_finished()

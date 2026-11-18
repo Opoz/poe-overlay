@@ -1,5 +1,7 @@
 //! Profiles: what the app keeps per Character.
 
+use std::collections::BTreeSet;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{clock::Millis, run::Run};
@@ -15,6 +17,9 @@ pub struct Profile {
     pub last_seen: Millis,
     /// This Character's current (possibly finished) Run.
     pub run: Option<Run>,
+    /// Allocated passives, as Client Log passive ids.
+    #[serde(default)]
+    pub passives: BTreeSet<String>,
 }
 
 impl Profile {
@@ -25,6 +30,7 @@ impl Profile {
             level: 1,
             last_seen: 0,
             run: None,
+            passives: BTreeSet::new(),
         }
     }
 }

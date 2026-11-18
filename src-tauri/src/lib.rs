@@ -11,7 +11,11 @@ use std::{
     time::{Duration, Instant},
 };
 
-use poe_core::{run::Command, run::Run, view::TimerView};
+use poe_core::{
+    run::{Command, Run},
+    tree::{TreeNode, TreeView},
+    view::TimerView,
+};
 use serde::Serialize;
 use tauri::{
     AppHandle, Emitter, Manager, WindowEvent,
@@ -37,6 +41,8 @@ const TIMER_VIEW: &str = "timer-view";
 /// Event carrying the [`Status`] to the main window.
 const STATUS: &str = "status";
 const INTERACT: &str = "interact-mode";
+/// Event carrying a fresh [`TreeView`] to every window.
+const TREE_VIEW: &str = "tree-view";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -45,7 +51,7 @@ struct Status {
     game_running: bool,
 }
 
-fn hotkeys() -> [(Shortcut, Hotkey); 4] {
+fn hotkeys() -> [(Shortcut, Hotkey); 6] {
     let alt = Some(Modifiers::ALT);
     let alt_shift = Some(Modifiers::ALT | Modifiers::SHIFT);
     [
@@ -62,6 +68,8 @@ fn hotkeys() -> [(Shortcut, Hotkey); 4] {
             Hotkey::Timer(Command::UndoSplit),
         ),
         (Shortcut::new(alt, Code::KeyE), Hotkey::InteractMode),
+        (Shortcut::new(alt, Code::KeyT), Hotkey::TreeOverlay),
+        (Shortcut::new(alt_shift, Code::KeyT), Hotkey::Calibrate),
     ]
 }
 
@@ -69,6 +77,8 @@ fn hotkeys() -> [(Shortcut, Hotkey); 4] {
 enum Hotkey {
     Timer(Command),
     InteractMode,
+    TreeOverlay,
+    Calibrate,
 }
 
 fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
@@ -80,10 +90,86 @@ fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
         }
         Hotkey::InteractMode => {
             let on = !state.interact.fetch_xor(true, Ordering::SeqCst);
-            overlay::set_interact(app, on);
             let _ = app.emit(INTERACT, on);
         }
+        Hotkey::TreeOverlay => {
+            state.tracker.lock().unwrap().toggle_tree();
+            emit_tree(app);
+        }
+        Hotkey::Calibrate => {
+            state.tracker.lock().unwrap().toggle_calibration();
+            emit_tree(app);
+        }
     }
+}
+
+fn emit_tree(app: &AppHandle) {
+    let view = app.state::<AppState>().tracker.lock().unwrap().tree_view();
+    let _ = app.emit(TREE_VIEW, view);
+}
+
+/// Main-tree nodes for drawing (the ascendancy panel is separate in-game).
+#[tauri::command]
+fn get_tree(state: tauri::State<AppState>) -> Vec<TreeNode> {
+    let tracker = state.tracker.lock().unwrap();
+    tracker
+        .tree()
+        .nodes
+        .iter()
+        .filter(|n| n.ascendancy.is_none())
+        .cloned()
+        .collect()
+}
+
+#[tauri::command]
+fn get_tree_view(state: tauri::State<AppState>) -> TreeView {
+    state.tracker.lock().unwrap().tree_view()
+}
+
+#[tauri::command]
+fn tree_click(app: AppHandle, state: tauri::State<AppState>, x: f64, y: f64) {
+    state.tracker.lock().unwrap().tree_click(x, y);
+    emit_tree(&app);
+}
+
+#[tauri::command]
+fn toggle_tree(app: AppHandle, state: tauri::State<AppState>, calibrate: bool) {
+    let mut tracker = state.tracker.lock().unwrap();
+    if calibrate {
+        tracker.toggle_calibration();
+    } else {
+        tracker.toggle_tree();
+    }
+    drop(tracker);
+    emit_tree(&app);
+}
+
+/// Rebuild a Character's passives from the whole Client Log. Returns how many.
+#[tauri::command]
+async fn rebuild_passives(app: AppHandle, name: String) -> Result<usize, String> {
+    let path = app
+        .state::<AppState>()
+        .tracker
+        .lock()
+        .unwrap()
+        .log_path()
+        .ok_or("no Client Log found yet")?;
+    let who = name.clone();
+    let passives = tauri::async_runtime::spawn_blocking(move || {
+        let file = std::fs::File::open(&path).map_err(|e| e.to_string())?;
+        let records = poe_core::log::replay(std::io::BufReader::new(file));
+        Ok::<_, String>(poe_core::tree::passives_from_log(records, &who))
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+    let count = passives.len();
+    app.state::<AppState>()
+        .tracker
+        .lock()
+        .unwrap()
+        .set_passives(&name, passives);
+    emit_tree(&app);
+    Ok(count)
 }
 
 fn emit_view(app: &AppHandle) {
@@ -173,6 +259,7 @@ fn spawn_tracking_loop(app: AppHandle) {
             };
             if read_any || last_emit.elapsed() > Duration::from_secs(1) {
                 emit_view(&app);
+                emit_tree(&app);
                 last_emit = Instant::now();
             }
 
@@ -192,9 +279,17 @@ fn spawn_tracking_loop(app: AppHandle) {
                 last_status = Some(status);
             }
 
-            let placement = state.settings.lock().unwrap().timer_overlay;
-            let interact = state.interact.load(Ordering::SeqCst);
-            if let Some(moved) = overlays.sync(&app, game, placement, interact) {
+            let wanted = {
+                let tracker = state.tracker.lock().unwrap();
+                let tree = tracker.tree_overlay();
+                overlay::Wanted {
+                    timer_placement: state.settings.lock().unwrap().timer_overlay,
+                    interact: state.interact.load(Ordering::SeqCst),
+                    tree_visible: tree.visible,
+                    tree_clickable: tree.calibrating.is_some(),
+                }
+            };
+            if let Some(moved) = overlays.sync(&app, game, wanted) {
                 let mut settings = state.settings.lock().unwrap();
                 settings.timer_overlay = moved;
                 Storage::new(data_dir()).save_settings(&settings);
@@ -281,6 +376,11 @@ pub fn run() {
             get_status,
             get_characters,
             select_character,
+            get_tree,
+            get_tree_view,
+            tree_click,
+            toggle_tree,
+            rebuild_passives,
         ])
         .on_window_event(|window, event| {
             // Closing the main window sends it to the tray.
@@ -299,7 +399,7 @@ pub fn run() {
                 .lock()
                 .unwrap()
                 .overlay_opacity;
-            overlay::create_timer_overlay(app.handle(), opacity)?;
+            overlay::create_overlays(app.handle(), opacity)?;
             spawn_tracking_loop(app.handle().clone());
             Ok(())
         })

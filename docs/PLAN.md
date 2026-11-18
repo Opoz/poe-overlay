@@ -81,6 +81,10 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
   - [x] Per-Character Profiles (assume last Character after character select; switch on level up; manual pick)
   - [ ] Verify in-game: overlay over borderless PoE, hotkeys, DPI scaling
 - [ ] **M1.5**: passive tree POC: render export, Calibration over the in-game tree.
+  - [x] Tree data generated from GGG export + RePoE log-id map; geometry verified
+  - [x] Allocated passives tracked per Profile from the Client Log (+ rebuild from whole log)
+  - [x] Two-click Calibration, tree Overlay ringing allocated nodes
+  - [ ] Verify alignment in-game; decide nudge/zoom controls
 - [ ] **M2**: Guide Overlay, auto-advance, Bandit Choice, Direction Hints.
 - [ ] **M3**: PoB import, gem links panel, Quest/Vendor Rewards in Guide, Vendor Regex, full tree Overlay.
 - [ ] **M4**: Lab Overlay, Trial tracking.

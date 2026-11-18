@@ -16,6 +16,16 @@ export default function CharactersCard() {
 		refetch();
 	};
 
+	const rebuild = async (name: string) => {
+		try {
+			const count = await invoke<number>("rebuild_passives", { name });
+			alert(`${name}: ${count} passives found in the Client Log.`);
+		} catch (e) {
+			alert(`Could not rebuild: ${e}`);
+		}
+		refetch();
+	};
+
 	const sorted = () =>
 		[...(characters()?.profiles ?? [])].sort((a, b) => b.lastSeen - a.lastSeen);
 
@@ -41,6 +51,7 @@ export default function CharactersCard() {
 							<th>Level</th>
 							<th>Run</th>
 							<th>Last level up</th>
+							<th>Passives</th>
 							<th />
 						</tr>
 					</thead>
@@ -51,6 +62,7 @@ export default function CharactersCard() {
 									profile={p}
 									active={characters()?.active === p.name}
 									onSelect={() => select(p.name)}
+									onRebuild={() => rebuild(p.name)}
 								/>
 							)}
 						</For>
@@ -65,6 +77,7 @@ function ProfileRow(props: {
 	profile: Profile;
 	active: boolean;
 	onSelect: () => void;
+	onRebuild: () => void;
 }) {
 	const runLabel = () => {
 		const run = props.profile.run;
@@ -83,6 +96,16 @@ function ProfileRow(props: {
 			<td>{runLabel()}</td>
 			<td>
 				{props.profile.lastSeen ? formatLocalDate(props.profile.lastSeen) : "—"}
+			</td>
+			<td>
+				{props.profile.passives.length}{" "}
+				<button
+					type="button"
+					title="Read the whole Client Log for this character's passive allocations"
+					onClick={props.onRebuild}
+				>
+					Rebuild from log
+				</button>
 			</td>
 			<td>
 				<Show

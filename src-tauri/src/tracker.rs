@@ -7,6 +7,7 @@ use poe_core::{
     profile::Profile,
     run::{Command, Run, RunTimer, TimerEvent, TimerSettings},
     tail::LogTail,
+    tree::{PassiveTree, TreeOverlay, TreeView},
     view::TimerView,
 };
 
@@ -26,6 +27,8 @@ pub struct Tracker {
     tail: Option<LogTail>,
     history: Vec<Run>,
     saved_offset: Option<u64>,
+    tree: PassiveTree,
+    tree_overlay: TreeOverlay,
 }
 
 impl Tracker {
@@ -40,6 +43,7 @@ impl Tracker {
         // Catch up on anything logged while the app was closed.
         let tail = session
             .log_path
+            .clone()
             .filter(|p| std::fs::metadata(p).is_ok_and(|m| m.len() >= session.log_offset))
             .map(|p| LogTail::new(p, session.log_offset));
         Self {
@@ -48,6 +52,8 @@ impl Tracker {
             tail,
             history,
             saved_offset: None,
+            tree: PassiveTree::bundled(),
+            tree_overlay: session.tree,
         }
     }
 
@@ -122,6 +128,51 @@ impl Tracker {
         TimerView::build(self.timer.run(), history, now_ms())
     }
 
+    pub fn tree(&self) -> &PassiveTree {
+        &self.tree
+    }
+
+    pub fn tree_overlay(&self) -> &TreeOverlay {
+        &self.tree_overlay
+    }
+
+    pub fn tree_view(&self) -> TreeView {
+        let active = self.timer.active();
+        let profile = active.and_then(|n| self.timer.profiles().find(|p| p.name == n));
+        let empty = Default::default();
+        TreeView::build(
+            &self.tree,
+            &self.tree_overlay,
+            active,
+            profile.and_then(|p| p.class.as_deref()),
+            profile.map_or(&empty, |p| &p.passives),
+        )
+    }
+
+    pub fn toggle_tree(&mut self) {
+        self.tree_overlay.toggle_visible();
+        self.save_session();
+    }
+
+    pub fn toggle_calibration(&mut self) {
+        self.tree_overlay.toggle_calibration();
+        self.save_session();
+    }
+
+    /// A Calibration click at game-window pixels.
+    pub fn tree_click(&mut self, x: f64, y: f64) {
+        let view = self.tree_view();
+        if let Some(start) = view.class_start {
+            self.tree_overlay.click(&self.tree, start.id, (x, y));
+            self.save_session();
+        }
+    }
+
+    pub fn set_passives(&mut self, name: &str, passives: std::collections::BTreeSet<String>) {
+        self.timer.set_passives(name, passives);
+        self.save_session();
+    }
+
     pub fn history(&self) -> &[Run] {
         &self.history
     }
@@ -152,6 +203,7 @@ impl Tracker {
             log_path: self.log_path(),
             log_offset: offset,
             timer: self.timer.save(now_ms()),
+            tree: self.tree_overlay.clone(),
         });
         self.saved_offset = Some(offset);
     }

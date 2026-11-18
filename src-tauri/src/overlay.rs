@@ -3,7 +3,8 @@
 //! (ADR 0005).
 
 use tauri::{
-    AppHandle, Manager, PhysicalPosition, WebviewUrl, WebviewWindow, WebviewWindowBuilder,
+    AppHandle, Manager, PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindow,
+    WebviewWindowBuilder,
 };
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 
@@ -13,11 +14,13 @@ use crate::{
 };
 
 pub const TIMER: &str = "timer";
+/// Covers the whole game window; draws over the in-game passive tree.
+pub const TREE: &str = "tree";
 
-pub fn create_timer_overlay(app: &AppHandle, opacity: f64) -> tauri::Result<()> {
-    let window = WebviewWindowBuilder::new(app, TIMER, WebviewUrl::App("index.html".into()))
-        .title("poe-overlay timer")
-        .inner_size(280.0, 340.0)
+fn build(app: &AppHandle, label: &str, w: f64, h: f64, opacity: f64) -> tauri::Result<()> {
+    let window = WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
+        .title(format!("poe-overlay {label}"))
+        .inner_size(w, h)
         .transparent(true)
         .decorations(false)
         .shadow(false)
@@ -33,22 +36,47 @@ pub fn create_timer_overlay(app: &AppHandle, opacity: f64) -> tauri::Result<()> 
     Ok(())
 }
 
-pub fn set_interact(app: &AppHandle, on: bool) {
-    if let Some(h) = app.get_webview_window(TIMER).as_ref().and_then(raw) {
-        platform::set_click_through(h, !on);
-    }
+pub fn create_overlays(app: &AppHandle, opacity: f64) -> tauri::Result<()> {
+    build(app, TIMER, 280.0, 340.0, opacity)?;
+    build(app, TREE, 800.0, 600.0, 1.0)?;
+    Ok(())
 }
 
 fn raw(window: &WebviewWindow) -> Option<RawHwnd> {
     window.hwnd().ok().map(|h| h.0 as RawHwnd)
 }
 
+fn raw_of(app: &AppHandle, label: &str) -> Option<RawHwnd> {
+    app.get_webview_window(label).as_ref().and_then(raw)
+}
+
+/// What the Overlays should look like right now.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Wanted {
+    pub timer_placement: OverlayPlacement,
+    /// Interact Mode: the timer can be dragged.
+    pub interact: bool,
+    pub tree_visible: bool,
+    /// Calibration needs the tree Overlay to take clicks.
+    pub tree_clickable: bool,
+}
+
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+struct Applied {
+    active: bool,
+    timer_visible: bool,
+    tree_visible: bool,
+    timer_clickable: bool,
+    tree_clickable: bool,
+}
+
 /// Keeps Overlays and hotkeys in step with the game window.
 pub struct Follower {
     shortcuts: Vec<Shortcut>,
-    active: bool,
+    applied: Applied,
     was_interact: bool,
-    last_target: Option<(i32, i32)>,
+    timer_target: Option<(i32, i32)>,
+    tree_rect: Option<GameRect>,
     last_rect: Option<GameRect>,
 }
 
@@ -56,30 +84,38 @@ impl Follower {
     pub fn new(shortcuts: Vec<Shortcut>) -> Self {
         Self {
             shortcuts,
-            active: false,
+            applied: Applied::default(),
             was_interact: false,
-            last_target: None,
+            timer_target: None,
+            tree_rect: None,
             last_rect: None,
         }
     }
 
-    /// Returns a new placement when the player finished moving the Overlay.
+    /// Returns a new timer placement when the player finished moving it.
     pub fn sync(
         &mut self,
         app: &AppHandle,
         game: Option<RawHwnd>,
-        placement: OverlayPlacement,
-        interact: bool,
+        wanted: Wanted,
     ) -> Option<OverlayPlacement> {
-        let window = app.get_webview_window(TIMER)?;
-        let overlay = raw(&window)?;
+        let timer_window = app.get_webview_window(TIMER)?;
+        let timer = raw(&timer_window)?;
+        let tree = raw_of(app, TREE)?;
         let rect = game.and_then(platform::game_rect);
-        // The Overlay itself may hold focus while being dragged in Interact Mode.
+        // An Overlay may hold focus while being dragged or clicked.
         let foreground = platform::foreground_window();
-        let active =
-            game.is_some_and(|g| foreground == g || foreground == overlay) && rect.is_some();
+        let active = rect.is_some()
+            && game.is_some_and(|g| foreground == g || foreground == timer || foreground == tree);
 
-        if active != self.active {
+        let next = Applied {
+            active,
+            timer_visible: active,
+            tree_visible: active && wanted.tree_visible,
+            timer_clickable: wanted.interact,
+            tree_clickable: wanted.tree_clickable,
+        };
+        if next.active != self.applied.active {
             // Hotkeys only exist while the game is focused, so they never
             // swallow keys in other apps.
             let shortcuts = self.shortcuts.clone();
@@ -88,37 +124,56 @@ impl Follower {
             } else {
                 app.global_shortcut().unregister_multiple(shortcuts)
             };
-            platform::set_visible(overlay, active);
-            self.active = active;
+        }
+        if next.timer_clickable != self.applied.timer_clickable {
+            platform::set_click_through(timer, !next.timer_clickable);
+        }
+        if next.tree_clickable != self.applied.tree_clickable {
+            platform::set_click_through(tree, !next.tree_clickable);
         }
 
         let mut moved = None;
-        if self.was_interact && !interact {
-            // Interact Mode ended: remember where the player put it.
-            if let (Some(r), Ok(pos)) = (self.last_rect, window.outer_position()) {
-                let p = OverlayPlacement {
+        if self.was_interact && !wanted.interact {
+            // Interact Mode ended: remember where the player put the timer.
+            if let (Some(r), Ok(pos)) = (self.last_rect, timer_window.outer_position()) {
+                moved = Some(OverlayPlacement {
                     x: f64::from(pos.x - r.x) / f64::from(r.width),
                     y: f64::from(pos.y - r.y) / f64::from(r.height),
-                };
-                self.last_target = Some((pos.x, pos.y));
-                moved = Some(p);
+                });
+                self.timer_target = Some((pos.x, pos.y));
             }
         }
-        self.was_interact = interact;
+        self.was_interact = wanted.interact;
 
         if let Some(r) = rect {
             self.last_rect = Some(r);
-            if !interact && moved.is_none() {
+            if !wanted.interact && moved.is_none() {
+                let p = wanted.timer_placement;
                 let target = (
-                    r.x + (placement.x * f64::from(r.width)).round() as i32,
-                    r.y + (placement.y * f64::from(r.height)).round() as i32,
+                    r.x + (p.x * f64::from(r.width)).round() as i32,
+                    r.y + (p.y * f64::from(r.height)).round() as i32,
                 );
-                if self.last_target != Some(target) {
-                    let _ = window.set_position(PhysicalPosition::new(target.0, target.1));
-                    self.last_target = Some(target);
+                if self.timer_target != Some(target) {
+                    let _ = timer_window.set_position(PhysicalPosition::new(target.0, target.1));
+                    self.timer_target = Some(target);
                 }
             }
+            if self.tree_rect != Some(r)
+                && let Some(w) = app.get_webview_window(TREE)
+            {
+                let _ = w.set_position(PhysicalPosition::new(r.x, r.y));
+                let _ = w.set_size(PhysicalSize::new(r.width as u32, r.height as u32));
+                self.tree_rect = Some(r);
+            }
         }
+
+        if next.timer_visible != self.applied.timer_visible {
+            platform::set_visible(timer, next.timer_visible);
+        }
+        if next.tree_visible != self.applied.tree_visible {
+            platform::set_visible(tree, next.tree_visible);
+        }
+        self.applied = next;
         moved
     }
 }

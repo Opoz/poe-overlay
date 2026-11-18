@@ -57,6 +57,43 @@ export interface Profile {
 	level: number;
 	lastSeen: number;
 	run: Run | null;
+	passives: string[];
+}
+
+export interface TreeNode {
+	id: number;
+	name: string;
+	kind:
+		| "normal"
+		| "notable"
+		| "keystone"
+		| "mastery"
+		| "jewel"
+		| "classStart"
+		| "ascendancyStart";
+	x: number;
+	y: number;
+	out: number[];
+}
+
+export interface Transform {
+	scale: number;
+	offsetX: number;
+	offsetY: number;
+}
+
+export type Calibrating =
+	| { step: "classStart" }
+	| { step: "partner"; classStartAt: [number, number] };
+
+export interface TreeView {
+	visible: boolean;
+	calibrating: Calibrating | null;
+	transform: Transform | null;
+	character: string | null;
+	classStart: TreeNode | null;
+	partner: TreeNode | null;
+	allocated: number[];
 }
 
 export interface Characters {

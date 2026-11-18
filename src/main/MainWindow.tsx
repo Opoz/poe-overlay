@@ -103,6 +103,29 @@ export default function MainWindow() {
 				</div>
 			</section>
 
+			<section class="card">
+				<h2>Passive tree overlay (preview)</h2>
+				<p class="muted">
+					Open the in-game passive tree, calibrate by clicking your class start
+					and the named keystone, and your allocated passives are ringed on top.
+					Recalibrate after panning or zooming the in-game tree.
+				</p>
+				<div class="buttons">
+					<button
+						type="button"
+						onClick={() => invoke("toggle_tree", { calibrate: false })}
+					>
+						Show / hide <kbd>Alt+T</kbd>
+					</button>
+					<button
+						type="button"
+						onClick={() => invoke("toggle_tree", { calibrate: true })}
+					>
+						Calibrate <kbd>Alt+Shift+T</kbd>
+					</button>
+				</div>
+			</section>
+
 			<CharactersCard />
 
 			<section class="card">
