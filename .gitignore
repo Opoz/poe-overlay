@@ -1,0 +1,11 @@
+node_modules
+dist
+/target/
+*.log
+
+# private test data (real Client Logs contain chat/whispers)
+.local/
+
+.DS_Store
+.vscode/*
+!.vscode/extensions.json

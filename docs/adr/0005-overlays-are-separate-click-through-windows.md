@@ -1,0 +1,3 @@
+# Overlays are separate click-through windows; borderless mode required
+
+Each Overlay is its own transparent, always-on-top, click-through Tauri window positioned relative to the PoE window, rather than one fullscreen overlay window or anything drawn inside the game. This requires the game to run in windowed fullscreen / borderless mode (exclusive fullscreen is unsupported). Interact Mode temporarily makes Overlays accept the mouse. Separate windows keep hit-testing simple and let each Overlay be shown, hidden and sized independently; a single fullscreen window would need per-pixel hit-testing to stay click-through.

@@ -1,0 +1,10 @@
+[package]
+name = "poe-core"
+version = "0.1.0"
+description = "Domain logic for poe-overlay: Client Log parsing, Runs, Guide, Build import"
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
