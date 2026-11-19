@@ -5,7 +5,7 @@
 //! or inside a folder named after the Area ID (`1_1_2/top exit.png`).
 
 /// File types the Overlay can show.
-const IMAGE_EXTENSIONS: [&str; 4] = ["jpg", "jpeg", "png", "webp"];
+const IMAGE_EXTENSIONS: [&str; 5] = ["jpg", "jpeg", "png", "webp", "svg"];
 
 /// One image for an Area.
 #[derive(Debug, Clone, PartialEq, Eq)]

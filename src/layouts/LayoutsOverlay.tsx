@@ -18,6 +18,10 @@ import type { LayoutsPayload } from "../types";
 /**
  * The player's layout images for the current Area, side by side. Clicking
  * the one that matches this instance keeps it large and fades the rest.
+ *
+ * Variants can have follow-up steps, named after them: `1_1_2 1` is a
+ * variant, `1_1_2 1_1` and `1_1_2 1_2` what to look for next within it. Only
+ * variants show at first; picking one shows it with its next steps.
  */
 export default function LayoutsOverlay() {
 	const [view, setView] = createSignal<LayoutsPayload | null>(null);
@@ -25,7 +29,38 @@ export default function LayoutsOverlay() {
 	invoke<LayoutsPayload>("get_layouts_view").then(setView);
 
 	// The pick is for this instance only: forget it on a new Area.
-	const [picked, setPicked] = createSignal<number | null>(null);
+	const [picked, setPicked] = createSignal<string | null>(null);
+	const images = () => view()?.images ?? [];
+	const children = (label: string) =>
+		images().filter(
+			(i) =>
+				i.label.startsWith(`${label}_`) &&
+				!i.label.slice(label.length + 1).includes("_"),
+		);
+	const parentOf = (label: string) =>
+		label.includes("_") ? label.slice(0, label.lastIndexOf("_")) : null;
+	const siblings = (label: string) => {
+		const parent = parentOf(label);
+		return parent === null
+			? images().filter((i) => !i.label.includes("_"))
+			: children(parent);
+	};
+	/** What to show: variants, or a pick with its next steps. */
+	const shown = () => {
+		const p = picked();
+		const all = images();
+		if (p === null) {
+			const top = all.filter((i) => !i.label.includes("_"));
+			return top.length > 0 ? top : all;
+		}
+		const next = children(p);
+		const self = all.filter((i) => i.label === p);
+		return next.length > 0 ? [...self, ...next] : siblings(p);
+	};
+	const isLeafPick = () => {
+		const p = picked();
+		return p !== null && children(p).length === 0;
+	};
 	createEffect(
 		on(
 			() => view()?.areaId,
@@ -50,9 +85,19 @@ export default function LayoutsOverlay() {
 		>
 			<header class="guide-bar">
 				<span>
-					{(view()?.images.length ?? 0) > 1 && picked() === null
-						? "Click the layout that matches"
-						: "Zone layout"}
+					{picked() === null
+						? shown().length > 1
+							? "Click the layout that matches"
+							: "Zone layout"
+						: isLeafPick()
+							? "Zone layout"
+							: "Then look for:"}
+					<Show when={picked() !== null}>
+						{" "}
+						<button type="button" class="small" onClick={() => setPicked(null)}>
+							All layouts
+						</button>
+					</Show>
 				</span>
 				<button
 					type="button"
@@ -67,17 +112,21 @@ export default function LayoutsOverlay() {
 				</button>
 			</header>
 			<div class="layout-row">
-				<For each={view()?.images ?? []}>
-					{(img, i) => (
+				<For each={shown()}>
+					{(img) => (
 						<button
 							type="button"
 							class="layout-pick"
 							classList={{
-								picked: picked() === i(),
-								faded: picked() !== null && picked() !== i(),
+								picked: picked() === img.label,
+								faded: isLeafPick() && picked() !== img.label,
 							}}
 							title={img.label || "Layout"}
-							onClick={() => setPicked(picked() === i() ? null : i())}
+							onClick={() =>
+								setPicked(
+									picked() === img.label ? parentOf(img.label) : img.label,
+								)
+							}
 						>
 							<img src={img.src} alt={img.label || "Zone layout"} />
 							<Show when={img.label}>

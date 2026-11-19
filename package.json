@@ -16,7 +16,8 @@
 		"preview:shots": "node scripts/preview.mjs",
 		"build:signed": "node scripts/build-signed.mjs",
 		"icon": "node scripts/icon.mjs",
-		"prepare": "git config core.hooksPath .githooks"
+		"prepare": "git config core.hooksPath .githooks",
+		"layouts": "python scripts/layouts/install.py"
 	},
 	"license": "MIT",
 	"dependencies": {

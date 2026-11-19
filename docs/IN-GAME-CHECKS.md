@@ -41,6 +41,12 @@ Run the game in windowed fullscreen. Start the app with `pnpm tauri dev`.
 - [ ] Clicking one keeps it large and fades the rest; the pick resets in the next area.
 - [ ] Images in a folder named after an area ID also work.
 
+## Act 1 layout schematics (pilot)
+
+- [ ] `pnpm layouts`, then play Act 1. On entering each zone you see its variants; clicking one shows its follow-up steps; "All layouts" goes back.
+- [ ] Compare our drawings with the references side by side (comparison page from the session) and note any that are wrong or unhelpful.
+- [ ] Decide: do the other acts this way, or not.
+
 ## Screen copies
 
 - [ ] Add one, switch to the game, drag a box over the flasks. The copy appears and updates live. If it's blank, the click-through overlay window style is the first suspect.

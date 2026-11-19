@@ -20,6 +20,7 @@ Path of Exile 1 levelling companion: Tauri v2 + SolidJS. See `docs/PLAN.md` for 
 - `pnpm preview:shots [dir] [filter]`: regenerate `src/preview/fixtures.json` from the core, then screenshot every window via `preview.html` (needs `pnpm dev`; `--no-fixtures` to skip)
 - `pnpm build:signed`: local release build signed with the updater key (`docs/RELEASING.md`)
 - `pnpm icon`: re-render `assets/icon.svg` and regenerate `src-tauri/icons/`
+- `pnpm layouts`: render our zone layout schematics (`scripts/layouts/act*.py`) into the app's layouts folder; `python scripts/layouts/preview.py <dir> [prefix]` screenshots them
 - New recurring tasks get a script in `scripts/` and a line here, not a one-off shell command
 
 ## Branches

@@ -87,6 +87,7 @@ fn data_url(path: &Path) -> Option<String> {
     let mime = match ext.as_str() {
         "png" => "image/png",
         "webp" => "image/webp",
+        "svg" => "image/svg+xml",
         _ => "image/jpeg",
     };
     Some(format!(
