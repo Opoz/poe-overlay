@@ -40,6 +40,9 @@ pub struct TreeNode {
     pub y: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ascendancy: Option<String>,
+    /// Part of a bloodline (an alternate ascendancy).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub bloodline: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub class_start: Option<u8>,
     /// A mastery's effects, in the order the game lists them.
@@ -457,22 +460,32 @@ pub struct TreeOverlay {
 }
 
 /// How far the ascendancy start sits from the class start, towards the tree's
-/// centre (measured from a fully zoomed-out Necromancer screenshot: ~945).
-pub const ASCENDANCY_DISTANCE: f64 = 945.0;
+/// centre. Measured from fully zoomed-out screenshots: Necromancer ~945,
+/// Juggernaut ~964.
+pub const ASCENDANCY_DISTANCE: f64 = 955.0;
+/// How far a bloodline's start sits from the class start, away from the
+/// tree's centre (opposite the class's own ascendancy; Marauder ~918).
+pub const BLOODLINE_DISTANCE: f64 = 920.0;
 
 /// Where the game draws an ascendancy start node, in tree units: in the small
-/// circle under the class art, a fixed distance from the class start towards
-/// the centre of the tree, at the main tree's scale.
-pub fn ascendancy_placement(class_start: (f64, f64)) -> (f64, f64) {
+/// circle by the class art, a fixed distance from the class start, towards
+/// the centre of the tree (or away from it, for a bloodline), at the main
+/// tree's scale.
+pub fn ascendancy_placement(class_start: (f64, f64), bloodline: bool) -> (f64, f64) {
     let (x, y) = class_start;
     let len = x.hypot(y);
-    // The Scion sits in the middle; its circle is below.
+    // The Scion sits in the middle: a guess (below), correctable in game.
     let (ux, uy) = if len < 1.0 {
         (0.0, 1.0)
     } else {
         (-x / len, -y / len)
     };
-    (x + ux * ASCENDANCY_DISTANCE, y + uy * ASCENDANCY_DISTANCE)
+    let d = if bloodline {
+        -BLOODLINE_DISTANCE
+    } else {
+        ASCENDANCY_DISTANCE
+    };
+    (x + ux * d, y + uy * d)
 }
 
 impl TreeOverlay {
@@ -510,26 +523,9 @@ impl TreeOverlay {
         self.calibrating = None;
     }
 
-    /// Tree units to add to an ascendancy's data positions to get where the
-    /// game draws them (see [`ascendancy_placement`]), plus any correction.
-    pub fn ascendancy_shift(
-        &self,
-        tree: &PassiveTree,
-        ascendancy: &str,
-        ascendancy_start: u32,
-        class_start: u32,
-    ) -> Option<(f64, f64)> {
-        let (asc, class) = (tree.node(ascendancy_start)?, tree.node(class_start)?);
-        let (px, py) = ascendancy_placement((class.x, class.y));
-        let (fx, fy) = self
-            .ascendancy_fixes
-            .get(ascendancy)
-            .copied()
-            .unwrap_or_default();
-        Some((px - asc.x + fx, py - asc.y + fy))
-    }
-
-    /// The ascendancy panel's alignment: the main tree's, shifted.
+    /// The alignment of one ascendancy panel: the main tree's, shifted so the
+    /// ascendancy start lands where [`ascendancy_placement`] puts it, plus any
+    /// correction measured in game.
     pub fn ascendancy_transform(
         &self,
         tree: &PassiveTree,
@@ -538,7 +534,14 @@ impl TreeOverlay {
         class_start: u32,
     ) -> Option<Transform> {
         let t = self.transform?;
-        let (dx, dy) = self.ascendancy_shift(tree, ascendancy, ascendancy_start, class_start)?;
+        let (asc, class) = (tree.node(ascendancy_start)?, tree.node(class_start)?);
+        let (px, py) = ascendancy_placement((class.x, class.y), asc.bloodline);
+        let (fx, fy) = self
+            .ascendancy_fixes
+            .get(ascendancy)
+            .copied()
+            .unwrap_or_default();
+        let (dx, dy) = (px - asc.x + fx, py - asc.y + fy);
         Some(Transform {
             scale: t.scale,
             offset_x: t.offset_x + dx * t.scale,
@@ -546,9 +549,9 @@ impl TreeOverlay {
         })
     }
 
-    /// In ascendancy mode, the player middle-clicked the ascendancy start
-    /// (inside the circle under the class art): correct where it's drawn,
-    /// relative to the main tree's alignment.
+    /// In ascendancy mode, the player clicked an ascendancy start (in a circle
+    /// by the class art): correct where that panel is drawn, relative to the
+    /// main tree's alignment.
     pub fn fix_ascendancy(
         &mut self,
         tree: &PassiveTree,
@@ -564,8 +567,7 @@ impl TreeOverlay {
             return;
         };
         let clicked = ((at.0 - t.offset_x) / t.scale, (at.1 - t.offset_y) / t.scale);
-        let placed = ascendancy_placement((class.x, class.y));
-        let _ = asc;
+        let placed = ascendancy_placement((class.x, class.y), asc.bloodline);
         self.ascendancy_fixes.insert(
             ascendancy.to_owned(),
             (clicked.0 - placed.0, clicked.1 - placed.1),
@@ -674,15 +676,25 @@ pub struct TreeView {
     pub planned: Vec<u32>,
     /// The stage's mastery picks not yet made as planned.
     pub planned_masteries: Vec<MasteryPick>,
-    /// Showing the ascendancy panel.
+    /// Showing the ascendancy panels instead of the main tree.
     pub ascendancy: bool,
     /// The Character's ascendancy (from its class, or the Build's plan).
     pub ascendancy_name: Option<String>,
-    pub ascendancy_start: Option<TreeNode>,
-    pub ascendancy_transform: Option<Transform>,
-    /// Allocated and planned (in taking order) ascendancy nodes.
-    pub ascendancy_allocated: Vec<u32>,
-    pub ascendancy_planned: Vec<u32>,
+    /// The ascendancy and, if one is taken or planned, a bloodline.
+    pub ascendancies: Vec<AscendancyPanel>,
+}
+
+/// One ascendancy circle on the tree.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AscendancyPanel {
+    pub name: String,
+    pub bloodline: bool,
+    pub start: TreeNode,
+    pub transform: Option<Transform>,
+    /// Allocated and planned (in taking order) nodes.
+    pub allocated: Vec<u32>,
+    pub planned: Vec<u32>,
 }
 
 /// The Tree Stage to work towards at `level`, unless the player picked one
@@ -774,31 +786,45 @@ impl TreeView {
             })
             .map(str::to_owned)
             .or_else(|| build.and_then(|(b, _)| b.ascendancy.clone()));
-        let asc_start = asc_name
-            .as_deref()
-            .and_then(|a| tree.ascendancy_start(a))
-            .and_then(|id| tree.node(id));
-        let in_asc = |id: &u32| {
-            tree.node(*id).is_some_and(|n| {
-                n.ascendancy
-                    .as_deref()
-                    .zip(asc_name.as_deref())
-                    .is_some_and(|(a, b)| a.eq_ignore_ascii_case(b))
-            })
-        };
-        let asc_allocated: Vec<u32> = passives
+        let logged: Vec<u32> = passives
             .iter()
             .filter_map(|p| tree.node_for_log_id(p))
-            .filter(in_asc)
             .collect();
-        let asc_planned: Vec<u32> = match (picked, asc_start) {
-            (Some((_, st)), Some(a)) => {
-                let target: Vec<u32> = st.nodes.iter().copied().filter(in_asc).collect();
-                let have: HashSet<u32> = asc_allocated.iter().copied().collect();
-                tree.ascendancy_points(&have, a.id, &target)
-            }
-            _ => Vec::new(),
-        };
+        // A bloodline, if any of its nodes are taken or planned.
+        let planned_ids: Vec<u32> = picked.map(|(_, st)| st.nodes.clone()).unwrap_or_default();
+        let bloodline_name: Option<String> = logged
+            .iter()
+            .chain(&planned_ids)
+            .filter_map(|id| tree.node(*id))
+            .find(|n| n.bloodline)
+            .and_then(|n| n.ascendancy.clone());
+        let ascendancies: Vec<AscendancyPanel> = [asc_name.clone(), bloodline_name]
+            .into_iter()
+            .flatten()
+            .filter_map(|name| {
+                let start_node = tree.node(tree.ascendancy_start(&name)?)?;
+                let in_panel = |id: &u32| {
+                    tree.node(*id).is_some_and(|n| {
+                        n.ascendancy
+                            .as_deref()
+                            .is_some_and(|a| a.eq_ignore_ascii_case(&name))
+                    })
+                };
+                let allocated: Vec<u32> = logged.iter().copied().filter(in_panel).collect();
+                let target: Vec<u32> = planned_ids.iter().copied().filter(in_panel).collect();
+                let have: HashSet<u32> = allocated.iter().copied().collect();
+                Some(AscendancyPanel {
+                    transform: start.and_then(|c| {
+                        overlay.ascendancy_transform(tree, &name, start_node.id, c.id)
+                    }),
+                    planned: tree.ascendancy_points(&have, start_node.id, &target),
+                    bloodline: start_node.bloodline,
+                    start: start_node.clone(),
+                    allocated,
+                    name,
+                })
+            })
+            .collect();
         let stage_index = picked.map(|(i, _)| i);
         let stage = picked.map(|(i, st)| title_of(i, st));
         let (planned, planned_masteries) = match (picked, start) {
@@ -827,15 +853,7 @@ impl TreeView {
             planned,
             planned_masteries,
             ascendancy: overlay.ascendancy,
-            ascendancy_transform: match (asc_name.as_deref(), asc_start, start) {
-                (Some(name), Some(a), Some(c)) => {
-                    overlay.ascendancy_transform(tree, name, a.id, c.id)
-                }
-                _ => None,
-            },
-            ascendancy_start: asc_start.cloned(),
-            ascendancy_allocated: asc_allocated,
-            ascendancy_planned: asc_planned,
+            ascendancies,
             ascendancy_name: asc_name,
             visible: overlay.visible,
             editing: overlay.editing,
@@ -1249,8 +1267,10 @@ mod tests {
         p.passives.insert("AscendancyNecromancer6".into());
         let v = TreeView::build(&tree, &TreeOverlay::default(), Some(&p));
         assert_eq!(v.ascendancy_name.as_deref(), Some("Necromancer"));
-        assert_eq!(v.ascendancy_allocated.len(), 1);
-        assert_eq!(v.ascendancy_start.as_ref().map(|n| n.id), Some(start));
+        assert_eq!(v.ascendancies.len(), 1);
+        assert_eq!(v.ascendancies[0].allocated.len(), 1);
+        assert_eq!(v.ascendancies[0].start.id, start);
+        assert!(!v.ascendancies[0].bloodline);
 
         // Aligning the main tree aligns the panel: the Witch's circle is
         // ~945 units below the class start, at the main tree's scale.
@@ -1267,7 +1287,10 @@ mod tests {
             (x - 287.0).abs() < 1.0,
             "straight below the class start: {x}"
         );
-        assert!((y - (310.0 + 945.0 * t.scale)).abs() < 1.0, "{y}");
+        assert!(
+            (y - (310.0 + ASCENDANCY_DISTANCE * t.scale)).abs() < 1.0,
+            "{y}"
+        );
         // Matches the screenshot (ascendancy start ~130px below at this zoom).
         assert!((y - 310.0 - 135.0).abs() < 8.0, "{y}");
         let _ = c;
@@ -1285,6 +1308,40 @@ mod tests {
             .unwrap()
             .apply(s.x, s.y);
         assert!((x - 390.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn juggernaut_and_bloodline_match_the_screenshot() {
+        // Marauder screenshot (fully zoomed out, ~0.1433 px per unit): class
+        // start at (297, 245); Juggernaut circle centre ~(413, 170); the
+        // bloodline circle opposite, ~(180, 305).
+        let tree = PassiveTree::bundled();
+        let class = tree.base_class("Marauder").unwrap().start_node.unwrap();
+        let mut o = TreeOverlay::default();
+        o.align_on_class_start(&tree, class, (297.0, 245.0), 1433.0);
+        let place = |name: &str| {
+            let start = tree.ascendancy_start(name).unwrap();
+            let s = tree.node(start).unwrap();
+            o.ascendancy_transform(&tree, name, start, class)
+                .unwrap()
+                .apply(s.x, s.y)
+        };
+        let (x, y) = place("Juggernaut");
+        assert!(
+            (x - 413.0).abs() < 10.0 && (y - 170.0).abs() < 10.0,
+            "({x}, {y})"
+        );
+        let bloodline = tree
+            .nodes
+            .iter()
+            .find(|n| n.bloodline && n.kind == NodeKind::AscendancyStart)
+            .and_then(|n| n.ascendancy.clone())
+            .unwrap();
+        let (x, y) = place(&bloodline);
+        assert!(
+            (x - 180.0).abs() < 10.0 && (y - 305.0).abs() < 10.0,
+            "({x}, {y})"
+        );
     }
 
     #[test]

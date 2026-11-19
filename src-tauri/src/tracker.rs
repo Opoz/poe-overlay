@@ -220,14 +220,24 @@ impl Tracker {
         // (in the circle under the class art), correcting where it's drawn.
         if self.tree_overlay.ascendancy
             && self.tree_overlay.calibrating.is_some()
-            && let (Some(asc), Some(name), Some(class)) = (
-                view.ascendancy_start.as_ref(),
-                view.ascendancy_name.as_deref(),
-                view.class_start.as_ref(),
-            )
+            && let Some(class) = view.class_start.as_ref()
         {
-            self.tree_overlay
-                .fix_ascendancy(&self.tree, name, asc.id, class.id, (x, y));
+            // Correct whichever circle (ascendancy or bloodline) was clicked:
+            // the one whose start is drawn nearest the click.
+            let nearest = view
+                .ascendancies
+                .iter()
+                .filter_map(|p| {
+                    let t = p.transform?;
+                    let (sx, sy) = t.apply(p.start.x, p.start.y);
+                    Some((p, (sx - x).hypot(sy - y)))
+                })
+                .min_by(|a, b| a.1.total_cmp(&b.1))
+                .map(|(p, _)| (p.name.clone(), p.start.id));
+            if let Some((name, start)) = nearest {
+                self.tree_overlay
+                    .fix_ascendancy(&self.tree, &name, start, class.id, (x, y));
+            }
             self.tree_overlay.calibrating = None;
             self.save_session();
             return;

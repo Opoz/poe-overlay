@@ -70,6 +70,8 @@ for (const n of Object.values(ggg.nodes)) {
 		x: Math.round((g.x + radius * Math.sin(a)) * 10) / 10,
 		y: Math.round((g.y - radius * Math.cos(a)) * 10) / 10,
 		...(n.ascendancyName ? { ascendancy: n.ascendancyName } : {}),
+		// Bloodlines sit opposite the class's own ascendancy in game.
+		...(n.isBloodline ? { bloodline: true } : {}),
 		...(n.classStartIndex !== undefined
 			? { classStart: n.classStartIndex }
 			: {}),

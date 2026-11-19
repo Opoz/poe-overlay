@@ -131,10 +131,16 @@ export interface TreeView {
 	plannedMasteries: { node: number; option: number }[];
 	ascendancy: boolean;
 	ascendancyName: string | null;
-	ascendancyStart: TreeNode | null;
-	ascendancyTransform: Transform | null;
-	ascendancyAllocated: number[];
-	ascendancyPlanned: number[];
+	ascendancies: AscendancyPanel[];
+}
+
+export interface AscendancyPanel {
+	name: string;
+	bloodline: boolean;
+	start: TreeNode;
+	transform: Transform | null;
+	allocated: number[];
+	planned: number[];
 }
 
 export interface Characters {

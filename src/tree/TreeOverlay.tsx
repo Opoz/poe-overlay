@@ -7,7 +7,7 @@ import {
 	Show,
 } from "solid-js";
 import { onEvent } from "../events";
-import type { TreeNode, TreeView } from "../types";
+import type { AscendancyPanel, TreeNode, TreeView } from "../types";
 
 const RADIUS: Record<TreeNode["kind"], number> = {
 	normal: 26,
@@ -114,11 +114,7 @@ export default function TreeOverlay() {
 				)}
 			</Show>
 			<Show
-				when={
-					view()?.ascendancy &&
-					!view()?.ascendancyTransform &&
-					!view()?.calibrating
-				}
+				when={view()?.ascendancy && !view()?.transform && !view()?.calibrating}
 			>
 				<div class="tree-prompt">
 					<strong>Ascendancy</strong> Align the main tree first: zoom out and
@@ -358,24 +354,32 @@ function drawMasteryBadges(
 	}
 }
 
-/** The ascendancy panel: taken nodes ringed, planned ones numbered. */
+/** The ascendancy circles (and a bloodline): taken nodes ringed, planned ones marked. */
 function drawAscendancy(
 	ctx: CanvasRenderingContext2D,
 	nodes: TreeNode[],
 	view: TreeView,
 ) {
-	const t = view.ascendancyTransform;
-	const name = view.ascendancyName;
-	if (!t || !name) return;
-	const asc = nodes.filter(
-		(n) => n.ascendancy?.toLowerCase() === name.toLowerCase(),
-	);
+	for (const panel of view.ascendancies) {
+		drawPanel(ctx, nodes, panel);
+	}
+}
+
+function drawPanel(
+	ctx: CanvasRenderingContext2D,
+	nodes: TreeNode[],
+	panel: AscendancyPanel,
+) {
+	const t = panel.transform;
+	if (!t) return;
+	const name = panel.name.toLowerCase();
+	const asc = nodes.filter((n) => n.ascendancy?.toLowerCase() === name);
 	const byId = new Map(asc.map((n) => [n.id, n]));
 	const at = (n: TreeNode) =>
 		[n.x * t.scale + t.offsetX, n.y * t.scale + t.offsetY] as const;
-	const startId = view.ascendancyStart?.id;
-	const taken = new Set(view.ascendancyAllocated);
-	if (startId !== undefined) taken.add(startId);
+	const startId = panel.start.id;
+	const taken = new Set(panel.allocated);
+	taken.add(startId);
 
 	ctx.strokeStyle = "rgba(76, 195, 138, 0.9)";
 	ctx.lineWidth = Math.max(2, 10 * t.scale);
@@ -406,8 +410,8 @@ function drawAscendancy(
 		ctx.stroke();
 	}
 
-	// Planned ascendancy nodes: a quiet dashed ring and a small number (it's a
-	// small area; the order matters less than on the main tree).
+	// Planned nodes: a quiet dashed ring and a small number (a small area;
+	// the order matters less than on the main tree).
 	const numPx = Math.max(12, 30 * t.scale);
 	ctx.setLineDash([4, 3]);
 	ctx.lineWidth = 2;
@@ -415,7 +419,7 @@ function drawAscendancy(
 	ctx.font = `600 ${numPx}px "Segoe UI", sans-serif`;
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
-	view.ascendancyPlanned.forEach((id, i) => {
+	panel.planned.forEach((id, i) => {
 		const n = byId.get(id);
 		if (!n) return;
 		const [x, y] = at(n);
