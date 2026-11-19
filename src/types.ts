@@ -51,6 +51,15 @@ export interface Run {
 	phase: Phase;
 }
 
+export interface LayoutsPayload {
+	areaId: string | null;
+	images: { label: string; src: string }[];
+	visible: boolean;
+	/** Files in the layouts folder in all. */
+	total: number;
+	folder: string;
+}
+
 export interface NoteSpan {
 	text: string;
 	/** `#rrggbb`, or null for the default text colour. */

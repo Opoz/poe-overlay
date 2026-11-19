@@ -97,6 +97,10 @@ Which of the three Act 2 bandits the player helps, or kills all; changes the Ste
 A compass bearing attached to a Step pointing toward the exit or objective in an Area.
 _Avoid_: layout (reserved for full Area layout images, not yet supported)
 
+**Zone Layout**:
+An image of one layout variant of an Area, supplied by the player (the app ships none), shown when entering that Area.
+_Avoid_: map (reserved for endgame maps)
+
 ## Build and gems
 
 **Build**:

@@ -1,5 +1,6 @@
 mod hotkeys;
 mod lab_import;
+mod layouts;
 mod overlay;
 mod platform;
 mod storage;
@@ -67,6 +68,10 @@ pub struct AppState {
     guide_visible: AtomicBool,
     /// The Build notes Overlay is showing.
     notes_visible: AtomicBool,
+    /// Zone layouts show (when the player has images for the Area).
+    layouts_visible: AtomicBool,
+    /// Images found for the current Area.
+    layouts: Mutex<layouts::Cache>,
     /// Bound hotkeys (from Settings), and whether they changed since the
     /// tracking loop last registered them.
     bindings: Mutex<Vec<(Shortcut, Hotkey)>>,
@@ -144,6 +149,10 @@ fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
         Hotkey::LabImport => lab_import::start(app),
         Hotkey::XpRuler => {
             state.xp_visible.fetch_xor(true, Ordering::SeqCst);
+        }
+        Hotkey::ZoneLayouts => {
+            state.layouts_visible.fetch_xor(true, Ordering::SeqCst);
+            layouts::emit(app);
         }
         Hotkey::BuildNotes => {
             state.notes_visible.fetch_xor(true, Ordering::SeqCst);
@@ -674,6 +683,7 @@ fn set_overlay_look(
             overlay::GEMS => Some(&state.gems_visible),
             overlay::XP => Some(&state.xp_visible),
             overlay::NOTES => Some(&state.notes_visible),
+            overlay::LAYOUTS => Some(&state.layouts_visible),
             _ => None,
         };
         if let Some(flag) = flag {
@@ -688,6 +698,7 @@ fn set_overlay_look(
     drop(settings);
     emit_gems(&app);
     emit_notes(&app);
+    layouts::emit(&app);
     out
 }
 
@@ -711,6 +722,7 @@ fn get_overlays_shown(
         (overlay::GEMS, &state.gems_visible),
         (overlay::XP, &state.xp_visible),
         (overlay::NOTES, &state.notes_visible),
+        (overlay::LAYOUTS, &state.layouts_visible),
     ]
     .into_iter()
     .map(|(l, f)| (l, f.load(Ordering::SeqCst)))
@@ -879,6 +891,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                 emit_guide(&app);
                 emit_gems(&app);
                 emit_notes(&app);
+                layouts::emit(&app);
                 emit_lab(&app);
                 last_emit = Instant::now();
             }
@@ -975,6 +988,14 @@ fn spawn_tracking_loop(app: AppHandle) {
                         visible: state.gems_visible.load(Ordering::SeqCst),
                         clickable: true,
                     },
+                    // Takes clicks to pick the matching layout (never focus).
+                    overlay::Wanted {
+                        label: overlay::LAYOUTS,
+                        anchor: overlay::Anchor::At(settings.layouts_overlay),
+                        visible: state.layouts_visible.load(Ordering::SeqCst)
+                            && state.layouts.lock().unwrap().has_images(),
+                        clickable: true,
+                    },
                     // Takes clicks so the mouse wheel scrolls it (never focus).
                     overlay::Wanted {
                         label: overlay::NOTES,
@@ -1014,6 +1035,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                         overlay::TREEBAR => settings.treebar_right = placement,
                         overlay::XP => settings.xp_overlay = placement,
                         overlay::NOTES => settings.notes_overlay = placement,
+                        overlay::LAYOUTS => settings.layouts_overlay = placement,
                         _ => {}
                     }
                 }
@@ -1075,6 +1097,7 @@ pub fn run() {
     let bindings = hotkeys::bindings(&settings.hotkeys);
     let shown = |label: &str, default: bool| settings.look(label).shown.unwrap_or(default);
     let notes_shown = shown(overlay::NOTES, false);
+    let layouts_shown = shown(overlay::LAYOUTS, true);
     let (gems_shown, xp_shown, timer_shown, guide_shown) = (
         shown(overlay::GEMS, false),
         shown(overlay::XP, true),
@@ -1122,6 +1145,8 @@ pub fn run() {
             timer_visible: AtomicBool::new(timer_shown),
             guide_visible: AtomicBool::new(guide_shown),
             notes_visible: AtomicBool::new(notes_shown),
+            layouts_visible: AtomicBool::new(layouts_shown),
+            layouts: Mutex::new(layouts::Cache::default()),
             bindings: Mutex::new(bindings),
             hotkeys_changed: AtomicBool::new(false),
         })
@@ -1168,6 +1193,8 @@ pub fn run() {
             get_overlays_shown,
             get_notes_view,
             toggle_notes,
+            layouts::get_layouts_view,
+            layouts::open_layouts_folder,
             delete_run,
         ])
         .on_window_event(|window, event| {

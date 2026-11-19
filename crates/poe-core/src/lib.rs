@@ -6,6 +6,7 @@ pub mod gems;
 pub mod guide;
 pub mod history;
 pub mod lab;
+pub mod layouts;
 pub mod log;
 pub mod pb;
 pub mod pob;

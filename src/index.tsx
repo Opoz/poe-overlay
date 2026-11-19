@@ -6,6 +6,7 @@ import ActOverlay from "./guide/ActOverlay";
 import GuideOverlay from "./guide/GuideOverlay";
 import XpOverlay from "./guide/XpOverlay";
 import LabOverlay from "./lab/LabOverlay";
+import LayoutsOverlay from "./layouts/LayoutsOverlay";
 import { followLook } from "./look";
 import MainWindow from "./main/MainWindow";
 import NotesOverlay from "./notes/NotesOverlay";
@@ -33,5 +34,6 @@ render(() => {
 	if (label === "treebar") return <TreeBar />;
 	if (label === "xp") return <XpOverlay />;
 	if (label === "notes") return <NotesOverlay />;
+	if (label === "layouts") return <LayoutsOverlay />;
 	return <MainWindow />;
 }, document.getElementById("root") as HTMLElement);

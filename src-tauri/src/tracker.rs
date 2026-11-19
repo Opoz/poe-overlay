@@ -44,6 +44,8 @@ pub struct Tracker {
     /// Area ID from the last "Generating level" line, paired with the
     /// following "You have entered" line (which has the room name).
     pending_area: Option<String>,
+    /// The Area the Character is in (from the last Area generated).
+    current_area: Option<String>,
 }
 
 impl Tracker {
@@ -73,6 +75,7 @@ impl Tracker {
             gem_data: GemData::bundled(),
             lab: session.lab,
             pending_area: None,
+            current_area: None,
             lab_end_entered: false,
             area_changed: false,
         }
@@ -114,6 +117,7 @@ impl Tracker {
             events.extend(self.timer.on_record(record));
             if let LogEvent::AreaGenerated { area_id, .. } = &record.event {
                 self.pending_area = Some(area_id.clone());
+                self.current_area = Some(area_id.clone());
                 self.area_changed = true;
                 if area_id.contains("Labyrinth") && area_id.contains("_end") {
                     self.lab_end_entered = true;
@@ -271,6 +275,16 @@ impl Tracker {
         let entered = self.lab_end_entered;
         self.lab_end_entered = false;
         entered
+    }
+
+    /// The Area the Character is in: the last one generated this session,
+    /// else the Active Character's last campaign Area.
+    pub fn current_area(&self) -> Option<String> {
+        self.current_area.clone().or_else(|| {
+            let active = self.timer.active()?;
+            let p = self.timer.profiles().find(|p| p.name == active)?;
+            p.last_area.clone()
+        })
     }
 
     /// Entered any Area since last asked.

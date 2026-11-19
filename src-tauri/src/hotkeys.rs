@@ -21,6 +21,7 @@ pub enum Hotkey {
     LabImport,
     XpRuler,
     BuildNotes,
+    ZoneLayouts,
     /// Show the previous / next Tree Stage.
     TreeStage(i32),
 }
@@ -52,7 +53,7 @@ const fn action(
     }
 }
 
-pub const ACTIONS: [Action; 18] = [
+pub const ACTIONS: [Action; 19] = [
     action(
         "timer.pause",
         Hotkey::Timer(Command::TogglePause),
@@ -100,6 +101,13 @@ pub const ACTIONS: [Action; 18] = [
         Hotkey::ActView,
         "alt+KeyG",
         "Show the full act",
+        "Guide",
+    ),
+    action(
+        "guide.layouts",
+        Hotkey::ZoneLayouts,
+        "alt+KeyZ",
+        "Show or hide zone layouts",
         "Guide",
     ),
     action(

@@ -30,9 +30,11 @@ pub const TREEBAR: &str = "treebar";
 pub const XP: &str = "xp";
 /// The Build's notes from Path of Building.
 pub const NOTES: &str = "notes";
+/// Zone layout images for the current Area.
+pub const LAYOUTS: &str = "layouts";
 
 /// (label, logical width, logical height)
-const WINDOWS: [(&str, f64, f64); 9] = [
+const WINDOWS: [(&str, f64, f64); 10] = [
     (TIMER, 280.0, 340.0),
     (TREE, 800.0, 600.0),
     (GUIDE, 380.0, 420.0),
@@ -42,6 +44,7 @@ const WINDOWS: [(&str, f64, f64); 9] = [
     (TREEBAR, 860.0, 52.0),
     (XP, 380.0, 110.0),
     (NOTES, 420.0, 560.0),
+    (LAYOUTS, 900.0, 260.0),
 ];
 
 /// The Overlay's size at 100%, in logical pixels.

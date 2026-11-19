@@ -1544,3 +1544,62 @@ html[data-window]:not([data-window="main"]) {
 .notes-gap {
 	height: 9px;
 }
+
+/* ---------------------------------------------------------- zone layouts */
+
+.layouts {
+	display: inline-block;
+	max-width: calc(100vw - 8px);
+}
+
+.layout-row {
+	display: flex;
+	gap: 8px;
+	align-items: flex-start;
+}
+
+.overlay button.layout-pick {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 3px;
+	padding: 3px;
+	background: transparent;
+	border: 2px solid transparent;
+	border-radius: 5px;
+	font-size: 13px;
+	color: var(--ash);
+}
+
+.overlay button.layout-pick:hover {
+	background: rgb(255 255 255 / 0.06);
+	color: var(--bone);
+}
+
+.layout-pick img {
+	display: block;
+	height: 120px;
+	width: auto;
+	border-radius: 3px;
+}
+
+.overlay button.layout-pick.picked {
+	border-color: var(--brass);
+	color: var(--brass);
+}
+
+.layout-pick.picked img {
+	height: 200px;
+}
+
+.layout-pick.faded {
+	opacity: 0.35;
+}
+
+code {
+	padding: 0 4px;
+	border-radius: 3px;
+	background: var(--slate-2);
+	font-family: inherit;
+	font-size: 0.95em;
+}

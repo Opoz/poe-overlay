@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { createResource, For, Show } from "solid-js";
 import Key from "../Key";
-import type { OverlayLook, Settings } from "../types";
+import type { LayoutsPayload, OverlayLook, Settings } from "../types";
 
 /** [window label, name, what decides when it shows] */
 const OVERLAYS: [string, string, string | null][] = [
@@ -10,6 +10,7 @@ const OVERLAYS: [string, string, string | null][] = [
 	["xp", "XP ruler", null],
 	["gems", "Gem links", null],
 	["notes", "Build notes", null],
+	["layouts", "Zone layouts", null],
 	["act", "Full act", "Opens from the guide"],
 	["lab", "Lab map", "Shows in the Labyrinth"],
 	["treebar", "Tree controls", "Shows with the tree overlay"],
@@ -24,6 +25,9 @@ export default function OverlaysPage(props: {
 }) {
 	const [shown, { mutate: setShown }] = createResource(() =>
 		invoke<Record<string, boolean>>("get_overlays_shown"),
+	);
+	const [layouts] = createResource(() =>
+		invoke<LayoutsPayload>("get_layouts_view"),
 	);
 	const look = (label: string): OverlayLook =>
 		props.settings.overlays?.[label] ?? {
@@ -174,6 +178,29 @@ export default function OverlaysPage(props: {
 					}}
 				>
 					Reset positions
+				</button>
+			</div>
+
+			<h3>Zone layouts</h3>
+			<p class="muted">
+				Put layout images in the layouts folder, named by area ID with a number
+				per variant (<code>1_1_2 1.jpg</code>, <code>1_1_2 2.jpg</code>), or in
+				a folder named after the area ID. They show when you enter that area;
+				click the one that matches your instance. <Key id="guide.layouts" />{" "}
+				hides or shows them. The app doesn't come with images.
+			</p>
+			<Show when={layouts()}>
+				{(l) => (
+					<p class="muted small-text">
+						{l().total === 0
+							? "No images yet."
+							: `${l().total} files in the folder.`}
+					</p>
+				)}
+			</Show>
+			<div class="buttons">
+				<button type="button" onClick={() => invoke("open_layouts_folder")}>
+					Open layouts folder
 				</button>
 			</div>
 

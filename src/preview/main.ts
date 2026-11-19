@@ -27,6 +27,7 @@ const SIZES: Record<string, [number, number]> = {
 	treebar: [860, 52],
 	xp: [380, 110],
 	notes: [420, 560],
+	layouts: [900, 260],
 };
 
 if (!inner && label in SIZES) {
@@ -79,6 +80,7 @@ async function boot() {
 			"alt+KeyJ",
 		],
 		["guide.act", "Show the full act", "Guide", "alt+KeyG"],
+		["guide.layouts", "Show or hide zone layouts", "Guide", "alt+KeyZ"],
 		["gems.links", "Show gem links", "Gems", "alt+KeyL"],
 		["gems.vendorSearch", "Copy the vendor search", "Gems", "alt+KeyV"],
 		["notes.toggle", "Show or hide the build's notes", "Gems", "alt+KeyN"],
@@ -130,6 +132,13 @@ async function boot() {
 		},
 		get_lab_view: { ...fixtures.lab, visible: true },
 		get_notes_view: { ...fixtures.notes, visible: true },
+		get_layouts_view: {
+			areaId: "1_3_5",
+			images: [1, 2, 3].map((n) => ({ label: String(n), src: sketch(n) })),
+			visible: true,
+			total: 42,
+			folder: "%APPDATA%/com.opoz.poe-overlay/layouts",
+		},
 		get_characters: fixtures.characters,
 		get_settings: settings,
 		get_status: {
@@ -167,4 +176,17 @@ async function boot() {
 	);
 
 	await import("../index");
+}
+
+/** A stand-in layout image: a rough corridor sketch, different per variant. */
+function sketch(n: number): string {
+	const paths = [
+		"M20 100 L80 100 L80 40 L160 40 L160 120 L220 120",
+		"M20 40 L90 40 L90 120 L170 120 L170 60 L220 60",
+		"M20 120 L60 120 L60 30 L140 30 L140 90 L220 90",
+	];
+	const start = [100, 40, 120][n - 1];
+	const end = [120, 60, 90][n - 1];
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="150"><rect width="240" height="150" fill="#1d2326"/><path d="${paths[n - 1]}" stroke="#5d6a70" stroke-width="14" fill="none" stroke-linejoin="round"/><circle cx="20" cy="${start}" r="7" fill="#7fe0a8"/><circle cx="220" cy="${end}" r="7" fill="#f5cf5a"/></svg>`;
+	return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
