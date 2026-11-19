@@ -53,6 +53,49 @@ pub struct Settings {
     /// Rebound hotkeys: action id -> shortcut (`alt+KeyS`; empty = unbound).
     /// Actions not listed use their defaults.
     pub hotkeys: BTreeMap<String, String>,
+    /// Per-Overlay size, opacity and visibility, by window label.
+    pub overlays: BTreeMap<String, OverlayLook>,
+}
+
+/// How one Overlay looks.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct OverlayLook {
+    /// Size, 0.7-1.5.
+    pub scale: f64,
+    /// Panel opacity for this Overlay; `None` follows the shared setting.
+    pub opacity: Option<f64>,
+    /// Showing, for Overlays the player turns on and off (timer, Guide, gem
+    /// links, XP ruler): remembered for the next start.
+    pub shown: Option<bool>,
+}
+
+impl Default for OverlayLook {
+    fn default() -> Self {
+        Self {
+            scale: 1.0,
+            opacity: None,
+            shown: None,
+        }
+    }
+}
+
+impl Settings {
+    pub fn look(&self, label: &str) -> OverlayLook {
+        self.overlays.get(label).copied().unwrap_or_default()
+    }
+
+    /// Put every Overlay back where it starts out.
+    pub fn reset_placements(&mut self) {
+        let d = Self::default();
+        self.timer_overlay = d.timer_overlay;
+        self.guide_overlay = d.guide_overlay;
+        self.act_overlay = d.act_overlay;
+        self.gems_overlay = d.gems_overlay;
+        self.lab_overlay = d.lab_overlay;
+        self.xp_overlay = d.xp_overlay;
+        self.treebar_right = d.treebar_right;
+    }
 }
 
 impl Default for Settings {
@@ -71,6 +114,7 @@ impl Default for Settings {
             tree_key: Some("P".into()),
             panel_opacity: 0.85,
             hotkeys: BTreeMap::new(),
+            overlays: BTreeMap::new(),
         }
     }
 }

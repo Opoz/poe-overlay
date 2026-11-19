@@ -1267,3 +1267,35 @@ html[data-window]:not([data-window="main"]) {
 .shortcuts tr:focus-within .reveal {
 	opacity: 1;
 }
+
+/* ------------------------------------------------------- overlays page */
+
+.overlay-table {
+	max-width: 680px;
+	margin-top: 22px;
+}
+
+.overlay-table td {
+	vertical-align: middle;
+}
+
+.opacity-cell {
+	white-space: nowrap;
+}
+
+.opacity-cell input[type="range"] {
+	width: 110px;
+	vertical-align: middle;
+}
+
+.num-label {
+	display: inline-block;
+	width: 42px;
+	margin: 0 6px;
+	text-align: right;
+}
+
+.shared-label {
+	display: inline-block;
+	width: 168px;
+}

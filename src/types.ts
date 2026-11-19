@@ -160,6 +160,17 @@ export interface Settings {
 	treeKey: string | null;
 	/** Overlay panel background strength, 0.2-1 (text stays opaque). */
 	panelOpacity: number;
+	/** Per-Overlay look, by window label. */
+	overlays: Record<string, OverlayLook>;
+}
+
+export interface OverlayLook {
+	/** Size, 0.7-1.5. */
+	scale: number;
+	/** This Overlay's panel opacity; null follows `panelOpacity`. */
+	opacity: number | null;
+	/** Showing, for Overlays the player turns on and off. */
+	shown: boolean | null;
 }
 
 export interface Status {

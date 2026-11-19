@@ -41,11 +41,33 @@ const WINDOWS: [(&str, f64, f64); 8] = [
     (XP, 380.0, 110.0),
 ];
 
-pub fn create_overlays(app: &AppHandle) -> tauri::Result<()> {
+/// The Overlay's size at 100%, in logical pixels.
+pub fn base_size(label: &str) -> Option<(f64, f64)> {
+    WINDOWS
+        .iter()
+        .find(|(l, ..)| *l == label)
+        .map(|(_, w, h)| (*w, *h))
+}
+
+/// Resize an Overlay and zoom its content (`scale` 1 = 100%). Overlays that
+/// fit their content re-measure themselves afterwards.
+pub fn apply_scale(app: &AppHandle, label: &str, scale: f64) {
+    if label == TREE {
+        return;
+    }
+    if let (Some(window), Some((w, h))) = (app.get_webview_window(label), base_size(label)) {
+        let _ = window.set_zoom(scale);
+        let _ = window.set_size(tauri::LogicalSize::new(w * scale, h * scale));
+    }
+}
+
+pub fn create_overlays(app: &AppHandle, scale_of: impl Fn(&str) -> f64) -> tauri::Result<()> {
     for (label, w, h) in WINDOWS {
+        let scale = if label == TREE { 1.0 } else { scale_of(label) };
         let window = WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
             .title(format!("poe-overlay {label}"))
-            .inner_size(w, h)
+            .inner_size(w * scale, h * scale)
+            .zoom_hotkeys_enabled(false)
             .transparent(true)
             .decorations(false)
             .shadow(false)
@@ -55,6 +77,9 @@ pub fn create_overlays(app: &AppHandle) -> tauri::Result<()> {
             .focused(false)
             .visible(false)
             .build()?;
+        if scale != 1.0 {
+            let _ = window.set_zoom(scale);
+        }
         if let Some(h) = raw(&window) {
             platform::make_overlay(h);
         }

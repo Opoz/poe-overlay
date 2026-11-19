@@ -3,13 +3,17 @@ import {
 	LogicalSize,
 	PhysicalPosition,
 } from "@tauri-apps/api/window";
-import { onCleanup } from "solid-js";
+import { createEffect, onCleanup } from "solid-js";
+import { overlayScale } from "./look";
 
 /**
  * Size this Overlay window to its content (height up to `maxHeight`, and the
  * width too with `fitWidth`), so the invisible parts of a window don't block
  * clicks or get in the way of placing it. With `keepRight`, the right edge
  * stays put as the width changes (no jump while the app catches up).
+ *
+ * Measurements are in CSS pixels; the window is that times the Overlay's
+ * size setting (the backend zooms the web view by it).
  */
 export function autoSizeWindow(
 	el: HTMLElement,
@@ -21,8 +25,10 @@ export function autoSizeWindow(
 ) {
 	let last = "";
 	const resize = async () => {
-		const height = Math.min(Math.ceil(el.scrollHeight) + 10, maxHeight);
-		const width = fitWidth ? Math.ceil(el.scrollWidth) + 10 : window.innerWidth;
+		const zoom = overlayScale();
+		const height = Math.min(Math.ceil(el.scrollHeight) + 10, maxHeight) * zoom;
+		const width =
+			(fitWidth ? Math.ceil(el.scrollWidth) + 10 : window.innerWidth) * zoom;
 		const key = `${width}x${height}`;
 		if (key === last) return;
 		last = key;
@@ -50,7 +56,12 @@ export function autoSizeWindow(
 		subtree: true,
 		characterData: true,
 	});
-	void resize();
+	// A new size setting: measure again.
+	createEffect(() => {
+		overlayScale();
+		last = "";
+		void resize();
+	});
 	onCleanup(() => {
 		observer.disconnect();
 		mutations.disconnect();

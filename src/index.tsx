@@ -6,7 +6,7 @@ import ActOverlay from "./guide/ActOverlay";
 import GuideOverlay from "./guide/GuideOverlay";
 import XpOverlay from "./guide/XpOverlay";
 import LabOverlay from "./lab/LabOverlay";
-import { followPanelOpacity } from "./look";
+import { followLook } from "./look";
 import MainWindow from "./main/MainWindow";
 import TimerOverlay from "./timer/TimerOverlay";
 import TreeBar from "./tree/TreeBar";
@@ -20,7 +20,7 @@ import "./styles.css";
 // One bundle serves every window; the window label picks the view.
 const label = getCurrentWindow().label;
 document.documentElement.dataset.window = label;
-if (label !== "main") followPanelOpacity();
+if (label !== "main") followLook();
 
 render(() => {
 	if (label === "timer") return <TimerOverlay />;

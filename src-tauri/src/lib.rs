@@ -61,6 +61,9 @@ pub struct AppState {
     tree_pill: AtomicBool,
     /// The XP level ruler Overlay is showing.
     xp_visible: AtomicBool,
+    /// The timer and Guide Overlays are showing (the player can turn them off).
+    timer_visible: AtomicBool,
+    guide_visible: AtomicBool,
     /// Bound hotkeys (from Settings), and whether they changed since the
     /// tracking loop last registered them.
     bindings: Mutex<Vec<(Shortcut, Hotkey)>>,
@@ -587,6 +590,77 @@ fn set_settings(app: AppHandle, state: tauri::State<AppState>, settings: Setting
     emit_view(&app);
 }
 
+/// Change one Overlay's size, opacity (`clear_opacity` returns it to the
+/// shared setting) or visibility.
+#[tauri::command]
+fn set_overlay_look(
+    app: AppHandle,
+    state: tauri::State<AppState>,
+    label: String,
+    scale: Option<f64>,
+    opacity: Option<f64>,
+    clear_opacity: Option<bool>,
+    shown: Option<bool>,
+) -> Settings {
+    let mut settings = state.settings.lock().unwrap();
+    let mut look = settings.look(&label);
+    if let Some(s) = scale {
+        look.scale = s.clamp(0.7, 1.5);
+        overlay::apply_scale(&app, &label, look.scale);
+    }
+    if let Some(o) = opacity {
+        look.opacity = Some(o.clamp(0.2, 1.0));
+    }
+    if clear_opacity == Some(true) {
+        look.opacity = None;
+    }
+    if let Some(on) = shown {
+        let flag = match label.as_str() {
+            overlay::TIMER => Some(&state.timer_visible),
+            overlay::GUIDE => Some(&state.guide_visible),
+            overlay::GEMS => Some(&state.gems_visible),
+            overlay::XP => Some(&state.xp_visible),
+            _ => None,
+        };
+        if let Some(flag) = flag {
+            flag.store(on, Ordering::SeqCst);
+            look.shown = Some(on);
+        }
+    }
+    settings.overlays.insert(label, look);
+    Storage::new(data_dir()).save_settings(&settings);
+    let _ = app.emit("settings", &*settings);
+    let out = settings.clone();
+    drop(settings);
+    emit_gems(&app);
+    out
+}
+
+/// Put every Overlay back where it starts out.
+#[tauri::command]
+fn reset_overlay_positions(app: AppHandle, state: tauri::State<AppState>) {
+    let mut settings = state.settings.lock().unwrap();
+    settings.reset_placements();
+    Storage::new(data_dir()).save_settings(&settings);
+    let _ = app.emit("settings", &*settings);
+}
+
+/// Which toggleable Overlays are showing right now.
+#[tauri::command]
+fn get_overlays_shown(
+    state: tauri::State<AppState>,
+) -> std::collections::BTreeMap<&'static str, bool> {
+    [
+        (overlay::TIMER, &state.timer_visible),
+        (overlay::GUIDE, &state.guide_visible),
+        (overlay::GEMS, &state.gems_visible),
+        (overlay::XP, &state.xp_visible),
+    ]
+    .into_iter()
+    .map(|(l, f)| (l, f.load(Ordering::SeqCst)))
+    .collect()
+}
+
 #[tauri::command]
 fn get_hotkeys(state: tauri::State<AppState>) -> Vec<hotkeys::HotkeyRow> {
     hotkeys::rows(&state.settings.lock().unwrap().hotkeys)
@@ -789,7 +863,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                     overlay::Wanted {
                         label: overlay::TIMER,
                         anchor: overlay::Anchor::At(settings.timer_overlay),
-                        visible: true,
+                        visible: state.timer_visible.load(Ordering::SeqCst),
                         clickable: false,
                     },
                     overlay::Wanted {
@@ -802,7 +876,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                     overlay::Wanted {
                         label: overlay::GUIDE,
                         anchor: overlay::Anchor::At(settings.guide_overlay),
-                        visible: true,
+                        visible: state.guide_visible.load(Ordering::SeqCst),
                         clickable: true,
                     },
                     overlay::Wanted {
@@ -923,6 +997,13 @@ pub fn run() {
     let settings = storage.load_settings();
     let tracker = Tracker::new(storage, &settings);
     let bindings = hotkeys::bindings(&settings.hotkeys);
+    let shown = |label: &str, default: bool| settings.look(label).shown.unwrap_or(default);
+    let (gems_shown, xp_shown, timer_shown, guide_shown) = (
+        shown(overlay::GEMS, false),
+        shown(overlay::XP, true),
+        shown(overlay::TIMER, true),
+        shown(overlay::GUIDE, true),
+    );
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -951,14 +1032,16 @@ pub fn run() {
             settings: Mutex::new(settings),
             interact: AtomicBool::new(false),
             act_view: AtomicBool::new(false),
-            gems_visible: AtomicBool::new(false),
+            gems_visible: AtomicBool::new(gems_shown),
             regex_cursor: Mutex::new((Vec::new(), 0)),
             lab_import: Mutex::new(None),
             lab_manual: Mutex::new(None),
             act_browse: Mutex::new(None),
             hotkey_failures: Mutex::new(Vec::new()),
             tree_pill: AtomicBool::new(false),
-            xp_visible: AtomicBool::new(true),
+            xp_visible: AtomicBool::new(xp_shown),
+            timer_visible: AtomicBool::new(timer_shown),
+            guide_visible: AtomicBool::new(guide_shown),
             bindings: Mutex::new(bindings),
             hotkeys_changed: AtomicBool::new(false),
         })
@@ -1000,6 +1083,9 @@ pub fn run() {
             rebuild_passives,
             get_hotkeys,
             set_hotkey,
+            set_overlay_look,
+            reset_overlay_positions,
+            get_overlays_shown,
         ])
         .on_window_event(|window, event| {
             // Closing the main window sends it to the tray.
@@ -1012,7 +1098,8 @@ pub fn run() {
         })
         .setup(|app| {
             setup_tray(app)?;
-            overlay::create_overlays(app.handle())?;
+            let settings = app.state::<AppState>().settings.lock().unwrap().clone();
+            overlay::create_overlays(app.handle(), |label| settings.look(label).scale)?;
             spawn_tracking_loop(app.handle().clone());
             let handle = app.handle().clone();
             platform::watch_middle_clicks(move |x, y| on_middle_click(&handle, x, y));

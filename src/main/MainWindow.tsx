@@ -28,6 +28,7 @@ import { useTimerView } from "../useTimerView";
 import BuildCard from "./BuildCard";
 import CharactersCard from "./CharactersCard";
 import Mark from "./Mark";
+import OverlaysPage from "./OverlaysPage";
 import ShortcutsPage from "./ShortcutsPage";
 
 const command = (c: TimerCommand) => invoke("timer_command", { command: c });
@@ -169,7 +170,15 @@ export default function MainWindow() {
 							<BuildCard />
 						</Match>
 						<Match when={page() === "overlays"}>
-							<OverlaysPage />
+							<Show when={settings()}>
+								{(s) => (
+									<OverlaysPage
+										settings={s()}
+										save={save}
+										onSettings={setSettingsLocal}
+									/>
+								)}
+							</Show>
 						</Match>
 						<Match when={page() === "shortcuts"}>
 							<Show when={settings()}>
@@ -290,40 +299,6 @@ function RunPage(props: { live: ReturnType<typeof useTimerView> }) {
 	);
 }
 
-function OverlaysPage() {
-	return (
-		<section>
-			<h2>Overlays</h2>
-			<p class="lede">
-				Overlays show while the game is focused. Run the game in windowed
-				fullscreen. Press <Key id="overlays.interact" /> to unlock them for
-				dragging, and again to lock.
-			</p>
-			<h3>Passive tree</h3>
-			<p class="muted">
-				Open the in-game tree, zoom all the way out and middle-click your class
-				start: allocated passives are ringed and the next points numbered.
-				Middle-click again after panning. If middle-click isn't available, use
-				Calibrate and left-click the class start.
-			</p>
-			<div class="buttons">
-				<button
-					type="button"
-					onClick={() => invoke("toggle_tree", { calibrate: false })}
-				>
-					Show or hide <Key id="tree.toggle" />
-				</button>
-				<button
-					type="button"
-					onClick={() => invoke("toggle_tree", { calibrate: true })}
-				>
-					Calibrate <Key id="tree.calibrate" />
-				</button>
-			</div>
-		</section>
-	);
-}
-
 function HistoryPage(props: { runs: Run[] }) {
 	const last = (run: Run) => {
 		const idx = run.splits.findLastIndex((s) => s !== null);
@@ -426,22 +401,6 @@ function SettingsPage(props: {
 						/>
 						Pause the timer in hideouts
 					</label>
-				</Field>
-				<Field label="Panel opacity">
-					<input
-						type="range"
-						min="0.2"
-						max="1"
-						step="0.05"
-						value={s().panelOpacity}
-						onInput={(e) =>
-							props.save({ panelOpacity: Number(e.currentTarget.value) })
-						}
-					/>{" "}
-					{Math.round(s().panelOpacity * 100)}%
-					<div class="help">
-						How solid the overlay backgrounds are. Text stays fully opaque.
-					</div>
 				</Field>
 				<Field label="Client log">
 					<input
