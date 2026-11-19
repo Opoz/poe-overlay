@@ -1,0 +1,23 @@
+/* Backdrops standing in for the game behind the transparent overlays. */
+html.preview,
+html.preview body {
+	background:
+		radial-gradient(ellipse at 30% 20%, #2b3a2f 0%, transparent 55%),
+		radial-gradient(ellipse at 75% 70%, #3a2c22 0%, transparent 50%), #15171a !important;
+	min-height: 100vh;
+}
+
+html.preview[data-backdrop="bright"],
+html.preview[data-backdrop="bright"] body {
+	background:
+		radial-gradient(ellipse at 20% 30%, #e8dcc0 0%, transparent 45%),
+		radial-gradient(ellipse at 70% 60%, #c9a86a 0%, transparent 50%),
+		radial-gradient(ellipse at 50% 100%, #6b8f9c 0%, transparent 60%), #9a8f7c !important;
+}
+
+html.preview[data-backdrop="tree"],
+html.preview[data-backdrop="tree"] body {
+	background:
+		url("/image.png") center / cover,
+		#0b0d10 !important;
+}

@@ -77,7 +77,8 @@ function Part(props: { part: Fragment }) {
 				<span class="t-waypoint">waypoint</span>
 			);
 		case "waypointGet":
-			return <span class="t-waypoint">Get the waypoint</span>;
+			// The route always says "Get/Find {waypoint_get}".
+			return <span class="t-waypoint">the waypoint</span>;
 		case "logout":
 			return <span class="t-logout">Log out</span>;
 		case "portalSet":

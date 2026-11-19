@@ -10,3 +10,7 @@ dist
 .vscode/*
 !.vscode/extensions.json
 !crates/poe-core/tests/fixtures/*.log
+
+# Screenshots and scratch images
+/image.png
+/juggernaut.png

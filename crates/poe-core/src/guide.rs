@@ -627,11 +627,22 @@ fn fragments(
 }
 
 fn push_text(out: &mut Vec<Fragment>, text: &str) {
-    if !text.is_empty() {
-        out.push(Fragment::Text {
-            text: text.to_owned(),
-        });
+    if text.is_empty() {
+        return;
     }
+    // "Find 3x{quest_text|Glyph}": keep a space between the count and the item.
+    let counted = text.ends_with('x')
+        && text[..text.len() - 1]
+            .chars()
+            .last()
+            .is_some_and(|c| c.is_ascii_digit());
+    out.push(Fragment::Text {
+        text: if counted {
+            format!("{text} ")
+        } else {
+            text.to_owned()
+        },
+    });
 }
 
 fn tag_fragment(tag: &str, comment: Option<&str>, name_of: &impl Fn(&str) -> String) -> Fragment {

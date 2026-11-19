@@ -156,10 +156,25 @@ impl GemPlan {
             }
         }
 
+        // Gems missing from the data still have PoB's name for them.
+        let pob_names: HashMap<&str, &str> = build
+            .skill_groups
+            .iter()
+            .flat_map(|g| &g.gems)
+            .filter_map(|g| Some((g.gem_id.as_deref()?, g.name.as_str())))
+            .collect();
         let unobtainable = needed
             .iter()
             .filter(|g| !have.contains(*g))
-            .map(|g| data.pick(g, None))
+            .map(|g| {
+                let mut pick = data.pick(g, None);
+                if data.gem(g).is_none()
+                    && let Some(name) = pob_names.get(g.as_str())
+                {
+                    pick.name = (*name).to_owned();
+                }
+                pick
+            })
             .collect();
         Self {
             picks,
