@@ -23,6 +23,8 @@ const DOORS: Record<string, { words: string; angle: number }> = {
 const W = 760;
 const H = 420;
 const PAD = 34;
+/** Room for the marks under the lowest rooms. */
+const MARKS_BELOW = 40;
 
 /** The day's Labyrinth: rooms, where you are, and the way to Izaro. */
 export default function LabOverlay() {
@@ -51,6 +53,8 @@ export default function LabOverlay() {
 
 	const rooms = () => view()?.layout?.rooms ?? [];
 	// Fit the layout's coordinates into the panel.
+	// The map is as tall as the layout needs at the width's scale (no dead
+	// space under wide, flat layouts).
 	const project = () => {
 		const r = rooms();
 		const xs = r.map((x) => x.x);
@@ -60,10 +64,16 @@ export default function LabOverlay() {
 		const sx = (W - 2 * PAD) / Math.max(1, maxX - minX);
 		const sy = (H - 2 * PAD) / Math.max(1, maxY - minY);
 		const s = Math.min(sx, sy);
+		// Centre horizontally when height limits the scale.
+		const dx = (W - 2 * PAD - (maxX - minX) * s) / 2;
 		return (room: LabRoom) => ({
-			x: PAD + (room.x - minX) * s,
+			x: PAD + dx + (room.x - minX) * s,
 			y: PAD + (room.y - minY) * s,
 		});
+	};
+	const mapHeight = () => {
+		const ys = rooms().map((x) => project()(x).y);
+		return Math.ceil(Math.max(...ys) + MARKS_BELOW);
 	};
 	const routeSet = () => new Set(view()?.route ?? []);
 	const visitedSet = () => new Set(view()?.visited ?? []);
@@ -212,9 +222,9 @@ export default function LabOverlay() {
 			>
 				<svg
 					class="lab-map"
-					viewBox={`0 0 ${W} ${H}`}
+					viewBox={`0 0 ${W} ${mapHeight()}`}
 					width={W}
-					height={H}
+					height={mapHeight()}
 					role="img"
 					aria-label="Labyrinth map"
 				>
@@ -265,14 +275,11 @@ export default function LabOverlay() {
 											? "Izaro"
 											: titleCase(room.name.split(" ").pop() ?? "")}
 									</text>
-									<text x={pos().x} y={pos().y + 30} class="lab-marks">
-										{room.contents.darkshrine ? "D" : ""}
-										{room.contents.silverKey ? "K" : ""}
-										{room.contents.silverDoor ? "🔒" : ""}
-										{room.contents.argus ? "A" : ""}
-										{room.contents.gauntlet ? "G" : ""}
-										{room.contents.puzzle ? "P" : ""}
-									</text>
+									<Marks
+										x={pos().x}
+										y={pos().y + 30}
+										contents={room.contents}
+									/>
 								</g>
 							);
 						}}
@@ -294,10 +301,30 @@ export default function LabOverlay() {
 							<b>D</b> darkshrine
 						</span>
 						<span>
-							<b>K</b> key
+							<svg class="lab-lock gold" viewBox="0 0 12 12" aria-hidden="true">
+								<KeyGlyph />
+							</svg>
+							<svg class="lab-lock gold" viewBox="0 0 12 12" aria-hidden="true">
+								<DoorGlyph />
+							</svg>{" "}
+							golden key, door
 						</span>
 						<span>
-							<b>🔒</b> door
+							<svg
+								class="lab-lock silver"
+								viewBox="0 0 12 12"
+								aria-hidden="true"
+							>
+								<KeyGlyph />
+							</svg>
+							<svg
+								class="lab-lock silver"
+								viewBox="0 0 12 12"
+								aria-hidden="true"
+							>
+								<DoorGlyph />
+							</svg>{" "}
+							silver key, door
 						</span>
 						<span>
 							<b>A</b> Argus
@@ -314,3 +341,60 @@ export default function LabOverlay() {
 		</div>
 	);
 }
+
+type Mark = { kind: "letter" | "key" | "door"; text?: string; tone: string };
+
+/** What's in a room, under it: letters, plus drawn keys and locked doors in
+ * silver or gold. */
+function Marks(props: { x: number; y: number; contents: LabRoom["contents"] }) {
+	const marks = (): Mark[] => {
+		const c = props.contents;
+		const out: Mark[] = [];
+		if (c.darkshrine) out.push({ kind: "letter", text: "D", tone: "plain" });
+		if (c.goldKey) out.push({ kind: "key", tone: "gold" });
+		if (c.goldDoor) out.push({ kind: "door", tone: "gold" });
+		if (c.silverKey) out.push({ kind: "key", tone: "silver" });
+		if (c.silverDoor) out.push({ kind: "door", tone: "silver" });
+		if (c.argus) out.push({ kind: "letter", text: "A", tone: "plain" });
+		if (c.gauntlet) out.push({ kind: "letter", text: "G", tone: "plain" });
+		if (c.puzzle) out.push({ kind: "letter", text: "P", tone: "plain" });
+		return out;
+	};
+	const STEP = 13;
+	return (
+		<For each={marks()}>
+			{(m, i) => {
+				const cx = () => props.x + (i() - (marks().length - 1) / 2) * STEP;
+				return m.kind === "letter" ? (
+					<text x={cx()} y={props.y} class="lab-marks">
+						{m.text}
+					</text>
+				) : (
+					<g
+						class={`lab-lock ${m.tone}`}
+						transform={`translate(${cx() - 6} ${props.y - 11})`}
+					>
+						<title>{`${m.tone === "gold" ? "Golden" : "Silver"} ${m.kind}`}</title>
+						{m.kind === "key" ? <KeyGlyph /> : <DoorGlyph />}
+					</g>
+				);
+			}}
+		</For>
+	);
+}
+
+/** A key, 12x12. */
+const KeyGlyph = () => (
+	<>
+		<circle cx="3.6" cy="6" r="2.6" />
+		<path d="M6.2 6h5M9.4 6v2.4M11 6v1.8" />
+	</>
+);
+
+/** A padlock, for a locked door, 12x12. */
+const DoorGlyph = () => (
+	<>
+		<rect x="2" y="5.4" width="8" height="6" rx="1" class="fill" />
+		<path d="M3.8 5.4V3.8a2.2 2.2 0 0 1 4.4 0v1.6" />
+	</>
+);

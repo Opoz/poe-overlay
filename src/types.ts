@@ -349,6 +349,8 @@ export interface LabRoom {
 		darkshrine: boolean;
 		silverKey: boolean;
 		silverDoor: boolean;
+		goldKey: boolean;
+		goldDoor: boolean;
 		argus: boolean;
 		gauntlet: boolean;
 		puzzle: boolean;

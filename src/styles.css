@@ -1492,3 +1492,37 @@ html[data-window]:not([data-window="main"]) {
 	margin-left: 8px;
 	font-size: 13px;
 }
+
+/* Keys and locked doors on the lab map: silver ones are optional treasure,
+ * the golden door is on the way onward. */
+.lab-lock {
+	fill: none;
+	stroke-width: 1.6;
+	stroke-linecap: round;
+}
+
+.lab-lock .fill {
+	stroke: none;
+}
+
+.lab-lock.gold {
+	stroke: var(--gold);
+}
+
+.lab-lock.gold .fill {
+	fill: var(--gold);
+}
+
+.lab-lock.silver {
+	stroke: #c9d3da;
+}
+
+.lab-lock.silver .fill {
+	fill: #c9d3da;
+}
+
+.lab-legend svg.lab-lock {
+	width: 13px;
+	height: 13px;
+	vertical-align: -2px;
+}

@@ -51,11 +51,15 @@ impl Difficulty {
 
 /// Things worth knowing about in a room.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(default, rename_all = "camelCase")]
 pub struct RoomContents {
     pub darkshrine: bool,
+    /// Silver keys open silver doors: optional treasure rooms.
     pub silver_key: bool,
     pub silver_door: bool,
+    /// The golden key opens the golden door, which leads onward.
+    pub gold_key: bool,
+    pub gold_door: bool,
     pub argus: bool,
     /// Trap / escort gauntlets and switch puzzles (they cost time).
     pub gauntlet: bool,
@@ -153,6 +157,13 @@ impl LabLayout {
                     .map(|a| a.iter().filter_map(|c| text_of(Some(c))).collect())
                     .unwrap_or_default();
                 let has = |needle: &str| raw.iter().any(|c| c.to_lowercase().contains(needle));
+                // Keys and doors: golden ones say so; any other is silver.
+                let lock = |thing: &str, gold: bool| {
+                    raw.iter().any(|c| {
+                        let c = c.to_lowercase();
+                        c.contains(thing) && c.contains("gold") == gold
+                    })
+                };
                 LabRoom {
                     izaro: name.eq_ignore_ascii_case(IZARO_ROOM),
                     x: number_of(r.get("x")),
@@ -161,8 +172,10 @@ impl LabLayout {
                     doors,
                     contents: RoomContents {
                         darkshrine: has("darkshrine"),
-                        silver_key: has("key"),
-                        silver_door: has("door"),
+                        silver_key: lock("key", false),
+                        silver_door: lock("door", false),
+                        gold_key: lock("key", true),
+                        gold_door: lock("door", true),
                         argus: has("argus"),
                         gauntlet: has("gauntlet"),
                         puzzle: has("puzzle"),
@@ -494,6 +507,7 @@ mod tests {
         assert!(l.rooms[1].contents.darkshrine && l.rooms[1].contents.silver_key);
         assert!(l.rooms[2].contents.argus);
         assert!(l.rooms[4].contents.silver_door);
+        assert!(!l.rooms[4].contents.gold_door);
         assert!(l.rooms[3].izaro && l.rooms[5].izaro);
         assert!(looks_like_layout(LAYOUT));
         assert!(!looks_like_layout("hello"));
@@ -619,6 +633,20 @@ mod tests {
         assert_eq!(r.len(), 3);
         assert_eq!(r[0], 5);
         assert_eq!(r.last(), Some(&9));
+    }
+
+    #[test]
+    fn golden_keys_and_doors_are_not_silver() {
+        let l = LabLayout::parse(
+            r#"{"rooms": [
+                {"id": "1", "name": "Estate Path", "x": 0, "y": 0, "exits": {"E": "2"}, "contents": ["golden-key", "golden-door"]},
+                {"id": "2", "name": "Estate Walkways", "x": 10, "y": 0, "exits": {}, "contents": ["silver-key", "silver-door"]}
+            ]}"#,
+        )
+        .unwrap();
+        let (gold, silver) = (&l.rooms[0].contents, &l.rooms[1].contents);
+        assert!(gold.gold_key && gold.gold_door && !gold.silver_key && !gold.silver_door);
+        assert!(silver.silver_key && silver.silver_door && !silver.gold_key && !silver.gold_door);
     }
 
     #[test]

@@ -254,7 +254,18 @@ fn main() {
         .collect();
 
     let mut lab = LabState::default();
-    lab.load(LabLayout::parse(LAB).unwrap());
+    let mut layout = LabLayout::parse(LAB).unwrap();
+    // This day's file has no golden door; give one room a golden key and
+    // door so the preview shows both kinds.
+    if let Some(room) = layout
+        .rooms
+        .iter_mut()
+        .find(|r| r.name.to_lowercase().ends_with("passage") && !r.contents.silver_door)
+    {
+        room.contents.gold_key = true;
+        room.contents.gold_door = true;
+    }
+    lab.load(layout);
     lab.on_area("Labyrinth_Airlock", "Aspirants' Plaza");
     lab.on_area("1_Labyrinth_P_straight", "Estate Path");
     lab.on_area("1_Labyrinth_boss_1", "Aspirant's Trial");
