@@ -118,10 +118,13 @@ export default function TreeOverlay() {
 				}
 			>
 				<div class="tree-prompt">
-					<strong>Ascendancy</strong> Zoom out and middle-click your ascendancy
-					start
-					{view()?.ascendancyName ? ` (${view()?.ascendancyName})` : ""} to
-					align.
+					<strong>Ascendancy</strong>{" "}
+					{view()?.transform
+						? "Middle-click your ascendancy start"
+						: "Align the main tree first (middle-click your class start), then middle-click your ascendancy start"}
+					{view()?.ascendancyName ? ` (${view()?.ascendancyName})` : ""}. This
+					is only needed once per ascendancy: after that it follows the main
+					tree.
 				</div>
 			</Show>
 			<Show

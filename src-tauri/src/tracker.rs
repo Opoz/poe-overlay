@@ -236,11 +236,21 @@ impl Tracker {
         }
         let view = self.tree_view();
         if self.tree_overlay.ascendancy {
-            let Some(start) = view.ascendancy_start else {
+            let (Some(asc), Some(name), Some(class)) = (
+                view.ascendancy_start,
+                view.ascendancy_name,
+                view.class_start,
+            ) else {
                 return false;
             };
-            self.tree_overlay
-                .align_on_ascendancy_start(&self.tree, start.id, (x, y), game_height);
+            self.tree_overlay.align_on_ascendancy_start(
+                &self.tree,
+                &name,
+                asc.id,
+                class.id,
+                (x, y),
+                game_height,
+            );
         } else {
             let Some(start) = view.class_start else {
                 return false;

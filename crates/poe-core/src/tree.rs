@@ -450,8 +450,11 @@ pub struct TreeOverlay {
     pub zoomed_out_scale_per_px: Option<f64>,
     /// Showing the ascendancy panel instead of the main tree.
     pub ascendancy: bool,
-    /// Alignment of the ascendancy panel (it sits in its own place in game).
-    pub ascendancy_transform: Option<Transform>,
+    /// Per ascendancy: where its panel sits relative to the class start, in
+    /// tree units. In game the panel is fixed to the class start and pans and
+    /// zooms with the tree, so this is learned once and then follows the
+    /// main tree's alignment.
+    pub ascendancy_offsets: BTreeMap<String, (f64, f64)>,
 }
 
 impl TreeOverlay {
@@ -489,27 +492,52 @@ impl TreeOverlay {
         self.calibrating = None;
     }
 
-    /// The player middle-clicked the ascendancy start node with the tree fully
-    /// zoomed out: same scale as the main tree, positioned by the click.
+    /// The player middle-clicked the ascendancy start node (tree fully zoomed
+    /// out). If this ascendancy's offset from the class start is known, that
+    /// realigns the main tree (and so the panel); otherwise, with the main
+    /// tree aligned, it learns the offset.
     pub fn align_on_ascendancy_start(
         &mut self,
         tree: &PassiveTree,
+        ascendancy: &str,
         ascendancy_start: u32,
+        class_start: u32,
         at: (f64, f64),
         game_height: f64,
     ) {
-        let Some(start) = tree.node(ascendancy_start) else {
+        let (Some(asc), Some(class)) = (tree.node(ascendancy_start), tree.node(class_start)) else {
             return;
         };
-        let scale = self
-            .zoomed_out_scale_per_px
-            .unwrap_or(ZOOMED_OUT_SCALE_PER_PX)
-            * game_height;
-        self.ascendancy_transform = Some(Transform {
-            scale,
-            offset_x: at.0 - start.x * scale,
-            offset_y: at.1 - start.y * scale,
-        });
+        if let Some(&(dx, dy)) = self.ascendancy_offsets.get(ascendancy) {
+            // Where the class start must be for the ascendancy start to be here.
+            let scale = self
+                .zoomed_out_scale_per_px
+                .unwrap_or(ZOOMED_OUT_SCALE_PER_PX)
+                * game_height;
+            let class_at = (
+                at.0 - (asc.x + dx - class.x) * scale,
+                at.1 - (asc.y + dy - class.y) * scale,
+            );
+            self.align_on_class_start(tree, class_start, class_at, game_height);
+        } else if let Some(t) = self.transform {
+            // Learn it: the click in tree units, minus where the data puts it.
+            let tx = (at.0 - t.offset_x) / t.scale;
+            let ty = (at.1 - t.offset_y) / t.scale;
+            self.ascendancy_offsets
+                .insert(ascendancy.to_owned(), (tx - asc.x, ty - asc.y));
+        }
+    }
+
+    /// The ascendancy panel's alignment: the main tree's, shifted by the
+    /// learned offset. `None` until both are known.
+    pub fn ascendancy_transform(&self, ascendancy: &str) -> Option<Transform> {
+        let t = self.transform?;
+        let (dx, dy) = *self.ascendancy_offsets.get(ascendancy)?;
+        Some(Transform {
+            scale: t.scale,
+            offset_x: t.offset_x + dx * t.scale,
+            offset_y: t.offset_y + dy * t.scale,
+        })
     }
 
     /// The player marked their class start at `at` (game-window pixels) with
@@ -767,7 +795,9 @@ impl TreeView {
             planned,
             planned_masteries,
             ascendancy: overlay.ascendancy,
-            ascendancy_transform: overlay.ascendancy_transform,
+            ascendancy_transform: asc_name
+                .as_deref()
+                .and_then(|a| overlay.ascendancy_transform(a)),
             ascendancy_start: asc_start.cloned(),
             ascendancy_allocated: asc_allocated,
             ascendancy_planned: asc_planned,
@@ -1187,13 +1217,29 @@ mod tests {
         assert_eq!(v.ascendancy_allocated.len(), 1);
         assert_eq!(v.ascendancy_start.as_ref().map(|n| n.id), Some(start));
 
-        // Aligning on the ascendancy start puts it where the player clicked.
+        // First click (main tree aligned): learns where the panel sits.
+        let class = tree.base_class("Witch").unwrap().start_node.unwrap();
         let mut o = TreeOverlay::default();
-        o.align_on_ascendancy_start(&tree, start, (800.0, 300.0), 1440.0);
-        let t = o.ascendancy_transform.unwrap();
+        o.align_on_class_start(&tree, class, (1720.0, 720.0), 1440.0);
+        o.align_on_ascendancy_start(&tree, "Necromancer", start, class, (1700.0, 640.0), 1440.0);
+        let t = o.ascendancy_transform("Necromancer").unwrap();
         let s = tree.node(start).unwrap();
         let (x, y) = t.apply(s.x, s.y);
-        assert!((x - 800.0).abs() < 1e-6 && (y - 300.0).abs() < 1e-6);
+        assert!((x - 1700.0).abs() < 1e-6 && (y - 640.0).abs() < 1e-6);
+
+        // Panning the main tree moves the panel with it.
+        o.align_on_class_start(&tree, class, (1820.0, 700.0), 1440.0);
+        let (x, y) = o
+            .ascendancy_transform("Necromancer")
+            .unwrap()
+            .apply(s.x, s.y);
+        assert!((x - 1800.0).abs() < 1e-6 && (y - 620.0).abs() < 1e-6);
+
+        // Later, a click on the ascendancy start realigns the main tree too.
+        o.align_on_ascendancy_start(&tree, "Necromancer", start, class, (1600.0, 500.0), 1440.0);
+        let c = tree.node(class).unwrap();
+        let (cx, cy) = o.transform.unwrap().apply(c.x, c.y);
+        assert!((cx - 1620.0).abs() < 1e-6 && (cy - 580.0).abs() < 1e-6);
     }
 
     #[test]
