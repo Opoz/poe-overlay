@@ -216,6 +216,22 @@ impl Tracker {
             return;
         }
         let view = self.tree_view();
+        // Ascendancy mode: the Calibration click marks the ascendancy start
+        // (in the circle under the class art), correcting where it's drawn.
+        if self.tree_overlay.ascendancy
+            && self.tree_overlay.calibrating.is_some()
+            && let (Some(asc), Some(name), Some(class)) = (
+                view.ascendancy_start.as_ref(),
+                view.ascendancy_name.as_deref(),
+                view.class_start.as_ref(),
+            )
+        {
+            self.tree_overlay
+                .fix_ascendancy(&self.tree, name, asc.id, class.id, (x, y));
+            self.tree_overlay.calibrating = None;
+            self.save_session();
+            return;
+        }
         if let Some(start) = view.class_start {
             self.tree_overlay
                 .click(&self.tree, start.id, (x, y), game_height);
@@ -235,29 +251,12 @@ impl Tracker {
             return false;
         }
         let view = self.tree_view();
-        if self.tree_overlay.ascendancy {
-            let (Some(asc), Some(name), Some(class)) = (
-                view.ascendancy_start,
-                view.ascendancy_name,
-                view.class_start,
-            ) else {
-                return false;
-            };
-            self.tree_overlay.align_on_ascendancy_start(
-                &self.tree,
-                &name,
-                asc.id,
-                class.id,
-                (x, y),
-                game_height,
-            );
-        } else {
-            let Some(start) = view.class_start else {
-                return false;
-            };
-            self.tree_overlay
-                .align_on_class_start(&self.tree, start.id, (x, y), game_height);
-        }
+        // The class start: aligns the tree, and with it the ascendancy panel.
+        let Some(start) = view.class_start else {
+            return false;
+        };
+        self.tree_overlay
+            .align_on_class_start(&self.tree, start.id, (x, y), game_height);
         self.save_session();
         true
     }

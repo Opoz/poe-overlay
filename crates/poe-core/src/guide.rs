@@ -712,6 +712,8 @@ pub struct GuideView {
     pub unobtainable: Vec<GemPick>,
     /// Experience at the current zone (or the next one, from a town).
     pub xp: Option<crate::xp::XpView>,
+    /// On the last Step, in the Epilogue: the campaign is done.
+    pub complete: bool,
 }
 
 impl GuideView {
@@ -744,6 +746,8 @@ impl GuideView {
                 .cloned()
                 .collect(),
             xp: xp_view(&guide.steps, position, profile.map(|p| p.level)),
+            complete: position + 1 == guide.steps.len()
+                && profile.and_then(|p| p.last_area.as_deref()) == Some("2_11_endgame_town"),
             vendor_regex: Vec::new(),
             unobtainable: Vec::new(),
             current,

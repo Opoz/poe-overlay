@@ -46,7 +46,11 @@ export default function GuideOverlay() {
 			<header class="guide-bar">
 				<span class="muted">
 					<Show when={guide()} fallback="Guide">
-						{(g) => `Step ${g().position + 1}/${g().total}`}
+						{(g) =>
+							g().complete
+								? "Campaign complete"
+								: `Step ${g().position + 1}/${g().total}`
+						}
 					</Show>
 				</span>
 				<span class="guide-buttons">

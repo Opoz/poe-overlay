@@ -235,6 +235,7 @@ export interface GuidePayload {
 	vendorRegex: string[];
 	unobtainable: GemPick[];
 	xp: XpView | null;
+	complete: boolean;
 }
 
 export interface XpView {

@@ -75,6 +75,9 @@ export default function TreeOverlay() {
 		if (!v?.calibrating) return null;
 		if (!v.classStart)
 			return "Level up once so the class is known, then calibrate again.";
+		if (v.ascendancy) {
+			return `Click the centre of your ascendancy start (${v.ascendancyName ?? "ascendancy"}), in the circle under your class art. Alt+Shift+T cancels.`;
+		}
 		const start = className(v.classStart.name);
 		if (v.calibrating.step === "quick") {
 			return `Zoom the passive tree all the way out and click the centre of your class start (${start}). Alt+Shift+T again for full two-click calibration.`;
@@ -118,13 +121,8 @@ export default function TreeOverlay() {
 				}
 			>
 				<div class="tree-prompt">
-					<strong>Ascendancy</strong>{" "}
-					{view()?.transform
-						? "Middle-click your ascendancy start"
-						: "Align the main tree first (middle-click your class start), then middle-click your ascendancy start"}
-					{view()?.ascendancyName ? ` (${view()?.ascendancyName})` : ""}. This
-					is only needed once per ascendancy: after that it follows the main
-					tree.
+					<strong>Ascendancy</strong> Align the main tree first: zoom out and
+					middle-click your class start. The ascendancy follows it.
 				</div>
 			</Show>
 			<Show
