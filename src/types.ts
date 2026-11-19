@@ -109,6 +109,9 @@ export interface TreeView {
 	partner: TreeNode | null;
 	allocated: number[];
 	masteries: { node: number; option: number }[];
+	stage: string | null;
+	planned: number[];
+	plannedMasteries: { node: number; option: number }[];
 }
 
 export interface Characters {

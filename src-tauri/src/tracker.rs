@@ -160,6 +160,7 @@ impl Tracker {
             profile.and_then(|p| p.class.as_deref()),
             profile.map_or(&no_passives, |p| &p.passives),
             profile.map_or(&no_masteries, |p| &p.masteries),
+            profile.and_then(|p| p.build.as_ref().map(|b| (b, p.level))),
         )
     }
 

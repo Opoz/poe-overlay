@@ -81,6 +81,12 @@ export default function TreeOverlay() {
 					</div>
 				)}
 			</Show>
+			<Show when={view()?.stage && view()?.transform && !view()?.calibrating}>
+				<div class="tree-stage">
+					Working towards <strong>{view()?.stage}</strong> ·{" "}
+					{view()?.planned.length ?? 0} points to go
+				</div>
+			</Show>
 			<Show when={view() && !view()?.calibrating && !view()?.transform}>
 				<div class="tree-prompt">
 					Zoom the passive tree all the way out and middle-click your class
@@ -154,21 +160,81 @@ function draw(
 		ctx.stroke();
 	}
 
+	// Next Points from the Build: dashed rings, the next few numbered.
+	const NUMBERED = 10;
+	ctx.setLineDash([Math.max(3, 12 * t.scale), Math.max(2, 8 * t.scale)]);
+	ctx.strokeStyle = "rgba(242, 201, 76, 0.9)";
+	ctx.lineWidth = Math.max(2, 6 * t.scale);
+	view.planned.forEach((id) => {
+		const n = byId.get(id);
+		if (!n) return;
+		const [x, y] = at(n);
+		ctx.beginPath();
+		ctx.arc(x, y, Math.max(4, RADIUS[n.kind] * t.scale), 0, Math.PI * 2);
+		ctx.stroke();
+	});
+	ctx.setLineDash([]);
+	const numPx = Math.max(11, 46 * t.scale);
+	ctx.font = `700 ${numPx}px "Segoe UI", sans-serif`;
+	ctx.textAlign = "center";
+	ctx.textBaseline = "middle";
+	view.planned.slice(0, NUMBERED).forEach((id, i) => {
+		const n = byId.get(id);
+		if (!n) return;
+		const [x, y] = at(n);
+		const r = Math.max(4, RADIUS[n.kind] * t.scale);
+		const bx = x + r * 0.9;
+		const by = y - r * 0.9;
+		ctx.fillStyle = "rgba(14, 15, 18, 0.9)";
+		ctx.beginPath();
+		ctx.arc(bx, by, numPx * 0.7, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.fillStyle = "rgba(242, 201, 76, 1)";
+		ctx.fillText(String(i + 1), bx, by + numPx * 0.05);
+	});
+
+	// Planned mastery picks (blue) and ones already made (gold).
+	drawMasteryBadges(
+		ctx,
+		view.plannedMasteries,
+		byId,
+		at,
+		t.scale,
+		"rgba(158, 197, 255, 1)",
+	);
+
 	// Mastery picks: which option down the in-game list was chosen.
-	const fontPx = Math.max(12, 70 * t.scale);
+	drawMasteryBadges(
+		ctx,
+		view.masteries,
+		byId,
+		at,
+		t.scale,
+		"rgba(242, 201, 76, 1)",
+	);
+}
+
+function drawMasteryBadges(
+	ctx: CanvasRenderingContext2D,
+	picks: { node: number; option: number }[],
+	byId: Map<number, TreeNode>,
+	at: (n: TreeNode) => readonly [number, number],
+	scale: number,
+	colour: string,
+) {
+	const fontPx = Math.max(12, 70 * scale);
 	ctx.font = `700 ${fontPx}px "Segoe UI", sans-serif`;
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
-	for (const pick of view.masteries) {
+	for (const pick of picks) {
 		const n = byId.get(pick.node);
 		if (!n) continue;
 		const [x, y] = at(n);
-		const r = fontPx * 0.75;
 		ctx.fillStyle = "rgba(14, 15, 18, 0.85)";
 		ctx.beginPath();
-		ctx.arc(x, y, r, 0, Math.PI * 2);
+		ctx.arc(x, y, fontPx * 0.75, 0, Math.PI * 2);
 		ctx.fill();
-		ctx.fillStyle = "rgba(242, 201, 76, 1)";
+		ctx.fillStyle = colour;
 		ctx.fillText(String(pick.option), x, y + fontPx * 0.05);
 	}
 }

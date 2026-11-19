@@ -93,5 +93,11 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
   - [x] League start + Bandit Choice per Character
   - [ ] Verify in-game
 - [ ] **M3**: PoB import, gem links panel, Quest/Vendor Rewards in Guide, Vendor Regex, full tree Overlay.
+  - [x] Decode PoB codes; fetch pobb.in / pastebin; Skill Groups with level ranges from labels / skill set titles; Tree Stages
+  - [x] Gem plan along the Guide (reward to take, gems to buy, from whom); unobtainable gems listed
+  - [x] Gem links Overlay (Alt+L), Vendor Regex (Alt+R / 🔍, cycles parts over the length limit)
+  - [x] Next Points on the tree Overlay towards the Tree Stage for the current level; planned mastery options
+  - [ ] Manual level-range assignment for unlabelled Skill Groups
+  - [ ] Verify in-game with a real PoB build
 - [ ] **M4**: Lab Overlay, Trial tracking.
 - [ ] **M5**: hotkey rebinding, layout persistence, Runs tab polish, signed releases + updater.

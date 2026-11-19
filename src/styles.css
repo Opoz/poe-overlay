@@ -574,3 +574,13 @@ button:disabled {
 	opacity: 0.5;
 	cursor: default;
 }
+
+.tree-stage {
+	position: absolute;
+	top: 12px;
+	left: 12px;
+	padding: 4px 10px;
+	border-radius: 6px;
+	background: rgb(14 15 18 / 0.85);
+	font-size: 13px;
+}
