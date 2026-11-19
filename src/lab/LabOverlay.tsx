@@ -96,7 +96,8 @@ export default function LabOverlay() {
 	const title = () => {
 		const l = view()?.layout;
 		if (!l) return "Labyrinth";
-		return `${l.difficulty ?? "Lab"} · ${l.date ?? "?"}`;
+		const kind = l.difficulty ? `${titleCase(l.difficulty)} lab` : "Lab";
+		return l.date ? `${kind}, ${l.date}` : kind;
 	};
 
 	return (

@@ -46,8 +46,8 @@ export default function OverlaysPage(props: {
 			<h2>Overlays</h2>
 			<p class="lede">
 				Overlays show while the game is focused; run it in windowed fullscreen.
-				Press <Key id="overlays.interact" /> to unlock them for dragging, and
-				again to lock.
+				Press <Key id="overlays.interact" /> for Interact Mode to drag them
+				around, and again when you're done.
 			</p>
 
 			<div class="fields">

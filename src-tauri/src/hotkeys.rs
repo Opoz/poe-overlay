@@ -169,7 +169,7 @@ pub const ACTIONS: [Action; 17] = [
         "overlays.interact",
         Hotkey::InteractMode,
         "alt+KeyE",
-        "Unlock overlays for moving",
+        "Interact Mode: move and click overlays",
         "Overlays",
     ),
 ];

@@ -102,7 +102,12 @@ async function boot() {
 		["lab.toggle", "Show or hide the lab map", "Labyrinth", "alt+KeyB"],
 		["lab.import", "Open today's lab on poelab", "Labyrinth", "shift+alt+KeyB"],
 		["xp.toggle", "Show or hide the XP ruler", "Overlays", "alt+KeyX"],
-		["overlays.interact", "Unlock overlays for moving", "Overlays", "alt+KeyE"],
+		[
+			"overlays.interact",
+			"Interact Mode: move and click overlays",
+			"Overlays",
+			"alt+KeyE",
+		],
 	].map(([id, label, group, def]) => ({
 		id,
 		label,

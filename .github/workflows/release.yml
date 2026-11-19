@@ -1,0 +1,53 @@
+# Builds the Windows installer for a version tag (v0.2.0, ...) and drafts a
+# GitHub release with it, plus the signed updater files the app checks for.
+#
+# Needs the repository secret TAURI_SIGNING_PRIVATE_KEY (the contents of the
+# updater signing key; its public half is in src-tauri/tauri.conf.json) and,
+# if the key has one, TAURI_SIGNING_PRIVATE_KEY_PASSWORD.
+#
+# The release stays a draft until published by hand, so nothing reaches
+# players' update checks before it's been looked at.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Check the tag matches the app version
+        shell: bash
+        run: |
+          version=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME doesn't match version $version in tauri.conf.json"
+            exit 1
+          fi
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: poe-overlay ${{ github.ref_name }}
+          releaseBody: See the commits since the last release for what changed.
+          releaseDraft: true
+          includeUpdaterJson: true

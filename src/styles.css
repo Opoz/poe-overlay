@@ -1432,3 +1432,18 @@ html[data-window]:not([data-window="main"]) {
 .best-text {
 	color: var(--gold);
 }
+
+/* An update, offered at the foot of the sidebar. */
+.update {
+	display: grid;
+	gap: 6px;
+	margin: auto 12px 12px;
+	padding: 10px 12px;
+	border-radius: 5px;
+	background: var(--brass-dim);
+	font-size: 13px;
+}
+
+.update + .game-state {
+	margin-top: 0;
+}

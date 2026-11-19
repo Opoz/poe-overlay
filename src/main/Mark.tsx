@@ -12,14 +12,14 @@ export default function Mark() {
 				stroke-linejoin="round"
 			/>
 			<path
-				d="M6.6 14.6 10 11.6l2.6 2.2 4-4.2"
+				d="M8.2 13.7 10.7 11.5l2.2 1.9 2.3-2.8"
 				stroke="currentColor"
 				stroke-width="1.8"
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				opacity="0.75"
 			/>
-			<circle cx="16.8" cy="9.4" r="1.9" fill="currentColor" />
+			<circle cx="15.2" cy="10.6" r="1.5" fill="currentColor" />
 		</svg>
 	);
 }

@@ -97,8 +97,9 @@ export default function HistoryPage(props: {
 									<span class="run-who">
 										<strong>{run.character ?? "Unknown"}</strong>
 										<span>
-											{run.class ?? ""}{" "}
-											{formatLocalDate(run.startedAt).slice(0, 10)}
+											{[run.class, formatLocalDate(run.startedAt).slice(0, 10)]
+												.filter(Boolean)
+												.join(", ")}
 										</span>
 									</span>
 									<span class="run-bar" aria-hidden="true">

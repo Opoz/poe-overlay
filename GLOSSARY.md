@@ -146,5 +146,13 @@ _Avoid_: HUD, widget, popup
 A toggled state in which Overlays accept the mouse so they can be moved, resized or clicked.
 _Avoid_: edit mode, unlock
 
+**Panel Opacity**:
+How solid an Overlay's background is. Only the background fades; text stays fully opaque. Shared by all Overlays unless one sets its own.
+_Avoid_: transparency, window opacity
+
+**Shortcut**:
+A global key combination bound to an app action (rebindable). Only registered while the game is focused.
+_Avoid_: keybind, hotkey (in UI text; `hotkey` is fine in code)
+
 **Replay**:
 Feeding a recorded Client Log through the app as if it were being written live.

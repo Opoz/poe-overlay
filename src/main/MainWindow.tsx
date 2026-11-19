@@ -26,6 +26,7 @@ import HistoryPage from "./HistoryPage";
 import Mark from "./Mark";
 import OverlaysPage from "./OverlaysPage";
 import ShortcutsPage from "./ShortcutsPage";
+import UpdateNotice from "./UpdateNotice";
 
 const command = (c: TimerCommand) => invoke("timer_command", { command: c });
 
@@ -128,6 +129,7 @@ export default function MainWindow() {
 						</a>
 					)}
 				</For>
+				<UpdateNotice />
 				<div class="game-state">
 					<span class="dot" classList={{ on: status()?.gameRunning }} />
 					{status()?.gameRunning ? "Game running" : "Game not running"}
