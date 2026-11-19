@@ -810,7 +810,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                     },
                     overlay::Wanted {
                         label: overlay::TREEBAR,
-                        anchor: overlay::Anchor::At(settings.treebar_overlay),
+                        anchor: overlay::Anchor::RightAt(settings.treebar_right),
                         // Collapses to a "Show tree" button when the tree
                         // Overlay is hidden, once it has been set up.
                         visible: tree.calibrating.is_none()
@@ -856,7 +856,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                         overlay::ACT => settings.act_overlay = placement,
                         overlay::GEMS => settings.gems_overlay = placement,
                         overlay::LAB => settings.lab_overlay = placement,
-                        overlay::TREEBAR => settings.treebar_overlay = placement,
+                        overlay::TREEBAR => settings.treebar_right = placement,
                         _ => {}
                     }
                 }

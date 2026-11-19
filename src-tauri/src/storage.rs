@@ -40,7 +40,8 @@ pub struct Settings {
     pub act_overlay: OverlayPlacement,
     pub gems_overlay: OverlayPlacement,
     pub lab_overlay: OverlayPlacement,
-    pub treebar_overlay: OverlayPlacement,
+    /// Top-right corner of the tree bar (it collapses towards the right).
+    pub treebar_right: OverlayPlacement,
     /// The game's passive tree key: pressing it toggles the tree Overlay too
     /// (Escape hides it). `None` turns this off.
     pub tree_key: Option<String>,
@@ -58,7 +59,7 @@ impl Default for Settings {
             act_overlay: OverlayPlacement { x: 0.3, y: 0.08 },
             gems_overlay: OverlayPlacement { x: 0.78, y: 0.3 },
             lab_overlay: OverlayPlacement { x: 0.55, y: 0.08 },
-            treebar_overlay: OverlayPlacement { x: 0.35, y: 0.01 },
+            treebar_right: OverlayPlacement { x: 0.66, y: 0.01 },
             tree_key: Some("P".into()),
             overlay_opacity: 1.0,
         }

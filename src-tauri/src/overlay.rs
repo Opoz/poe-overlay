@@ -68,6 +68,9 @@ fn raw(window: &WebviewWindow) -> Option<RawHwnd> {
 pub enum Anchor {
     /// Top-left at a fraction of the game window; the player can move it.
     At(OverlayPlacement),
+    /// Top-right corner at a fraction of the game window, so a window that
+    /// shrinks (the tree bar collapsing) stays put on its right side.
+    RightAt(OverlayPlacement),
     /// Exactly over the game window.
     Cover,
 }
@@ -160,10 +163,14 @@ impl Follower {
         let mut moved = Vec::new();
         let interact_ended = self.was_interact && !interact;
         self.was_interact = interact;
+        // When the full-window Overlay changes, put the small ones back on
+        // top of it (its clicks would otherwise land on the tree, not the bar).
+        let mut cover_changed = false;
 
         for (w, window, h) in &windows {
             let applied = self.applied.entry(w.label).or_default();
-            let movable = matches!(w.anchor, Anchor::At(_));
+            let movable = matches!(w.anchor, Anchor::At(_) | Anchor::RightAt(_));
+            let right_anchored = matches!(w.anchor, Anchor::RightAt(_));
 
             if interact_ended
                 && movable
@@ -176,6 +183,11 @@ impl Follower {
                 let size = window.outer_size().unwrap_or_default();
                 let x = (pos.x - r.x).clamp(KEEP - size.width as i32, r.width - KEEP);
                 let y = (pos.y - r.y).clamp(0, r.height - KEEP);
+                let x = if right_anchored {
+                    x + size.width as i32
+                } else {
+                    x
+                };
                 moved.push((
                     w.label,
                     OverlayPlacement {
@@ -192,6 +204,7 @@ impl Follower {
             if clickable != applied.clickable {
                 platform::set_click_through(*h, !clickable);
                 applied.clickable = clickable;
+                cover_changed |= matches!(w.anchor, Anchor::Cover);
             }
 
             if let Some(r) = rect
@@ -204,6 +217,15 @@ impl Follower {
                         0,
                         0,
                     ),
+                    Anchor::RightAt(p) => {
+                        let width = window.outer_size().map_or(0, |s| s.width as i32);
+                        (
+                            r.x + (p.x * f64::from(r.width)).round() as i32 - width,
+                            r.y + (p.y * f64::from(r.height)).round() as i32,
+                            0,
+                            0,
+                        )
+                    }
                     Anchor::Cover => (r.x, r.y, r.width, r.height),
                 };
                 if applied.target != Some(target) {
@@ -220,6 +242,14 @@ impl Follower {
             if visible != applied.visible {
                 platform::set_visible(*h, visible);
                 applied.visible = visible;
+                cover_changed |= visible && matches!(w.anchor, Anchor::Cover);
+            }
+        }
+        if cover_changed {
+            for (w, _, h) in &windows {
+                if !matches!(w.anchor, Anchor::Cover) {
+                    platform::raise(*h);
+                }
             }
         }
         if rect.is_some() {

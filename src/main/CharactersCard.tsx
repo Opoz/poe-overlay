@@ -121,35 +121,37 @@ function ProfileRow(props: {
 					</button>
 				</span>
 			</td>
-			<td class="guide-options">
-				<label title="Include league-start steps (early waypoints, side bosses, strongboxes)">
-					<input
-						type="checkbox"
-						checked={options().leagueStart}
+			<td>
+				<div class="guide-options">
+					<label title="Include league-start steps (early waypoints, side bosses, strongboxes)">
+						<input
+							type="checkbox"
+							checked={options().leagueStart}
+							onChange={(e) =>
+								props.onGuide({
+									...options(),
+									leagueStart: e.currentTarget.checked,
+								})
+							}
+						/>
+						League start
+					</label>
+					<select
+						title="Bandit choice"
+						value={options().bandit}
 						onChange={(e) =>
 							props.onGuide({
 								...options(),
-								leagueStart: e.currentTarget.checked,
+								bandit: e.currentTarget.value as BanditChoice,
 							})
 						}
-					/>
-					League start
-				</label>
-				<select
-					title="Bandit choice"
-					value={options().bandit}
-					onChange={(e) =>
-						props.onGuide({
-							...options(),
-							bandit: e.currentTarget.value as BanditChoice,
-						})
-					}
-				>
-					<option value="killAll">Kill all bandits</option>
-					<option value="alira">Help Alira</option>
-					<option value="kraityn">Help Kraityn</option>
-					<option value="oak">Help Oak</option>
-				</select>
+					>
+						<option value="killAll">Kill all bandits</option>
+						<option value="alira">Help Alira</option>
+						<option value="kraityn">Help Kraityn</option>
+						<option value="oak">Help Oak</option>
+					</select>
+				</div>
 			</td>
 			<td>
 				<Show

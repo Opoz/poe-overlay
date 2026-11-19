@@ -145,6 +145,24 @@ fn update_ex_style(window: RawHwnd, add: u32, remove: u32) {
     }
 }
 
+/// Put a topmost window above the other topmost windows, without activating it.
+pub fn raise(window: RawHwnd) {
+    use windows::Win32::UI::WindowsAndMessaging::{
+        HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SetWindowPos,
+    };
+    unsafe {
+        let _ = SetWindowPos(
+            hwnd(window),
+            Some(HWND_TOPMOST),
+            0,
+            0,
+            0,
+            0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
+        );
+    }
+}
+
 /// Show or hide without activating (never steals focus from the game).
 pub fn set_visible(window: RawHwnd, visible: bool) {
     use windows::Win32::UI::WindowsAndMessaging::{SW_HIDE, SW_SHOWNOACTIVATE, ShowWindow};

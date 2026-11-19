@@ -41,19 +41,16 @@ export default function TreeOverlay() {
 
 	// A slow "breathing" glow on Next Points: redraw ~30 times a second while
 	// there are any to show.
+	// (A timer rather than requestAnimationFrame: the WebView may pause
+	// animation frames in a transparent overlay window.)
 	const [pulse, setPulse] = createSignal(0);
-	let frame = 0;
-	let last = 0;
-	const tick = (now: number) => {
+	const pulseTimer = setInterval(() => {
 		const v = view();
-		if (v?.visible && v.transform && v.planned.length > 0 && now - last > 33) {
-			setPulse((Math.sin(now / 450) + 1) / 2);
-			last = now;
+		if (v?.visible && v.transform && v.planned.length > 0) {
+			setPulse((Math.sin(performance.now() / 450) + 1) / 2);
 		}
-		frame = requestAnimationFrame(tick);
-	};
-	frame = requestAnimationFrame(tick);
-	onCleanup(() => cancelAnimationFrame(frame));
+	}, 50);
+	onCleanup(() => clearInterval(pulseTimer));
 
 	createEffect(() => draw(canvas, size(), nodes(), view(), pulse()));
 
@@ -201,6 +198,21 @@ function draw(
 	const NUMBERED = 10;
 	ctx.setLineDash([Math.max(3, 12 * t.scale), Math.max(2, 8 * t.scale)]);
 	ctx.lineWidth = Math.max(2, 6 * t.scale);
+	// A soft halo that grows and fades on the next few nodes.
+	view.planned.slice(0, NUMBERED).forEach((id) => {
+		const n = byId.get(id);
+		if (!n) return;
+		const [x, y] = at(n);
+		const r = Math.max(6, RADIUS[n.kind] * t.scale);
+		const outer = r * (1.6 + pulse * 0.9);
+		const halo = ctx.createRadialGradient(x, y, r * 0.6, x, y, outer);
+		halo.addColorStop(0, `rgba(242, 201, 76, ${0.25 + pulse * 0.35})`);
+		halo.addColorStop(1, "rgba(242, 201, 76, 0)");
+		ctx.fillStyle = halo;
+		ctx.beginPath();
+		ctx.arc(x, y, outer, 0, Math.PI * 2);
+		ctx.fill();
+	});
 	view.planned.forEach((id, i) => {
 		const n = byId.get(id);
 		if (!n) return;
