@@ -133,6 +133,48 @@ impl PassiveTree {
             .map(|(id, _)| id)
     }
 
+    /// An ascendancy's start node ("Necromancer").
+    pub fn ascendancy_start(&self, ascendancy: &str) -> Option<u32> {
+        self.nodes
+            .iter()
+            .find(|n| {
+                n.kind == NodeKind::AscendancyStart
+                    && n.ascendancy
+                        .as_deref()
+                        .is_some_and(|a| a.eq_ignore_ascii_case(ascendancy))
+            })
+            .map(|n| n.id)
+    }
+
+    /// An ascendancy's planned nodes not yet allocated, in an order that can be
+    /// taken: outward from the ascendancy start, nearest first.
+    pub fn ascendancy_points(
+        &self,
+        allocated: &HashSet<u32>,
+        start: u32,
+        target: &[u32],
+    ) -> Vec<u32> {
+        let mut remaining: HashSet<u32> = target
+            .iter()
+            .copied()
+            .filter(|id| !allocated.contains(id) && *id != start)
+            .collect();
+        let mut have: HashSet<u32> = allocated.clone();
+        have.insert(start);
+        let mut order = Vec::new();
+        while let Some(path) = self.cheapest_path(&have, &remaining, &|_| true) {
+            for id in path {
+                remaining.remove(&id);
+                have.insert(id);
+                order.push(id);
+            }
+        }
+        let mut rest: Vec<u32> = remaining.into_iter().collect();
+        rest.sort_unstable();
+        order.extend(rest);
+        order
+    }
+
     /// Tree node for a passive id as printed in the Client Log.
     pub fn node_for_log_id(&self, log_id: &str) -> Option<u32> {
         self.log_ids.get(log_id).copied()
@@ -406,6 +448,10 @@ pub struct TreeOverlay {
     /// window's height. Measured by a two-click Calibration; overrides
     /// [`ZOOMED_OUT_SCALE_PER_PX`].
     pub zoomed_out_scale_per_px: Option<f64>,
+    /// Showing the ascendancy panel instead of the main tree.
+    pub ascendancy: bool,
+    /// Alignment of the ascendancy panel (it sits in its own place in game).
+    pub ascendancy_transform: Option<Transform>,
 }
 
 impl TreeOverlay {
@@ -435,6 +481,35 @@ impl TreeOverlay {
         if self.calibrating.is_some() {
             self.visible = true;
         }
+    }
+
+    pub fn toggle_ascendancy(&mut self) {
+        self.ascendancy = !self.ascendancy;
+        self.editing = false;
+        self.calibrating = None;
+    }
+
+    /// The player middle-clicked the ascendancy start node with the tree fully
+    /// zoomed out: same scale as the main tree, positioned by the click.
+    pub fn align_on_ascendancy_start(
+        &mut self,
+        tree: &PassiveTree,
+        ascendancy_start: u32,
+        at: (f64, f64),
+        game_height: f64,
+    ) {
+        let Some(start) = tree.node(ascendancy_start) else {
+            return;
+        };
+        let scale = self
+            .zoomed_out_scale_per_px
+            .unwrap_or(ZOOMED_OUT_SCALE_PER_PX)
+            * game_height;
+        self.ascendancy_transform = Some(Transform {
+            scale,
+            offset_x: at.0 - start.x * scale,
+            offset_y: at.1 - start.y * scale,
+        });
     }
 
     /// The player marked their class start at `at` (game-window pixels) with
@@ -539,6 +614,15 @@ pub struct TreeView {
     pub planned: Vec<u32>,
     /// The stage's mastery picks not yet made as planned.
     pub planned_masteries: Vec<MasteryPick>,
+    /// Showing the ascendancy panel.
+    pub ascendancy: bool,
+    /// The Character's ascendancy (from its class, or the Build's plan).
+    pub ascendancy_name: Option<String>,
+    pub ascendancy_start: Option<TreeNode>,
+    pub ascendancy_transform: Option<Transform>,
+    /// Allocated and planned (in taking order) ascendancy nodes.
+    pub ascendancy_allocated: Vec<u32>,
+    pub ascendancy_planned: Vec<u32>,
 }
 
 /// The Tree Stage to work towards at `level`, unless the player picked one
@@ -621,6 +705,40 @@ impl TreeView {
             (Some((b, level)), Some(_)) => pick_stage(&b.tree_stages, level, &have, chosen_stage),
             _ => None,
         };
+        // The ascendancy: the class itself once ascended, else the Build's plan.
+        let asc_name: Option<String> = class
+            .filter(|c| {
+                tree.classes
+                    .iter()
+                    .any(|k| k.ascendancies.iter().any(|a| a.eq_ignore_ascii_case(c)))
+            })
+            .map(str::to_owned)
+            .or_else(|| build.and_then(|(b, _)| b.ascendancy.clone()));
+        let asc_start = asc_name
+            .as_deref()
+            .and_then(|a| tree.ascendancy_start(a))
+            .and_then(|id| tree.node(id));
+        let in_asc = |id: &u32| {
+            tree.node(*id).is_some_and(|n| {
+                n.ascendancy
+                    .as_deref()
+                    .zip(asc_name.as_deref())
+                    .is_some_and(|(a, b)| a.eq_ignore_ascii_case(b))
+            })
+        };
+        let asc_allocated: Vec<u32> = passives
+            .iter()
+            .filter_map(|p| tree.node_for_log_id(p))
+            .filter(in_asc)
+            .collect();
+        let asc_planned: Vec<u32> = match (picked, asc_start) {
+            (Some((_, st)), Some(a)) => {
+                let target: Vec<u32> = st.nodes.iter().copied().filter(in_asc).collect();
+                let have: HashSet<u32> = asc_allocated.iter().copied().collect();
+                tree.ascendancy_points(&have, a.id, &target)
+            }
+            _ => Vec::new(),
+        };
         let stage_index = picked.map(|(i, _)| i);
         let stage = picked.map(|(i, st)| title_of(i, st));
         let (planned, planned_masteries) = match (picked, start) {
@@ -648,6 +766,12 @@ impl TreeView {
             stages,
             planned,
             planned_masteries,
+            ascendancy: overlay.ascendancy,
+            ascendancy_transform: overlay.ascendancy_transform,
+            ascendancy_start: asc_start.cloned(),
+            ascendancy_allocated: asc_allocated,
+            ascendancy_planned: asc_planned,
+            ascendancy_name: asc_name,
             visible: overlay.visible,
             editing: overlay.editing,
             calibrating: overlay.calibrating,
@@ -1048,6 +1172,28 @@ mod tests {
             toggle_allocation(&tree, &t, (-5000.0, -5000.0), &mut passives, &mut masteries),
             None
         );
+    }
+
+    #[test]
+    fn ascendancy_view() {
+        let tree = PassiveTree::bundled();
+        let start = tree.ascendancy_start("Necromancer").unwrap();
+        assert_eq!(tree.node(start).unwrap().kind, NodeKind::AscendancyStart);
+        let mut p = crate::profile::Profile::new("A");
+        p.class = Some("Necromancer".into());
+        p.passives.insert("AscendancyNecromancer6".into());
+        let v = TreeView::build(&tree, &TreeOverlay::default(), Some(&p));
+        assert_eq!(v.ascendancy_name.as_deref(), Some("Necromancer"));
+        assert_eq!(v.ascendancy_allocated.len(), 1);
+        assert_eq!(v.ascendancy_start.as_ref().map(|n| n.id), Some(start));
+
+        // Aligning on the ascendancy start puts it where the player clicked.
+        let mut o = TreeOverlay::default();
+        o.align_on_ascendancy_start(&tree, start, (800.0, 300.0), 1440.0);
+        let t = o.ascendancy_transform.unwrap();
+        let s = tree.node(start).unwrap();
+        let (x, y) = t.apply(s.x, s.y);
+        assert!((x - 800.0).abs() < 1e-6 && (y - 300.0).abs() < 1e-6);
     }
 
     #[test]

@@ -37,6 +37,8 @@ pub struct Tracker {
     guides: GuideBook,
     gem_data: GemData,
     lab: LabState,
+    /// Entered the final lab room since the shell last checked.
+    lab_end_entered: bool,
     /// Area ID from the last "Generating level" line, paired with the
     /// following "You have entered" line (which has the room name).
     pending_area: Option<String>,
@@ -69,6 +71,7 @@ impl Tracker {
             gem_data: GemData::bundled(),
             lab: session.lab,
             pending_area: None,
+            lab_end_entered: false,
         }
     }
 
@@ -108,6 +111,9 @@ impl Tracker {
             events.extend(self.timer.on_record(record));
             if let LogEvent::AreaGenerated { area_id, .. } = &record.event {
                 self.pending_area = Some(area_id.clone());
+                if area_id.contains("Labyrinth") && area_id.contains("_end") {
+                    self.lab_end_entered = true;
+                }
                 if let Some(profile) = self.timer.active_profile_mut() {
                     self.guides.on_area(profile, area_id);
                 }
@@ -217,13 +223,39 @@ impl Tracker {
         if !self.tree_overlay.visible {
             return false;
         }
-        let Some(start) = self.tree_view().class_start else {
-            return false;
-        };
-        self.tree_overlay
-            .align_on_class_start(&self.tree, start.id, (x, y), game_height);
+        let view = self.tree_view();
+        if self.tree_overlay.ascendancy {
+            let Some(start) = view.ascendancy_start else {
+                return false;
+            };
+            self.tree_overlay
+                .align_on_ascendancy_start(&self.tree, start.id, (x, y), game_height);
+        } else {
+            let Some(start) = view.class_start else {
+                return false;
+            };
+            self.tree_overlay
+                .align_on_class_start(&self.tree, start.id, (x, y), game_height);
+        }
         self.save_session();
         true
+    }
+
+    pub fn toggle_tree_ascendancy(&mut self) {
+        self.tree_overlay.toggle_ascendancy();
+        self.save_session();
+    }
+
+    /// Entered the final Izaro room (where the ascension plaque is) since
+    /// last asked. The ascendancy panel opens from the plaque.
+    pub fn take_lab_end(&mut self) -> bool {
+        let entered = self.lab_end_entered;
+        self.lab_end_entered = false;
+        if entered {
+            // The plaque opens the ascendancy panel: be ready for it.
+            self.tree_overlay.ascendancy = true;
+        }
+        entered
     }
 
     pub fn set_allocations(&mut self, name: &str, allocations: poe_core::tree::Allocations) {

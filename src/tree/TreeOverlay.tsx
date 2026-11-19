@@ -49,7 +49,9 @@ export default function TreeOverlay() {
 		if (
 			v?.visible &&
 			v.transform &&
-			(v.planned.length > 0 || v.plannedMasteries.length > 0)
+			(v.planned.length > 0 ||
+				v.plannedMasteries.length > 0 ||
+				v.ascendancyPlanned.length > 0)
 		) {
 			setPulse((Math.sin(performance.now() / 450) + 1) / 2);
 		}
@@ -110,7 +112,28 @@ export default function TreeOverlay() {
 					</div>
 				)}
 			</Show>
-			<Show when={view() && !view()?.calibrating && !view()?.transform}>
+			<Show
+				when={
+					view()?.ascendancy &&
+					!view()?.ascendancyTransform &&
+					!view()?.calibrating
+				}
+			>
+				<div class="tree-prompt">
+					<strong>Ascendancy</strong> Zoom out and middle-click your ascendancy
+					start
+					{view()?.ascendancyName ? ` (${view()?.ascendancyName})` : ""} to
+					align.
+				</div>
+			</Show>
+			<Show
+				when={
+					view() &&
+					!view()?.ascendancy &&
+					!view()?.calibrating &&
+					!view()?.transform
+				}
+			>
 				<div class="tree-prompt">
 					Zoom the passive tree all the way out and middle-click your class
 					start to align.
@@ -145,8 +168,15 @@ function draw(
 	if (!ctx) return;
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-	const t = view?.transform;
-	if (!t || !nodes || view?.calibrating) return;
+	if (!nodes || !view || view.calibrating) return;
+	if (view.ascendancy) {
+		drawAscendancy(ctx, nodes, view, pulse);
+		return;
+	}
+	const t = view.transform;
+	if (!t) return;
+	// Ascendancy nodes live elsewhere in the data; the main tree leaves them out.
+	nodes = nodes.filter((n) => !n.ascendancy);
 	const at = (n: TreeNode) =>
 		[n.x * t.scale + t.offsetX, n.y * t.scale + t.offsetY] as const;
 	const allocated = new Set(view.allocated);
@@ -327,4 +357,76 @@ function drawMasteryBadges(
 		ctx.fillStyle = colour;
 		ctx.fillText(String(pick.option), x, y + fontPx * 0.05);
 	}
+}
+
+/** The ascendancy panel: taken nodes ringed, planned ones numbered. */
+function drawAscendancy(
+	ctx: CanvasRenderingContext2D,
+	nodes: TreeNode[],
+	view: TreeView,
+	pulse: number,
+) {
+	const t = view.ascendancyTransform;
+	const name = view.ascendancyName;
+	if (!t || !name) return;
+	const asc = nodes.filter(
+		(n) => n.ascendancy?.toLowerCase() === name.toLowerCase(),
+	);
+	const byId = new Map(asc.map((n) => [n.id, n]));
+	const at = (n: TreeNode) =>
+		[n.x * t.scale + t.offsetX, n.y * t.scale + t.offsetY] as const;
+	const startId = view.ascendancyStart?.id;
+	const taken = new Set(view.ascendancyAllocated);
+	if (startId !== undefined) taken.add(startId);
+
+	ctx.strokeStyle = "rgba(76, 195, 138, 0.9)";
+	ctx.lineWidth = Math.max(2, 10 * t.scale);
+	ctx.beginPath();
+	for (const id of taken) {
+		const a = byId.get(id);
+		if (!a) continue;
+		for (const o of a.out) {
+			const b = byId.get(o);
+			if (!b || !taken.has(o)) continue;
+			const [ax, ay] = at(a);
+			const [bx, by] = at(b);
+			ctx.moveTo(ax, ay);
+			ctx.lineTo(bx, by);
+		}
+	}
+	ctx.stroke();
+
+	ctx.lineWidth = Math.max(2, 6 * t.scale);
+	for (const id of taken) {
+		const n = byId.get(id);
+		if (!n) continue;
+		const [x, y] = at(n);
+		ctx.strokeStyle =
+			id === startId ? "rgba(200, 164, 90, 0.95)" : "rgba(76, 195, 138, 0.95)";
+		ctx.beginPath();
+		ctx.arc(x, y, Math.max(5, RADIUS[n.kind] * t.scale), 0, Math.PI * 2);
+		ctx.stroke();
+	}
+
+	const numPx = Math.max(17, 46 * t.scale);
+	const badgeR = numPx * 0.72;
+	ctx.font = `700 ${numPx}px "Segoe UI", sans-serif`;
+	ctx.textAlign = "center";
+	ctx.textBaseline = "middle";
+	view.ascendancyPlanned.forEach((id, i) => {
+		const n = byId.get(id);
+		if (!n) return;
+		const [x, y] = at(n);
+		ctx.strokeStyle = `rgba(255, 220, 120, ${0.5 + pulse * 0.5})`;
+		ctx.lineWidth = 2 + pulse * 3;
+		ctx.beginPath();
+		ctx.arc(x, y, badgeR + 3 + pulse * 4, 0, Math.PI * 2);
+		ctx.stroke();
+		ctx.fillStyle = "rgba(242, 201, 76, 1)";
+		ctx.beginPath();
+		ctx.arc(x, y, badgeR, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.fillStyle = "rgba(18, 19, 22, 1)";
+		ctx.fillText(String(i + 1), x, y + numPx * 0.05);
+	});
 }

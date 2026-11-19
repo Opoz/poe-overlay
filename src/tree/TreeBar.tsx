@@ -42,7 +42,9 @@ export default function TreeBar() {
 				when={view()?.visible}
 				fallback={
 					<button type="button" onClick={toggle}>
-						Show tree (Alt+T)
+						{view()?.ascendancy
+							? "Show ascendancy (Alt+T)"
+							: "Show tree (Alt+T)"}
 					</button>
 				}
 			>
@@ -72,6 +74,14 @@ export default function TreeBar() {
 						</button>
 					</Show>
 				</Show>
+				<button
+					type="button"
+					classList={{ on: view()?.ascendancy }}
+					title="Switch between the main tree and your ascendancy"
+					onClick={() => invoke("toggle_tree_ascendancy")}
+				>
+					{view()?.ascendancy ? "Main tree" : "Ascendancy"}
+				</button>
 				<button
 					type="button"
 					classList={{ on: view()?.editing }}

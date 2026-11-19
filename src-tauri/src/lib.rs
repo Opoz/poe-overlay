@@ -508,6 +508,13 @@ fn toggle_tree_edit(app: AppHandle, state: tauri::State<AppState>) {
     emit_tree(&app);
 }
 
+/// Switch the tree Overlay between the main tree and the ascendancy panel.
+#[tauri::command]
+fn toggle_tree_ascendancy(app: AppHandle, state: tauri::State<AppState>) {
+    state.tracker.lock().unwrap().toggle_tree_ascendancy();
+    emit_tree(&app);
+}
+
 #[tauri::command]
 fn cycle_skill_set(app: AppHandle, state: tauri::State<AppState>, delta: i32) {
     state.tracker.lock().unwrap().cycle_skill_set(delta);
@@ -557,13 +564,7 @@ fn emit_tree(app: &AppHandle) {
 #[tauri::command]
 fn get_tree(state: tauri::State<AppState>) -> Vec<TreeNode> {
     let tracker = state.tracker.lock().unwrap();
-    tracker
-        .tree()
-        .nodes
-        .iter()
-        .filter(|n| n.ascendancy.is_none())
-        .cloned()
-        .collect()
+    tracker.tree().nodes.clone()
 }
 
 #[tauri::command]
@@ -795,6 +796,11 @@ fn spawn_tracking_loop(app: AppHandle) {
                 &app,
                 game.is_some_and(|g| platform::foreground_window() == g),
             );
+            // Final Izaro room: offer "Show ascendancy" for the plaque.
+            if state.tracker.lock().unwrap().take_lab_end() {
+                state.tree_pill.store(true, Ordering::SeqCst);
+                emit_tree(&app);
+            }
             let in_lab = state.tracker.lock().unwrap().lab_view().in_lab;
             if in_lab != was_in_lab {
                 // Entering or leaving the lab returns the Overlay to automatic.
@@ -1005,6 +1011,7 @@ pub fn run() {
             cycle_tree_stage,
             cycle_skill_set,
             toggle_tree_edit,
+            toggle_tree_ascendancy,
             hotkey_failures,
             rebuild_passives,
         ])

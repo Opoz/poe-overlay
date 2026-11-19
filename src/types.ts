@@ -97,6 +97,7 @@ export interface TreeNode {
 		| "ascendancyStart";
 	x: number;
 	y: number;
+	ascendancy?: string;
 	classStart?: number;
 	out: number[];
 }
@@ -128,6 +129,12 @@ export interface TreeView {
 	stageByHand: boolean;
 	planned: number[];
 	plannedMasteries: { node: number; option: number }[];
+	ascendancy: boolean;
+	ascendancyName: string | null;
+	ascendancyStart: TreeNode | null;
+	ascendancyTransform: Transform | null;
+	ascendancyAllocated: number[];
+	ascendancyPlanned: number[];
 }
 
 export interface Characters {

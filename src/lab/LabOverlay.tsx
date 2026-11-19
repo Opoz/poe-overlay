@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { createSignal, For, onCleanup, Show } from "solid-js";
+import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
+import { autoSizeWindow } from "../autoSize";
 import { onEvent } from "../events";
 import { titleCase } from "../format";
 import type { LabImportStatus, LabPayload, LabRoom } from "../types";
@@ -96,7 +97,11 @@ export default function LabOverlay() {
 	};
 
 	return (
-		<div class="overlay lab" classList={{ interact: interact() }}>
+		<div
+			class="overlay lab"
+			classList={{ interact: interact() }}
+			ref={(el) => onMount(() => autoSizeWindow(el, { maxHeight: 900 }))}
+		>
 			<header class="guide-bar">
 				<strong>{title()}</strong>
 				<span class="guide-buttons">
