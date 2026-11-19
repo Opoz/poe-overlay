@@ -10,6 +10,11 @@ export default function StepView(props: {
 		<div class="step" classList={{ compact: props.compact }}>
 			<div class="step-area">
 				<span class="step-act">A{props.step.act}</span> {props.step.areaName}
+				<Show
+					when={props.step.areaLevel > 0 && !props.step.area.endsWith("_town")}
+				>
+					<span class="step-level">lvl {props.step.areaLevel}</span>
+				</Show>
 			</div>
 			<ul class="step-lines">
 				<For

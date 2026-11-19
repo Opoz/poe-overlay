@@ -212,6 +212,9 @@ pub struct Step {
     /// The act the Area itself belongs to. Usually `act`, but a route section
     /// can visit the next act's Town (Act 8 unlocks Highgate, then goes back).
     pub area_act: u8,
+    /// The Area's monster level (0 when unknown).
+    #[serde(default)]
+    pub area_level: u32,
     pub lines: Vec<Line>,
 }
 
@@ -225,6 +228,9 @@ struct AreaInfo {
     name: String,
     parent_town_area_id: Option<String>,
     act: u8,
+    /// Monster level.
+    #[serde(default)]
+    level: u32,
 }
 
 /// All Guide variants, built once.
@@ -486,6 +492,7 @@ fn parse(
                     area: area.clone(),
                     area_name: name_of(&area),
                     area_act: areas.get(&area).map_or(act, |a| a.act),
+                    area_level: areas.get(&area).map_or(0, |a| a.level),
                     lines: Vec::new(),
                 });
                 open = true;
@@ -703,6 +710,8 @@ pub struct GuideView {
     /// Build gems no quest or vendor provides for this class.
     #[serde(default)]
     pub unobtainable: Vec<GemPick>,
+    /// Experience at the current zone (or the next one, from a town).
+    pub xp: Option<crate::xp::XpView>,
 }
 
 impl GuideView {
@@ -734,11 +743,35 @@ impl GuideView {
                 .filter(|s| s.act == act)
                 .cloned()
                 .collect(),
+            xp: xp_view(&guide.steps, position, profile.map(|p| p.level)),
             vendor_regex: Vec::new(),
             unobtainable: Vec::new(),
             current,
         }
     }
+}
+
+/// The level ruler for the current Step's zone; from a town (no monsters),
+/// for the next zone the Guide heads to.
+fn xp_view(
+    steps: &[Step],
+    position: usize,
+    player_level: Option<u32>,
+) -> Option<crate::xp::XpView> {
+    let is_zone = |s: &Step| s.area_level > 0 && !s.area.ends_with("_town");
+    let current = steps.get(position)?;
+    let (step, upcoming) = if is_zone(current) {
+        (current, false)
+    } else {
+        (steps.iter().skip(position + 1).find(|s| is_zone(s))?, true)
+    };
+    Some(crate::xp::XpView::build(
+        &step.area_name,
+        step.area_level,
+        upcoming,
+        player_level,
+        6,
+    ))
 }
 
 #[cfg(test)]
@@ -938,6 +971,22 @@ mod tests {
             .find(|&i| g.steps[i].area == "2_9_8" && g.steps[i + 1].area == "2_9_9")
             .unwrap();
         assert_eq!(g.advance(quarry, "2_9_town"), None);
+    }
+
+    #[test]
+    fn xp_ruler_for_the_zone_or_the_next_one() {
+        let book = book();
+        let g = book.guide(GuideOptions::default());
+        // The Coast is a zone: its own ruler.
+        let coast = g.steps.iter().position(|s| s.area == "1_1_2").unwrap();
+        let v = xp_view(&g.steps, coast, Some(5)).unwrap();
+        assert!(!v.upcoming && v.monster_level == g.steps[coast].area_level && v.monster_level > 0);
+        assert_eq!(v.multiplier, Some(1.0));
+        // Lioneye's Watch: the ruler is for where you're headed.
+        let town = g.steps.iter().position(|s| s.area == "1_1_town").unwrap();
+        let v = xp_view(&g.steps, town, None).unwrap();
+        assert!(v.upcoming);
+        assert_ne!(v.area_name, "Lioneye's Watch");
     }
 
     #[test]

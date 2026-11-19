@@ -204,6 +204,7 @@ export interface GuideStep {
 	act: number;
 	area: string;
 	areaName: string;
+	areaLevel: number;
 	lines: GuideLine[];
 }
 
@@ -226,6 +227,18 @@ export interface GuidePayload {
 	actView: boolean;
 	vendorRegex: string[];
 	unobtainable: GemPick[];
+	xp: XpView | null;
+}
+
+export interface XpView {
+	areaName: string;
+	monsterLevel: number;
+	upcoming: boolean;
+	playerLevel: number | null;
+	multiplier: number | null;
+	fullFrom: number;
+	fullTo: number;
+	cells: [number, number][];
 }
 
 export interface LevelRange {

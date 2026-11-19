@@ -804,3 +804,69 @@ button.small {
 	border-color: var(--accent);
 	color: var(--accent);
 }
+
+/* XP level ruler */
+.xp {
+	margin: 2px 0 8px;
+	padding: 6px 8px 5px;
+	border-radius: 6px;
+	background: rgb(255 255 255 / 0.03);
+}
+
+.xp-head {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	font-size: 12px;
+	margin-bottom: 14px;
+}
+
+.xp-ruler {
+	display: flex;
+	align-items: flex-end;
+	gap: 1px;
+	height: 16px;
+}
+
+.xp-cell {
+	position: relative;
+	flex: 1;
+	height: 9px;
+	border-radius: 1px;
+}
+
+.xp-cell.you {
+	height: 16px;
+	outline: 2px solid var(--text);
+	outline-offset: 0;
+	z-index: 1;
+}
+
+.xp-you {
+	position: absolute;
+	bottom: calc(100% + 2px);
+	left: 50%;
+	transform: translateX(-50%);
+	font-size: 11px;
+	font-weight: 700;
+	color: var(--text);
+	font-variant-numeric: tabular-nums;
+}
+
+.xp-text {
+	margin-top: 5px;
+	font-size: 12px;
+	color: var(--muted);
+}
+
+.xp-off {
+	color: #e0a84b;
+}
+
+.step-level {
+	margin-left: 6px;
+	font-size: 11px;
+	font-weight: 400;
+	color: var(--muted);
+	font-variant-numeric: tabular-nums;
+}

@@ -6,6 +6,7 @@ import { onEvent } from "../events";
 import type { RegexCopied } from "../types";
 import StepView from "./StepView";
 import { guideCommand, toggleActView, useGuide } from "./useGuide";
+import XpRuler from "./XpRuler";
 
 /** Current Step in full, the next few dimmed, with navigation buttons. */
 export default function GuideOverlay() {
@@ -105,6 +106,7 @@ export default function GuideOverlay() {
 			<Show when={interact()}>
 				<div class="hint">drag · Alt+E to lock</div>
 			</Show>
+			<Show when={guide()?.xp}>{(xp) => <XpRuler xp={xp()} />}</Show>
 			<Show
 				when={guide()?.current}
 				fallback={
