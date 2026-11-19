@@ -53,6 +53,10 @@ pub struct AppState {
     act_browse: Mutex<Option<u8>>,
     /// Hotkeys another app has taken.
     hotkey_failures: Mutex<Vec<String>>,
+    /// The tree Overlay was hidden by the player (Hide button / Alt+T) while
+    /// the game's tree was open: keep a "Show tree" button. Closing the game's
+    /// tree (its key or Escape) hides the bar entirely.
+    tree_pill: AtomicBool,
 }
 
 /// Event carrying a fresh [`TimerView`] to every window.
@@ -156,7 +160,11 @@ fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
             let _ = app.emit(INTERACT, on);
         }
         Hotkey::TreeOverlay => {
-            state.tracker.lock().unwrap().toggle_tree();
+            let mut tracker = state.tracker.lock().unwrap();
+            tracker.toggle_tree();
+            let hidden = !tracker.tree_overlay().visible;
+            drop(tracker);
+            state.tree_pill.store(hidden, Ordering::SeqCst);
             emit_tree(app);
         }
         Hotkey::Calibrate => {
@@ -572,6 +580,8 @@ fn toggle_tree(app: AppHandle, state: tauri::State<AppState>, calibrate: bool) {
         tracker.toggle_calibration();
     } else {
         tracker.toggle_tree();
+        let hidden = !tracker.tree_overlay().visible;
+        state.tree_pill.store(hidden, Ordering::SeqCst);
     }
     drop(tracker);
     emit_tree(&app);
@@ -691,6 +701,8 @@ fn on_key(app: &AppHandle, vk: u32) {
     if vk == tree_vk || (vk == platform::VK_ESCAPE && visible) {
         tracker.toggle_tree();
         drop(tracker);
+        // The game's tree opened or closed: no leftover "Show tree" button.
+        state.tree_pill.store(false, Ordering::SeqCst);
         emit_tree(app);
     }
 }
@@ -814,7 +826,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                         // Collapses to a "Show tree" button when the tree
                         // Overlay is hidden, once it has been set up.
                         visible: tree.calibrating.is_none()
-                            && (tree.visible || tree.transform.is_some()),
+                            && (tree.visible || state.tree_pill.load(Ordering::SeqCst)),
                         clickable: true,
                     },
                     overlay::Wanted {
@@ -941,6 +953,7 @@ pub fn run() {
             lab_manual: Mutex::new(None),
             act_browse: Mutex::new(None),
             hotkey_failures: Mutex::new(Vec::new()),
+            tree_pill: AtomicBool::new(false),
         })
         .invoke_handler(tauri::generate_handler![
             get_timer_view,

@@ -58,6 +58,8 @@ export default function TreeOverlay() {
 	// (otherwise the overlay lets them through to the game).
 	const onClick = (e: MouseEvent) => {
 		if (!view()?.calibrating && !view()?.editing) return;
+		// Buttons on the overlay (Done fixing) aren't clicks on the tree.
+		if ((e.target as HTMLElement | null)?.closest("button")) return;
 		const dpr = window.devicePixelRatio;
 		invoke("tree_click", { x: e.clientX * dpr, y: e.clientY * dpr });
 	};
@@ -88,8 +90,10 @@ export default function TreeOverlay() {
 			<Show when={view()?.editing && !view()?.calibrating}>
 				<div class="tree-prompt">
 					<strong>Fixing points</strong> Click a node to add or remove it (for
-					points you cancelled in game, which the log can't see). Press "Done
-					fixing" on the bar when finished.
+					points you cancelled in game, which the log can't see).{" "}
+					<button type="button" onClick={() => invoke("toggle_tree_edit")}>
+						Done fixing
+					</button>
 				</div>
 			</Show>
 			<Show when={prompt()}>
@@ -198,35 +202,38 @@ function draw(
 	const NUMBERED = 10;
 	ctx.setLineDash([Math.max(3, 12 * t.scale), Math.max(2, 8 * t.scale)]);
 	ctx.lineWidth = Math.max(2, 6 * t.scale);
-	// A soft halo that grows and fades on the next few nodes.
-	view.planned.slice(0, NUMBERED).forEach((id) => {
-		const n = byId.get(id);
-		if (!n) return;
-		const [x, y] = at(n);
-		const r = Math.max(6, RADIUS[n.kind] * t.scale);
-		const outer = r * (1.6 + pulse * 0.9);
-		const halo = ctx.createRadialGradient(x, y, r * 0.6, x, y, outer);
-		halo.addColorStop(0, `rgba(242, 201, 76, ${0.25 + pulse * 0.35})`);
-		halo.addColorStop(1, "rgba(242, 201, 76, 0)");
-		ctx.fillStyle = halo;
-		ctx.beginPath();
-		ctx.arc(x, y, outer, 0, Math.PI * 2);
-		ctx.fill();
-	});
 	view.planned.forEach((id, i) => {
 		const n = byId.get(id);
 		if (!n) return;
 		const [x, y] = at(n);
 		const next = i < NUMBERED;
-		ctx.shadowColor = "rgba(242, 201, 76, 0.9)";
-		ctx.shadowBlur = next ? 6 + pulse * 14 : 0;
-		ctx.strokeStyle = `rgba(242, 201, 76, ${next ? 0.65 + pulse * 0.35 : 0.5})`;
+		ctx.lineWidth = next
+			? Math.max(2, 6 * t.scale) * (1 + pulse * 1.2)
+			: Math.max(2, 6 * t.scale);
+		ctx.strokeStyle = `rgba(242, 201, 76, ${next ? 0.45 + pulse * 0.55 : 0.45})`;
 		ctx.beginPath();
 		ctx.arc(x, y, Math.max(4, RADIUS[n.kind] * t.scale), 0, Math.PI * 2);
 		ctx.stroke();
 	});
-	ctx.shadowBlur = 0;
 	ctx.setLineDash([]);
+	// Glow outside the ring (added light, so it brightens what's under it).
+	ctx.globalCompositeOperation = "lighter";
+	view.planned.slice(0, NUMBERED).forEach((id) => {
+		const n = byId.get(id);
+		if (!n) return;
+		const [x, y] = at(n);
+		const r = Math.max(6, RADIUS[n.kind] * t.scale);
+		const outer = r * (1.9 + pulse * 1.3);
+		const glow = ctx.createRadialGradient(x, y, r, x, y, outer);
+		glow.addColorStop(0, `rgba(242, 201, 76, ${0.25 + pulse * 0.45})`);
+		glow.addColorStop(1, "rgba(242, 201, 76, 0)");
+		ctx.fillStyle = glow;
+		ctx.beginPath();
+		ctx.arc(x, y, outer, 0, Math.PI * 2);
+		ctx.arc(x, y, r, 0, Math.PI * 2, true);
+		ctx.fill();
+	});
+	ctx.globalCompositeOperation = "source-over";
 	const numPx = Math.max(17, 46 * t.scale);
 	ctx.font = `700 ${numPx}px "Segoe UI", sans-serif`;
 	ctx.textAlign = "center";

@@ -34,7 +34,9 @@ export default function TreeBar() {
 		<div
 			class="overlay treebar"
 			classList={{ interact: interact() }}
-			ref={(el) => onMount(() => autoSizeWindow(el, { fitWidth: true }))}
+			ref={(el) =>
+				onMount(() => autoSizeWindow(el, { fitWidth: true, keepRight: true }))
+			}
 		>
 			<Show
 				when={view()?.visible}
