@@ -57,6 +57,8 @@ pub struct AppState {
     /// the game's tree was open: keep a "Show tree" button. Closing the game's
     /// tree (its key or Escape) hides the bar entirely.
     tree_pill: AtomicBool,
+    /// The XP level ruler Overlay is showing.
+    xp_visible: AtomicBool,
 }
 
 /// Event carrying a fresh [`TimerView`] to every window.
@@ -84,7 +86,7 @@ struct Status {
     game_running: bool,
 }
 
-fn hotkeys() -> [(Shortcut, Hotkey); 16] {
+fn hotkeys() -> [(Shortcut, Hotkey); 17] {
     let alt = Some(Modifiers::ALT);
     let alt_shift = Some(Modifiers::ALT | Modifiers::SHIFT);
     [
@@ -120,6 +122,7 @@ fn hotkeys() -> [(Shortcut, Hotkey); 16] {
         // Not Alt+R: the NVIDIA App takes it for its performance overlay.
         (Shortcut::new(alt, Code::KeyV), Hotkey::VendorRegex),
         (Shortcut::new(alt, Code::KeyB), Hotkey::LabOverlay),
+        (Shortcut::new(alt, Code::KeyX), Hotkey::XpRuler),
         (Shortcut::new(alt_shift, Code::KeyB), Hotkey::LabImport),
         (
             Shortcut::new(alt_shift, Code::BracketLeft),
@@ -144,6 +147,7 @@ enum Hotkey {
     VendorRegex,
     LabOverlay,
     LabImport,
+    XpRuler,
     /// Show the previous / next Tree Stage.
     TreeStage(i32),
 }
@@ -192,6 +196,9 @@ fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
             emit_lab(app);
         }
         Hotkey::LabImport => lab_import::start(app),
+        Hotkey::XpRuler => {
+            state.xp_visible.fetch_xor(true, Ordering::SeqCst);
+        }
     }
 }
 
@@ -822,6 +829,12 @@ fn spawn_tracking_loop(app: AppHandle) {
                         clickable: true,
                     },
                     overlay::Wanted {
+                        label: overlay::XP,
+                        anchor: overlay::Anchor::At(settings.xp_overlay),
+                        visible: state.xp_visible.load(Ordering::SeqCst),
+                        clickable: false,
+                    },
+                    overlay::Wanted {
                         label: overlay::TREEBAR,
                         anchor: overlay::Anchor::RightAt(settings.treebar_right),
                         // Collapses to a "Show tree" button when the tree
@@ -870,6 +883,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                         overlay::GEMS => settings.gems_overlay = placement,
                         overlay::LAB => settings.lab_overlay = placement,
                         overlay::TREEBAR => settings.treebar_right = placement,
+                        overlay::XP => settings.xp_overlay = placement,
                         _ => {}
                     }
                 }
@@ -955,6 +969,7 @@ pub fn run() {
             act_browse: Mutex::new(None),
             hotkey_failures: Mutex::new(Vec::new()),
             tree_pill: AtomicBool::new(false),
+            xp_visible: AtomicBool::new(true),
         })
         .invoke_handler(tauri::generate_handler![
             get_timer_view,

@@ -10,7 +10,8 @@
 		"act",
 		"gems",
 		"lab",
-		"treebar"
+		"treebar",
+		"xp"
 	],
 	"permissions": [
 		"core:default",

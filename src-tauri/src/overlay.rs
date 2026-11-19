@@ -26,9 +26,11 @@ pub const GEMS: &str = "gems";
 pub const LAB: &str = "lab";
 /// Controls for the tree Overlay (which itself lets clicks through).
 pub const TREEBAR: &str = "treebar";
+/// The experience level ruler for the current zone.
+pub const XP: &str = "xp";
 
 /// (label, logical width, logical height, opacity)
-const WINDOWS: [(&str, f64, f64, f64); 7] = [
+const WINDOWS: [(&str, f64, f64, f64); 8] = [
     (TIMER, 280.0, 340.0, 1.0),
     (TREE, 800.0, 600.0, 1.0),
     (GUIDE, 380.0, 420.0, 1.0),
@@ -36,6 +38,7 @@ const WINDOWS: [(&str, f64, f64, f64); 7] = [
     (GEMS, 320.0, 420.0, 1.0),
     (LAB, 780.0, 560.0, 1.0),
     (TREEBAR, 860.0, 52.0, 1.0),
+    (XP, 380.0, 110.0, 1.0),
 ];
 
 pub fn create_overlays(app: &AppHandle, opacity: f64) -> tauri::Result<()> {

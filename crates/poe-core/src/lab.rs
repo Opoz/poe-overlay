@@ -72,6 +72,9 @@ pub struct LabRoom {
     pub y: f64,
     /// Indexes into [`LabLayout::rooms`].
     pub exits: Vec<usize>,
+    /// The same exits with the compass direction of their door ("NE").
+    #[serde(default)]
+    pub doors: Vec<(String, usize)>,
     pub contents: RoomContents,
     pub izaro: bool,
 }
@@ -132,15 +135,18 @@ impl LabLayout {
             .iter()
             .map(|r| {
                 let name = text_of(r.get("name")).unwrap_or_default();
-                let exits = r
+                let doors: Vec<(String, usize)> = r
                     .get("exits")
                     .and_then(Value::as_object)
                     .map(|o| {
-                        o.values()
-                            .filter_map(|e| by_id.get(&text_of(Some(e))?).copied())
+                        o.iter()
+                            .filter_map(|(dir, e)| {
+                                Some((dir.to_uppercase(), *by_id.get(&text_of(Some(e))?)?))
+                            })
                             .collect()
                     })
                     .unwrap_or_default();
+                let exits = doors.iter().map(|(_, i)| *i).collect();
                 let raw: Vec<String> = r
                     .get("contents")
                     .and_then(Value::as_array)
@@ -152,6 +158,7 @@ impl LabLayout {
                     x: number_of(r.get("x")),
                     y: number_of(r.get("y")),
                     exits,
+                    doors,
                     contents: RoomContents {
                         darkshrine: has("darkshrine"),
                         silver_key: has("key"),
@@ -303,6 +310,9 @@ pub struct LabView {
     pub visited: Vec<usize>,
     /// Rooms to walk through next, in order, ending at an Izaro fight.
     pub route: Vec<usize>,
+    /// Compass direction of the door from the current room to the next room
+    /// on the route ("NE"), when known.
+    pub next_door: Option<String>,
     pub darkshrine_detour: bool,
     pub in_lab: bool,
     pub running: Option<Difficulty>,
@@ -328,12 +338,50 @@ impl LabView {
             layout: state.layout.clone(),
             current: state.current,
             visited: state.visited.iter().copied().collect(),
+            next_door: match (layout, state.current, route.first()) {
+                (Some(l), Some(from), Some(&to)) => door_between(l, from, to),
+                _ => None,
+            },
             route,
             darkshrine_detour: state.darkshrine_detour,
             in_lab: state.in_lab,
             running: state.running,
         }
     }
+}
+
+/// The direction of the door in room `from` that leads to room `to`. Doors are
+/// usually listed on one side only, so a door listed from `to` is seen from
+/// `from` in the opposite direction.
+pub fn door_between(layout: &LabLayout, from: usize, to: usize) -> Option<String> {
+    let direct = layout
+        .rooms
+        .get(from)?
+        .doors
+        .iter()
+        .find(|(_, i)| *i == to)
+        .map(|(d, _)| d.clone());
+    direct.or_else(|| {
+        layout
+            .rooms
+            .get(to)?
+            .doors
+            .iter()
+            .find(|(_, i)| *i == from)
+            .map(|(d, _)| opposite(d))
+    })
+}
+
+fn opposite(dir: &str) -> String {
+    dir.chars()
+        .map(|c| match c {
+            'N' => 'S',
+            'S' => 'N',
+            'E' => 'W',
+            'W' => 'E',
+            c => c,
+        })
+        .collect()
 }
 
 /// From the current room (or the entrance) to the next Izaro fight, via
@@ -543,6 +591,26 @@ mod tests {
         assert_eq!(r.len(), 3);
         assert_eq!(r[0], 5);
         assert_eq!(r.last(), Some(&9));
+    }
+
+    #[test]
+    fn next_door_direction() {
+        let mut s = LabState::default();
+        s.load(LabLayout::parse(REAL).unwrap());
+        s.on_area("1_Labyrinth_P_straight", "Estate Path");
+        s.on_area("1_Labyrinth_boss_1", "Aspirant's Trial");
+        // Trial (room 2) -> Basilica Halls (room 3): listed as "NW" on room 2.
+        let v = LabView::build(&s, "2026-11-19");
+        assert_eq!(v.route[0], 2);
+        assert_eq!(v.next_door.as_deref(), Some("NW"));
+        // Listed only from the other side: seen in the opposite direction.
+        let l = LabLayout::parse(REAL).unwrap();
+        assert_eq!(
+            door_between(&l, 1, 0).as_deref(),
+            Some("SW"),
+            "back to the entrance"
+        );
+        assert_eq!(opposite("NE"), "SW");
     }
 
     #[test]

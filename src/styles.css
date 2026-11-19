@@ -37,7 +37,9 @@ html[data-window="gems"] body,
 html[data-window="lab"],
 html[data-window="lab"] body,
 html[data-window="treebar"],
-html[data-window="treebar"] body {
+html[data-window="treebar"] body,
+html[data-window="xp"],
+html[data-window="xp"] body {
 	background: transparent;
 	overflow: hidden;
 	user-select: none;
@@ -807,10 +809,11 @@ button.small {
 
 /* XP level ruler */
 .xp {
-	margin: 2px 0 8px;
-	padding: 6px 8px 5px;
-	border-radius: 6px;
-	background: rgb(255 255 255 / 0.03);
+	padding: 2px 2px 0;
+}
+
+.xp-overlay {
+	font-size: 13px;
 }
 
 .xp-head {
@@ -869,4 +872,27 @@ button.small {
 	font-weight: 400;
 	color: var(--muted);
 	font-variant-numeric: tabular-nums;
+}
+
+/* Lab: next door */
+.lab-door {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 2px 0 6px;
+	padding: 6px 10px;
+	border-radius: 6px;
+	background: rgb(200 164 90 / 0.14);
+	font-size: 15px;
+}
+
+.lab-door svg {
+	width: 28px;
+	height: 28px;
+	fill: var(--gold);
+	flex: none;
+}
+
+.lab-door strong {
+	color: var(--gold);
 }

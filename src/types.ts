@@ -319,6 +319,7 @@ export interface LabPayload {
 	current: number | null;
 	visited: number[];
 	route: number[];
+	nextDoor: string | null;
 	darkshrineDetour: boolean;
 	inLab: boolean;
 	running: LabDifficulty | null;

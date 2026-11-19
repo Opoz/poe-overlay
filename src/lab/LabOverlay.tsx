@@ -4,6 +4,17 @@ import { createSignal, For, onCleanup, Show } from "solid-js";
 import { onEvent } from "../events";
 import type { LabImportStatus, LabPayload, LabRoom } from "../types";
 
+const DOORS: Record<string, { words: string; angle: number }> = {
+	N: { words: "top", angle: 0 },
+	NE: { words: "top right", angle: 45 },
+	E: { words: "right", angle: 90 },
+	SE: { words: "bottom right", angle: 135 },
+	S: { words: "bottom", angle: 180 },
+	SW: { words: "bottom left", angle: 225 },
+	W: { words: "left", angle: 270 },
+	NW: { words: "top left", angle: 315 },
+};
+
 const W = 760;
 const H = 420;
 const PAD = 34;
@@ -66,6 +77,17 @@ export default function LabOverlay() {
 		);
 	};
 
+	// The next room's door, as a direction you can see on the minimap.
+	const nextDoor = () => {
+		const v = view();
+		const code = v?.nextDoor;
+		const to = v?.route[0];
+		if (!code || to == null || !v?.layout) return null;
+		const d = DOORS[code];
+		if (!d) return null;
+		return { code, ...d, to: titleCase(v.layout.rooms[to]?.name ?? "") };
+	};
+
 	const title = () => {
 		const l = view()?.layout;
 		if (!l) return "Labyrinth";
@@ -103,6 +125,22 @@ export default function LabOverlay() {
 
 			<Show when={status()}>
 				{(s) => <div class="toast">{s().message}</div>}
+			</Show>
+			<Show when={nextDoor()}>
+				{(d) => (
+					<div class="lab-door">
+						<svg
+							viewBox="0 0 24 24"
+							aria-hidden="true"
+							style={{ transform: `rotate(${d().angle}deg)` }}
+						>
+							<path d="M12 2 L20 12 H15 V22 H9 V12 H4 Z" />
+						</svg>
+						<span>
+							Next door: <strong>{d().words}</strong> ({d().code}) to {d().to}
+						</span>
+					</div>
+				)}
 			</Show>
 			<Show when={view()?.outdated}>
 				<div class="toast warn">
