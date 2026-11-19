@@ -960,21 +960,40 @@ html[data-window]:not([data-window="main"]) {
 .xp-head {
 	display: flex;
 	justify-content: space-between;
-	gap: 8px;
-	font-size: 13px;
-	margin-bottom: 15px;
+	align-items: baseline;
+	gap: 10px;
+	margin-bottom: 16px;
 }
 
+.xp-area .muted {
+	font-size: 13px;
+}
+
+.xp-verdict {
+	font-weight: 700;
+	color: #7fe0a8;
+	white-space: nowrap;
+}
+
+.xp-verdict.xp-off {
+	color: #f0b45a;
+}
+
+.xp-by {
+	font-weight: 400;
+	font-size: 13px;
+}
+
+/* Cells on a grid, so the full-XP bracket can span exactly its levels. */
 .xp-ruler {
-	display: flex;
-	align-items: flex-end;
-	gap: 1px;
-	height: 16px;
+	display: grid;
+	align-items: end;
+	column-gap: 1px;
+	row-gap: 3px;
 }
 
 .xp-cell {
 	position: relative;
-	flex: 1;
 	height: 9px;
 	border-radius: 1px;
 }
@@ -995,14 +1014,19 @@ html[data-window]:not([data-window="main"]) {
 	color: var(--bone);
 }
 
-.xp-text {
-	margin-top: 5px;
-	font-size: 13px;
+.xp-band {
+	grid-row: 2;
+	display: flex;
+	justify-content: space-between;
+	padding-top: 2px;
+	border-top: 2px solid #7fe0a8;
+	font-size: 12px;
 	color: var(--ash);
+	line-height: 1.1;
 }
 
-.xp-off {
-	color: #f0b45a;
+.xp-band span:nth-child(2) {
+	color: #7fe0a8;
 }
 
 /* ---------------------------------------------------------------- lab */
@@ -1446,4 +1470,25 @@ html[data-window]:not([data-window="main"]) {
 
 .update + .game-state {
 	margin-top: 0;
+}
+
+.gems-set {
+	color: var(--bone);
+	font-weight: 600;
+}
+
+.lab-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2px 12px;
+	color: var(--ash);
+}
+
+.lab-legend b {
+	color: var(--gold);
+}
+
+.group-set {
+	margin-left: 8px;
+	font-size: 13px;
 }

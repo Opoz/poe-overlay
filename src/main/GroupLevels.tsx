@@ -68,7 +68,7 @@ export default function GroupLevels(props: {
 												.map((x) => x.name)
 												.join(", ")}
 										<Show when={g.skillSet}>
-											<span class="muted"> · {g.skillSet}</span>
+											<span class="muted group-set">{g.skillSet}</span>
 										</Show>
 									</td>
 									<td>

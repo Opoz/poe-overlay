@@ -4,7 +4,10 @@ import { formatLocalDate } from "../format";
 import { RefreshIcon } from "../icons";
 import type { BanditChoice, Characters, GuideOptions, Profile } from "../types";
 
-/** Profiles seen in the Client Log, and which one is assumed to be played. */
+/**
+ * Profiles seen in the Client Log, and which one is assumed to be played.
+ * The guide's options apply to the one being played, so they sit below.
+ */
 export default function CharactersCard() {
 	const [characters, { refetch }] = createResource(() =>
 		invoke<Characters>("get_characters"),
@@ -22,7 +25,7 @@ export default function CharactersCard() {
 			const count = await invoke<number>("rebuild_passives", { name });
 			alert(`${name}: ${count} passives found in the Client Log.`);
 		} catch (e) {
-			alert(`Could not rebuild: ${e}`);
+			alert(`Couldn't rebuild: ${e}`);
 		}
 		refetch();
 	};
@@ -34,6 +37,7 @@ export default function CharactersCard() {
 
 	const sorted = () =>
 		[...(characters()?.profiles ?? [])].sort((a, b) => b.lastSeen - a.lastSeen);
+	const active = () => sorted().find((p) => p.name === characters()?.active);
 
 	return (
 		<section>
@@ -56,8 +60,7 @@ export default function CharactersCard() {
 						<tr>
 							<th>Character</th>
 							<th>Run</th>
-							<th>Passives</th>
-							<th>Guide</th>
+							<th class="num">Passives</th>
 							<th />
 						</tr>
 					</thead>
@@ -69,12 +72,20 @@ export default function CharactersCard() {
 									active={characters()?.active === p.name}
 									onSelect={() => select(p.name)}
 									onRebuild={() => rebuild(p.name)}
-									onGuide={(options) => setGuide(p.name, options)}
 								/>
 							)}
 						</For>
 					</tbody>
 				</table>
+
+				<Show when={active()}>
+					{(p) => (
+						<GuideOptionsForm
+							profile={p()}
+							onChange={(o) => setGuide(p().name, o)}
+						/>
+					)}
+				</Show>
 			</Show>
 		</section>
 	);
@@ -85,9 +96,7 @@ function ProfileRow(props: {
 	active: boolean;
 	onSelect: () => void;
 	onRebuild: () => void;
-	onGuide: (options: GuideOptions) => void;
 }) {
-	const options = () => props.profile.guideOptions;
 	const runLabel = () => {
 		const run = props.profile.run;
 		if (!run) return "—";
@@ -112,7 +121,7 @@ function ProfileRow(props: {
 				</div>
 			</td>
 			<td>{runLabel()}</td>
-			<td>
+			<td class="num">
 				<span class="passives">
 					{props.profile.passives.length}
 					<button
@@ -126,39 +135,7 @@ function ProfileRow(props: {
 					</button>
 				</span>
 			</td>
-			<td>
-				<div class="guide-options">
-					<label title="Include league-start steps (early waypoints, side bosses, strongboxes)">
-						<input
-							type="checkbox"
-							checked={options().leagueStart}
-							onChange={(e) =>
-								props.onGuide({
-									...options(),
-									leagueStart: e.currentTarget.checked,
-								})
-							}
-						/>
-						League start
-					</label>
-					<select
-						title="Bandit choice"
-						value={options().bandit}
-						onChange={(e) =>
-							props.onGuide({
-								...options(),
-								bandit: e.currentTarget.value as BanditChoice,
-							})
-						}
-					>
-						<option value="killAll">Kill all bandits</option>
-						<option value="alira">Help Alira</option>
-						<option value="kraityn">Help Kraityn</option>
-						<option value="oak">Help Oak</option>
-					</select>
-				</div>
-			</td>
-			<td>
+			<td class="num">
 				<Show
 					when={!props.active}
 					fallback={<span class="playing">Playing</span>}
@@ -169,5 +146,61 @@ function ProfileRow(props: {
 				</Show>
 			</td>
 		</tr>
+	);
+}
+
+function GuideOptionsForm(props: {
+	profile: Profile;
+	onChange: (o: GuideOptions) => void;
+}) {
+	const options = () => props.profile.guideOptions;
+	return (
+		<>
+			<h3>Guide for {props.profile.name}</h3>
+			<div class="fields">
+				<div class="label">League start</div>
+				<div>
+					<label class="check">
+						<input
+							type="checkbox"
+							checked={options().leagueStart}
+							onChange={(e) =>
+								props.onChange({
+									...options(),
+									leagueStart: e.currentTarget.checked,
+								})
+							}
+						/>
+						Include league-start steps
+					</label>
+					<div class="help">
+						Early waypoints, side bosses and strongboxes worth doing on a fresh
+						character.
+					</div>
+				</div>
+				<div class="label">Bandits</div>
+				<div>
+					<select
+						aria-label="Bandit choice"
+						value={options().bandit}
+						onChange={(e) =>
+							props.onChange({
+								...options(),
+								bandit: e.currentTarget.value as BanditChoice,
+							})
+						}
+					>
+						<option value="killAll">Kill all bandits</option>
+						<option value="alira">Help Alira</option>
+						<option value="kraityn">Help Kraityn</option>
+						<option value="oak">Help Oak</option>
+					</select>
+					<div class="help">
+						Importing a build sets this from the build, unless you've picked one
+						here.
+					</div>
+				</div>
+			</div>
+		</>
 	);
 }

@@ -75,15 +75,15 @@ export default function TreeOverlay() {
 		const v = view();
 		if (!v?.calibrating) return null;
 		if (!v.classStart)
-			return "Level up once so the class is known, then calibrate again.";
+			return "Level up once so the app knows your class, then calibrate again.";
 		const start = className(v.classStart.name);
 		if (v.calibrating.step === "quick") {
-			return `Zoom the passive tree all the way out and click the centre of your class start (${start}). Press ${keyFor("tree.calibrate") ?? "Calibrate"} again for full two-click calibration.`;
+			return `Zoom all the way out, then click the middle of the ${start} start. ${keyFor("tree.calibrate") ?? "Calibrate"} again switches to two-click calibration.`;
 		}
 		if (v.calibrating.step === "classStart") {
-			return `Zoom the passive tree all the way out, then click the centre of your class start (${start}).`;
+			return `Zoom all the way out, then click the middle of the ${start} start.`;
 		}
-		return `Now click the centre of the ${className(v.partner?.name ?? "")} start${v.partner?.classStart === 0 ? " in the middle of the tree" : " at the top"}.`;
+		return `Now click the middle of the ${className(v.partner?.name ?? "")} start${v.partner?.classStart === 0 ? ", in the centre of the tree" : ", at the top"}.`;
 	};
 
 	return (
@@ -94,8 +94,8 @@ export default function TreeOverlay() {
 			<canvas ref={canvas} />
 			<Show when={view()?.editing && !view()?.calibrating}>
 				<div class="tree-prompt">
-					<strong>Fixing points</strong> Click a node to add or remove it (for
-					points you cancelled in game, which the log can't see).{" "}
+					<strong>Fixing points:</strong> click nodes to add or remove points
+					the log missed, such as ones you cancelled in game.{" "}
 					<button type="button" onClick={() => invoke("toggle_tree_edit")}>
 						Done fixing
 					</button>
@@ -104,7 +104,7 @@ export default function TreeOverlay() {
 			<Show when={prompt()}>
 				{(text) => (
 					<div class="tree-prompt">
-						<strong>Calibrating</strong> {text()}
+						<strong>Calibrating:</strong> {text()}
 						<Show when={view()?.calibrating?.step !== "quick"}>
 							<span class="muted">
 								{" "}

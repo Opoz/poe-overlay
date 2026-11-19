@@ -61,7 +61,7 @@ async function boot() {
 		timerOverlay: { x: 0.01, y: 0.25 },
 		treeKey: "P",
 		panelOpacity: Number(params.get("opacity") ?? 0.85),
-		overlays: { gems: { scale: 1.2, opacity: 0.95, shown: true } },
+		overlays: { gems: { scale: 1, opacity: 0.95, shown: true } },
 	};
 
 	// Mirrors src-tauri/src/hotkeys.rs (one rebound, one unset, for show).

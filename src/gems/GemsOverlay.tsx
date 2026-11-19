@@ -35,8 +35,11 @@ export default function GemsOverlay() {
 			ref={(el) => onMount(() => autoSizeWindow(el))}
 		>
 			<header class="guide-bar">
-				<span class="muted">
-					{view()?.skillSet ?? "Gem links"} · level {view()?.level ?? "?"}
+				<span>
+					<span class="gems-set">{view()?.skillSet ?? "Gem links"}</span>
+					<Show when={view()?.level}>
+						{(l) => <span class="muted"> at level {l()}</span>}
+					</Show>
 				</span>
 				<Show when={(view()?.skillSets.length ?? 0) > 1}>
 					<span class="guide-buttons">

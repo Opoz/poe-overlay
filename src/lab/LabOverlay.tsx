@@ -289,8 +289,25 @@ export default function LabOverlay() {
 						/>
 						Darkshrine detour
 					</label>
-					<span class="muted">
-						D darkshrine · K key · 🔒 door · A Argus · G gauntlet · P puzzle
+					<span class="lab-legend" title="Map key">
+						<span>
+							<b>D</b> darkshrine
+						</span>
+						<span>
+							<b>K</b> key
+						</span>
+						<span>
+							<b>🔒</b> door
+						</span>
+						<span>
+							<b>A</b> Argus
+						</span>
+						<span>
+							<b>G</b> gauntlet
+						</span>
+						<span>
+							<b>P</b> puzzle
+						</span>
 					</span>
 				</div>
 			</Show>

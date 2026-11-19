@@ -21,29 +21,56 @@ function cellColour(m: number): string {
 const pct = (m: number) => `${Math.round(m * 100)}%`;
 
 /**
- * One cell per character level around the zone, coloured by the experience
- * that level gets here; the character's own level stands out.
+ * The zone's experience at a glance: the verdict for your level as the
+ * headline, then one cell per character level (yours raised), with the
+ * full-XP band marked underneath.
  */
 export default function XpRuler(props: { xp: XpView }) {
+	const full = () => (props.xp.multiplier ?? 1) >= 0.9999;
 	const verdict = () => {
-		const { playerLevel: lvl, multiplier: m, fullFrom, fullTo } = props.xp;
-		if (lvl == null || m == null) return null;
-		if (m >= 0.9999) return `You're level ${lvl}: full XP.`;
-		const side = lvl < fullFrom ? "under" : "over";
+		const m = props.xp.multiplier;
+		if (props.xp.playerLevel == null || m == null) return null;
+		return full() ? "Full XP" : `${pct(m)} XP`;
+	};
+	const offBy = () => {
+		const { playerLevel: lvl, fullFrom, fullTo } = props.xp;
+		if (lvl == null || full()) return null;
 		const by = lvl < fullFrom ? fullFrom - lvl : lvl - fullTo;
-		return `You're level ${lvl}: ${pct(m)} XP, ${by} ${by === 1 ? "level" : "levels"} ${side}.`;
+		return `${by} ${by === 1 ? "level" : "levels"} ${lvl < fullFrom ? "under" : "over"}`;
+	};
+	// Grid columns of the full-XP band, for its bracket under the cells.
+	const band = () => {
+		const levels = props.xp.cells.map(([l]) => l);
+		const from = levels.indexOf(props.xp.fullFrom);
+		const to = levels.indexOf(props.xp.fullTo);
+		return from < 0 || to < 0 ? null : { from: from + 1, to: to + 2 };
 	};
 
 	return (
 		<section class="xp" aria-label={`Experience in ${props.xp.areaName}`}>
 			<div class="xp-head">
-				<span>
-					{props.xp.upcoming ? "Next zone: " : ""}
+				<span class="xp-area">
+					{props.xp.upcoming ? "Next: " : ""}
 					{props.xp.areaName}
+					<span class="muted"> area level {props.xp.monsterLevel}</span>
 				</span>
-				<span class="muted">monsters lvl {props.xp.monsterLevel}</span>
+				<Show when={verdict()}>
+					{(v) => (
+						<span class="xp-verdict" classList={{ "xp-off": !full() }}>
+							{v()}
+							<Show when={offBy()}>
+								{(o) => <span class="xp-by"> {o()}</span>}
+							</Show>
+						</span>
+					)}
+				</Show>
 			</div>
-			<div class="xp-ruler">
+			<div
+				class="xp-ruler"
+				style={{
+					"grid-template-columns": `repeat(${props.xp.cells.length}, 1fr)`,
+				}}
+			>
 				<For each={props.xp.cells}>
 					{([level, m]) => {
 						const you = () => level === props.xp.playerLevel;
@@ -61,15 +88,17 @@ export default function XpRuler(props: { xp: XpView }) {
 						);
 					}}
 				</For>
-			</div>
-			<div class="xp-text">
-				Full XP at levels {props.xp.fullFrom}–{props.xp.fullTo}.
-				<Show when={verdict()}>
-					{(v) => (
-						<span classList={{ "xp-off": (props.xp.multiplier ?? 1) < 0.9999 }}>
-							{" "}
-							{v()}
-						</span>
+				<Show when={band()}>
+					{(b) => (
+						<div
+							class="xp-band"
+							style={{ "grid-column": `${b().from} / ${b().to}` }}
+							title="Levels that get full XP here"
+						>
+							<span>{props.xp.fullFrom}</span>
+							<span>full XP</span>
+							<span>{props.xp.fullTo}</span>
+						</div>
 					)}
 				</Show>
 			</div>
