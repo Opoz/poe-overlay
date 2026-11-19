@@ -75,9 +75,6 @@ export default function TreeOverlay() {
 		if (!v?.calibrating) return null;
 		if (!v.classStart)
 			return "Level up once so the class is known, then calibrate again.";
-		if (v.ascendancy) {
-			return `Click the centre of your ascendancy start (${v.ascendancyName ?? "ascendancy"}), in the circle under your class art. Alt+Shift+T cancels.`;
-		}
 		const start = className(v.classStart.name);
 		if (v.calibrating.step === "quick") {
 			return `Zoom the passive tree all the way out and click the centre of your class start (${start}). Alt+Shift+T again for full two-click calibration.`;
@@ -113,22 +110,7 @@ export default function TreeOverlay() {
 					</div>
 				)}
 			</Show>
-			<Show
-				when={view()?.ascendancy && !view()?.transform && !view()?.calibrating}
-			>
-				<div class="tree-prompt">
-					<strong>Ascendancy</strong> Align the main tree first: zoom out and
-					middle-click your class start. The ascendancy follows it.
-				</div>
-			</Show>
-			<Show
-				when={
-					view() &&
-					!view()?.ascendancy &&
-					!view()?.calibrating &&
-					!view()?.transform
-				}
-			>
+			<Show when={view() && !view()?.calibrating && !view()?.transform}>
 				<div class="tree-prompt">
 					Zoom the passive tree all the way out and middle-click your class
 					start to align.
@@ -164,12 +146,10 @@ function draw(
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 	if (!nodes || !view || view.calibrating) return;
-	if (view.ascendancy) {
-		drawAscendancy(ctx, nodes, view);
-		return;
-	}
 	const t = view.transform;
 	if (!t) return;
+	// The ascendancy circles sit by the class art; drawn with the main tree.
+	drawAscendancy(ctx, nodes, view);
 	// Ascendancy nodes live elsewhere in the data; the main tree leaves them out.
 	nodes = nodes.filter((n) => !n.ascendancy);
 	const at = (n: TreeNode) =>

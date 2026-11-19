@@ -129,7 +129,6 @@ export interface TreeView {
 	stageByHand: boolean;
 	planned: number[];
 	plannedMasteries: { node: number; option: number }[];
-	ascendancy: boolean;
 	ascendancyName: string | null;
 	ascendancies: AscendancyPanel[];
 }

@@ -39,8 +39,6 @@ pub struct Tracker {
     lab: LabState,
     /// Entered the final lab room since the shell last checked.
     lab_end_entered: bool,
-    /// Ascendancy mode was switched on by the final lab room (not by hand).
-    ascendancy_auto: bool,
     /// Entered any Area since the shell last checked.
     area_changed: bool,
     /// Area ID from the last "Generating level" line, paired with the
@@ -76,7 +74,6 @@ impl Tracker {
             lab: session.lab,
             pending_area: None,
             lab_end_entered: false,
-            ascendancy_auto: false,
             area_changed: false,
         }
     }
@@ -120,10 +117,6 @@ impl Tracker {
                 self.area_changed = true;
                 if area_id.contains("Labyrinth") && area_id.contains("_end") {
                     self.lab_end_entered = true;
-                } else if self.ascendancy_auto {
-                    // Left the plaque room: back to the main tree.
-                    self.tree_overlay.ascendancy = false;
-                    self.ascendancy_auto = false;
                 }
                 if let Some(profile) = self.timer.active_profile_mut() {
                     self.guides.on_area(profile, area_id);
@@ -218,12 +211,12 @@ impl Tracker {
         let view = self.tree_view();
         // Ascendancy mode: the Calibration click marks the ascendancy start
         // (in the circle under the class art), correcting where it's drawn.
-        if self.tree_overlay.ascendancy
-            && self.tree_overlay.calibrating.is_some()
+        if self.tree_overlay.calibrating.is_some()
             && let Some(class) = view.class_start.as_ref()
         {
-            // Correct whichever circle (ascendancy or bloodline) was clicked:
-            // the one whose start is drawn nearest the click.
+            // A Calibration click near an ascendancy circle's start corrects
+            // that circle; anywhere else it's the class start, as usual.
+            const NEAR: f64 = 60.0;
             let nearest = view
                 .ascendancies
                 .iter()
@@ -232,15 +225,16 @@ impl Tracker {
                     let (sx, sy) = t.apply(p.start.x, p.start.y);
                     Some((p, (sx - x).hypot(sy - y)))
                 })
+                .filter(|(_, d)| *d <= NEAR)
                 .min_by(|a, b| a.1.total_cmp(&b.1))
                 .map(|(p, _)| (p.name.clone(), p.start.id));
             if let Some((name, start)) = nearest {
                 self.tree_overlay
                     .fix_ascendancy(&self.tree, &name, start, class.id, (x, y));
+                self.tree_overlay.calibrating = None;
+                self.save_session();
+                return;
             }
-            self.tree_overlay.calibrating = None;
-            self.save_session();
-            return;
         }
         if let Some(start) = view.class_start {
             self.tree_overlay
@@ -271,21 +265,11 @@ impl Tracker {
         true
     }
 
-    pub fn toggle_tree_ascendancy(&mut self) {
-        self.tree_overlay.toggle_ascendancy();
-        self.save_session();
-    }
-
     /// Entered the final Izaro room (where the ascension plaque is) since
     /// last asked. The ascendancy panel opens from the plaque.
     pub fn take_lab_end(&mut self) -> bool {
         let entered = self.lab_end_entered;
         self.lab_end_entered = false;
-        if entered && !self.tree_overlay.ascendancy {
-            // The plaque opens the ascendancy panel: be ready for it.
-            self.tree_overlay.ascendancy = true;
-            self.ascendancy_auto = true;
-        }
         entered
     }
 

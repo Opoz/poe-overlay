@@ -508,13 +508,6 @@ fn toggle_tree_edit(app: AppHandle, state: tauri::State<AppState>) {
     emit_tree(&app);
 }
 
-/// Switch the tree Overlay between the main tree and the ascendancy panel.
-#[tauri::command]
-fn toggle_tree_ascendancy(app: AppHandle, state: tauri::State<AppState>) {
-    state.tracker.lock().unwrap().toggle_tree_ascendancy();
-    emit_tree(&app);
-}
-
 #[tauri::command]
 fn cycle_skill_set(app: AppHandle, state: tauri::State<AppState>, delta: i32) {
     state.tracker.lock().unwrap().cycle_skill_set(delta);
@@ -1017,7 +1010,6 @@ pub fn run() {
             cycle_tree_stage,
             cycle_skill_set,
             toggle_tree_edit,
-            toggle_tree_ascendancy,
             hotkey_failures,
             rebuild_passives,
         ])

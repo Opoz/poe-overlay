@@ -451,8 +451,6 @@ pub struct TreeOverlay {
     /// window's height. Measured by a two-click Calibration; overrides
     /// [`ZOOMED_OUT_SCALE_PER_PX`].
     pub zoomed_out_scale_per_px: Option<f64>,
-    /// Showing the ascendancy panel instead of the main tree.
-    pub ascendancy: bool,
     /// Per ascendancy: a correction to where its panel sits, measured by a
     /// middle-click on the ascendancy start (tree units added to the data's
     /// position). Only needed if [`ascendancy_placement`] is off for a class.
@@ -515,12 +513,6 @@ impl TreeOverlay {
         if self.calibrating.is_some() {
             self.visible = true;
         }
-    }
-
-    pub fn toggle_ascendancy(&mut self) {
-        self.ascendancy = !self.ascendancy;
-        self.editing = false;
-        self.calibrating = None;
     }
 
     /// The alignment of one ascendancy panel: the main tree's, shifted so the
@@ -676,8 +668,6 @@ pub struct TreeView {
     pub planned: Vec<u32>,
     /// The stage's mastery picks not yet made as planned.
     pub planned_masteries: Vec<MasteryPick>,
-    /// Showing the ascendancy panels instead of the main tree.
-    pub ascendancy: bool,
     /// The Character's ascendancy (from its class, or the Build's plan).
     pub ascendancy_name: Option<String>,
     /// The ascendancy and, if one is taken or planned, a bloodline.
@@ -852,7 +842,6 @@ impl TreeView {
             stages,
             planned,
             planned_masteries,
-            ascendancy: overlay.ascendancy,
             ascendancies,
             ascendancy_name: asc_name,
             visible: overlay.visible,
