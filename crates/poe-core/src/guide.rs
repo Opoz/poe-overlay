@@ -141,6 +141,9 @@ pub struct Step {
     /// Where these instructions happen.
     pub area: String,
     pub area_name: String,
+    /// The act the Area itself belongs to. Usually `act`, but a route section
+    /// can visit the next act's Town (Act 8 unlocks Highgate, then goes back).
+    pub area_act: u8,
     pub lines: Vec<Line>,
 }
 
@@ -153,6 +156,7 @@ pub struct Guide {
 struct AreaInfo {
     name: String,
     parent_town_area_id: Option<String>,
+    act: u8,
 }
 
 /// All Guide variants, built once.
@@ -241,6 +245,11 @@ impl Guide {
     /// The Step to move to after entering `area` from Step `current`: the
     /// first match a limited distance ahead. Never goes back.
     pub fn advance(&self, current: usize, area: &str) -> Option<usize> {
+        // Re-entering the Current Step's Area (back from a hideout, a
+        // portal, a logout) never moves on, even if the next Step is there too.
+        if self.steps.get(current).is_some_and(|s| s.area == area) {
+            return None;
+        }
         let lookahead = if area.ends_with("_town") {
             TOWN_LOOKAHEAD
         } else {
@@ -282,6 +291,8 @@ fn parse(routes: &[&str], areas: &HashMap<String, AreaInfo>, options: GuideOptio
 
     for (index, text) in routes.iter().enumerate() {
         let mut act = index as u8 + 1;
+        // A portal placed in one act is never taken in another.
+        portal = None;
         let mut active: Vec<bool> = Vec::new();
         for (line_no, raw) in text.lines().enumerate() {
             let line = raw.trim();
@@ -330,6 +341,7 @@ fn parse(routes: &[&str], areas: &HashMap<String, AreaInfo>, options: GuideOptio
                     act,
                     area: area.clone(),
                     area_name: name_of(&area),
+                    area_act: areas.get(&area).map_or(act, |a| a.act),
                     lines: Vec::new(),
                 });
                 open = true;
@@ -353,7 +365,13 @@ fn parse(routes: &[&str], areas: &HashMap<String, AreaInfo>, options: GuideOptio
                     Fragment::PortalSet => {
                         portal = Some(referenced_area.clone().unwrap_or_else(|| area.clone()));
                     }
-                    Fragment::PortalUse => moved_to = portal.clone(),
+                    // Without a placed portal, it's the portal a boss leaves
+                    // behind, which leads to the Area's Town.
+                    Fragment::PortalUse => {
+                        moved_to = portal.clone().or_else(|| {
+                            areas.get(&area).and_then(|a| a.parent_town_area_id.clone())
+                        });
+                    }
                     _ => {}
                 }
             }
@@ -581,11 +599,28 @@ mod tests {
     }
 
     #[test]
+    fn portals_lead_back_within_the_act() {
+        let book = book();
+        let g = book.guide(GuideOptions::default());
+        // Act 8 ends handing in Yugul's quest in town, not back in Act 2.
+        let last8 = g.steps.iter().rfind(|s| s.act == 8).unwrap();
+        assert_eq!(last8.area_act, 8, "ended in {}", last8.area_name);
+        // Act 2's placed portal still returns to where it was placed.
+        let den = g.steps.iter().position(|s| s.area == "1_2_2a").unwrap();
+        assert_eq!(g.steps[den].act, 2);
+    }
+
+    #[test]
     fn auto_advance_is_forward_and_short_sighted() {
         let book = book();
         let g = book.guide(GuideOptions::default());
         assert_eq!(g.advance(0, "1_1_town"), Some(1));
         assert_eq!(g.advance(1, "1_1_1"), None, "never backwards");
+        // Back in the same Area: stay, even if the next Step is there too.
+        let twin = (0..g.steps.len() - 1)
+            .find(|&i| g.steps[i].area == g.steps[i + 1].area)
+            .expect("some consecutive Steps share an Area");
+        assert_eq!(g.advance(twin, &g.steps[twin].area.clone()), None);
         // Towns only match nearby; other Areas further ahead.
         let town_far = (TOWN_LOOKAHEAD + 1..g.steps.len())
             .find(|&i| g.steps[i].area == "1_2_town")

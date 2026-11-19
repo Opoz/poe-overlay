@@ -87,12 +87,14 @@ function Part(props: { part: Fragment }) {
 			return <span class="t-trial">Ascend ({p.difficulty})</span>;
 		case "dir":
 			return (
-				<span
-					class="t-dir"
-					title={`${p.degrees}°`}
-					style={{ transform: `rotate(${p.degrees}deg)` }}
-				>
-					↑
+				<span class="t-dir" title={`${p.degrees}°`}>
+					<svg
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+						style={{ transform: `rotate(${p.degrees}deg)` }}
+					>
+						<path d="M12 3 L19 12 H14.5 V21 H9.5 V12 H5 Z" />
+					</svg>
 				</span>
 			);
 	}
