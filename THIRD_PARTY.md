@@ -2,7 +2,7 @@
 
 ## exile-leveling
 
-Campaign route files and gem/quest data are derived from [exile-leveling](https://github.com/HeartofPhos/exile-leveling) by HeartofPhos, used under the MIT License. (Vendored in M2; full licence text will be included alongside the vendored data.)
+Campaign route files and area data in `crates/poe-core/data/exile-leveling/` come from [exile-leveling](https://github.com/HeartofPhos/exile-leveling) by HeartofPhos, used under the MIT License (full text in that folder's `LICENSE`; upstream commit in `SOURCE_COMMIT`). The Guide parser that turns them into per-Area Steps is our own.
 
 ## Passive tree data
 

@@ -2,6 +2,7 @@
 
 pub mod area;
 pub mod clock;
+pub mod guide;
 pub mod log;
 pub mod pb;
 pub mod profile;

@@ -314,8 +314,12 @@ impl RunTimer {
         self.state.active.as_deref()
     }
 
-    fn active_profile_mut(&mut self) -> Option<&mut Profile> {
+    pub fn active_profile_mut(&mut self) -> Option<&mut Profile> {
         let name = self.state.active.as_ref()?;
+        self.state.profiles.get_mut(name)
+    }
+
+    pub fn profile_mut(&mut self, name: &str) -> Option<&mut Profile> {
         self.state.profiles.get_mut(name)
     }
 

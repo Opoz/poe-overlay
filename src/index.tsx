@@ -1,6 +1,8 @@
 /* @refresh reload */
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { render } from "solid-js/web";
+import ActOverlay from "./guide/ActOverlay";
+import GuideOverlay from "./guide/GuideOverlay";
 import MainWindow from "./main/MainWindow";
 import TimerOverlay from "./timer/TimerOverlay";
 import TreeOverlay from "./tree/TreeOverlay";
@@ -13,5 +15,7 @@ document.documentElement.dataset.window = label;
 render(() => {
 	if (label === "timer") return <TimerOverlay />;
 	if (label === "tree") return <TreeOverlay />;
+	if (label === "guide") return <GuideOverlay />;
+	if (label === "act") return <ActOverlay />;
 	return <MainWindow />;
 }, document.getElementById("root") as HTMLElement);

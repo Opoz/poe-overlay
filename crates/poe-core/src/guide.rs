@@ -1,0 +1,660 @@
+//! The campaign Guide: exile-leveling Routes parsed into per-Area Steps,
+//! and a Character's progress through them.
+//!
+//! The Routes are a small text format (`data/exile-leveling/routes/*.txt`):
+//! one instruction per line, `{kind|value}` tags, `#sub` notes, and
+//! `#ifdef LEAGUE_START` / `#ifdef BANDIT_*` blocks. We regroup the lines into
+//! one Step per Area, because the Client Log can only tell us Area changes.
+
+use std::collections::HashMap;
+
+use serde::{Deserialize, Serialize};
+
+use crate::profile::Profile;
+
+const ROUTES: [&str; 10] = [
+    include_str!("../data/exile-leveling/routes/act-1.txt"),
+    include_str!("../data/exile-leveling/routes/act-2.txt"),
+    include_str!("../data/exile-leveling/routes/act-3.txt"),
+    include_str!("../data/exile-leveling/routes/act-4.txt"),
+    include_str!("../data/exile-leveling/routes/act-5.txt"),
+    include_str!("../data/exile-leveling/routes/act-6.txt"),
+    include_str!("../data/exile-leveling/routes/act-7.txt"),
+    include_str!("../data/exile-leveling/routes/act-8.txt"),
+    include_str!("../data/exile-leveling/routes/act-9.txt"),
+    include_str!("../data/exile-leveling/routes/act-10.txt"),
+];
+const AREAS_JSON: &str = include_str!("../data/exile-leveling/areas.json");
+
+/// How far ahead auto-advance looks for a Town just entered. Towns come up
+/// constantly (waypoints, logouts), so only nearby matches count.
+pub const TOWN_LOOKAHEAD: usize = 3;
+/// How far ahead auto-advance looks for any other Area. These are
+/// distinctive, so players skipping or reordering parts of the route are
+/// picked up again.
+pub const AREA_LOOKAHEAD: usize = 15;
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum BanditChoice {
+    #[default]
+    KillAll,
+    Alira,
+    Kraityn,
+    Oak,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GuideOptions {
+    pub league_start: bool,
+    pub bandit: BanditChoice,
+}
+
+impl Default for GuideOptions {
+    fn default() -> Self {
+        Self {
+            league_start: true,
+            bandit: BanditChoice::KillAll,
+        }
+    }
+}
+
+impl GuideOptions {
+    fn defines(self, name: &str) -> bool {
+        match name {
+            "LEAGUE_START" => self.league_start,
+            "BANDIT_KILL" => self.bandit == BanditChoice::KillAll,
+            "BANDIT_ALIRA" => self.bandit == BanditChoice::Alira,
+            "BANDIT_KRAITYN" => self.bandit == BanditChoice::Kraityn,
+            "BANDIT_OAK" => self.bandit == BanditChoice::Oak,
+            _ => false,
+        }
+    }
+}
+
+/// One piece of an instruction: plain text or a tagged game term.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+pub enum Fragment {
+    Text {
+        text: String,
+    },
+    /// Walk into an Area.
+    Enter {
+        area: String,
+        name: String,
+    },
+    /// Travel by waypoint (to `area`, or a reference to "the waypoint").
+    Waypoint {
+        area: Option<String>,
+        name: Option<String>,
+    },
+    WaypointGet,
+    Logout,
+    PortalSet,
+    PortalUse,
+    Quest {
+        name: String,
+    },
+    QuestItem {
+        text: String,
+    },
+    Kill {
+        name: String,
+    },
+    Arena {
+        name: String,
+    },
+    Trial,
+    Generic {
+        text: String,
+    },
+    Crafting,
+    Ascend {
+        difficulty: String,
+    },
+    /// Compass bearing in degrees, 0 = up, clockwise.
+    Dir {
+        degrees: u16,
+    },
+    /// A reference to an Area, not a move.
+    Area {
+        area: String,
+        name: String,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Line {
+    pub parts: Vec<Fragment>,
+    pub notes: Vec<Vec<Fragment>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Step {
+    /// Stable across Guide options: `act * 1000 + source line` of its first line.
+    pub id: u32,
+    pub act: u8,
+    /// Where these instructions happen.
+    pub area: String,
+    pub area_name: String,
+    pub lines: Vec<Line>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Guide {
+    pub steps: Vec<Step>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct AreaInfo {
+    name: String,
+    parent_town_area_id: Option<String>,
+}
+
+/// All Guide variants, built once.
+#[derive(Debug, Clone)]
+pub struct GuideBook {
+    guides: HashMap<GuideOptions, Guide>,
+}
+
+impl GuideBook {
+    pub fn bundled() -> Self {
+        let areas: HashMap<String, AreaInfo> =
+            serde_json::from_str(AREAS_JSON).expect("bundled areas.json is valid");
+        let mut guides = HashMap::new();
+        for league_start in [true, false] {
+            for bandit in [
+                BanditChoice::KillAll,
+                BanditChoice::Alira,
+                BanditChoice::Kraityn,
+                BanditChoice::Oak,
+            ] {
+                let options = GuideOptions {
+                    league_start,
+                    bandit,
+                };
+                guides.insert(options, parse(&ROUTES, &areas, options));
+            }
+        }
+        Self { guides }
+    }
+
+    pub fn guide(&self, options: GuideOptions) -> &Guide {
+        &self.guides[&options]
+    }
+
+    /// The active Character entered `area`: move their Guide progress forward.
+    pub fn on_area(&self, profile: &mut Profile, area: &str) {
+        profile.last_area = Some(area.to_owned());
+        let guide = self.guide(profile.guide_options);
+        let next = match profile.guide_step {
+            // First time: place them wherever this Area is in the Guide.
+            None => guide.find(0, area),
+            Some(id) => guide.advance(guide.index_of(id), area),
+        };
+        if let Some(i) = next {
+            profile.guide_step = Some(guide.steps[i].id);
+        }
+    }
+
+    pub fn command(&self, profile: &mut Profile, command: GuideCommand) {
+        let guide = self.guide(profile.guide_options);
+        if guide.steps.is_empty() {
+            return;
+        }
+        let current = profile.guide_step.map_or(0, |id| guide.index_of(id));
+        let next = match command {
+            GuideCommand::Next => (current + 1).min(guide.steps.len() - 1),
+            GuideCommand::Previous => current.saturating_sub(1),
+            GuideCommand::FindMe => match &profile.last_area {
+                Some(area) => guide.find(current, area).unwrap_or(current),
+                None => current,
+            },
+        };
+        profile.guide_step = Some(guide.steps[next].id);
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum GuideCommand {
+    Next,
+    Previous,
+    /// Jump to the next Step in the Area the Character is in.
+    FindMe,
+}
+
+impl Guide {
+    /// Index of the Step with this id, or the first one after it (ids are
+    /// stable across options, but a Step may not exist in every variant).
+    pub fn index_of(&self, id: u32) -> usize {
+        self.steps
+            .iter()
+            .position(|s| s.id >= id)
+            .unwrap_or(self.steps.len().saturating_sub(1))
+    }
+
+    /// The Step to move to after entering `area` from Step `current`: the
+    /// first match a limited distance ahead. Never goes back.
+    pub fn advance(&self, current: usize, area: &str) -> Option<usize> {
+        let lookahead = if area.ends_with("_town") {
+            TOWN_LOOKAHEAD
+        } else {
+            AREA_LOOKAHEAD
+        };
+        let end = (current + lookahead + 1).min(self.steps.len());
+        (current + 1..end).find(|&i| self.steps[i].area == area)
+    }
+
+    /// The first Step in `area` at or after `from`, else the first anywhere.
+    pub fn find(&self, from: usize, area: &str) -> Option<usize> {
+        let matches = |i: &usize| self.steps[*i].area == area;
+        (from..self.steps.len())
+            .find(matches)
+            .or_else(|| (0..self.steps.len()).find(matches))
+    }
+}
+
+/// Act `act`'s Town; where `{logout}` lands when nothing better is known.
+fn act_town(act: u8) -> String {
+    if act <= 5 {
+        format!("1_{act}_town")
+    } else {
+        format!("2_{act}_town")
+    }
+}
+
+fn parse(routes: &[&str], areas: &HashMap<String, AreaInfo>, options: GuideOptions) -> Guide {
+    let name_of = |id: &str| {
+        areas
+            .get(id)
+            .map_or_else(|| id.to_owned(), |a| a.name.clone())
+    };
+    let mut steps: Vec<Step> = Vec::new();
+    let mut area = "1_1_1".to_owned();
+    let mut portal: Option<String> = None;
+    // A move ends the Step; the next line opens a new one in the new Area.
+    let mut open = false;
+
+    for (index, text) in routes.iter().enumerate() {
+        let mut act = index as u8 + 1;
+        let mut active: Vec<bool> = Vec::new();
+        for (line_no, raw) in text.lines().enumerate() {
+            let line = raw.trim();
+            if let Some(name) = line.strip_prefix("#ifdef ") {
+                active.push(options.defines(name.trim()));
+                continue;
+            }
+            if let Some(name) = line.strip_prefix("#ifndef ") {
+                active.push(!options.defines(name.trim()));
+                continue;
+            }
+            if line == "#endif" {
+                active.pop();
+                continue;
+            }
+            if active.contains(&false) || line.is_empty() {
+                continue;
+            }
+            if let Some(rest) = line.strip_prefix("#section ") {
+                if let Some(n) = rest
+                    .trim()
+                    .strip_prefix("Act ")
+                    .and_then(|n| n.parse().ok())
+                {
+                    act = n;
+                }
+                continue;
+            }
+            if let Some(note) = line.strip_prefix("#sub ") {
+                if let Some(last) = steps.last_mut().and_then(|s| s.lines.last_mut()) {
+                    last.notes.push(fragments(note, None, &name_of));
+                }
+                continue;
+            }
+
+            // `Hand in {quest|a1q1} #Enemy at the Gate`: the comment names the quest.
+            let (body, comment) = match line.split_once(" #") {
+                Some((b, c)) => (b, Some(c.trim())),
+                None => (line, None),
+            };
+            let parts = fragments(body, comment, &name_of);
+
+            if !open || steps.is_empty() {
+                steps.push(Step {
+                    id: u32::from(act) * 1000 + line_no as u32,
+                    act,
+                    area: area.clone(),
+                    area_name: name_of(&area),
+                    lines: Vec::new(),
+                });
+                open = true;
+            }
+
+            let mut moved_to = None;
+            let mut referenced_area = None;
+            for part in &parts {
+                match part {
+                    Fragment::Enter { area: a, .. } => moved_to = Some(a.clone()),
+                    Fragment::Waypoint { area: Some(a), .. } => moved_to = Some(a.clone()),
+                    Fragment::Logout => {
+                        moved_to = Some(
+                            areas
+                                .get(&area)
+                                .and_then(|a| a.parent_town_area_id.clone())
+                                .unwrap_or_else(|| act_town(act)),
+                        );
+                    }
+                    Fragment::Area { area: a, .. } => referenced_area = Some(a.clone()),
+                    Fragment::PortalSet => {
+                        portal = Some(referenced_area.clone().unwrap_or_else(|| area.clone()));
+                    }
+                    Fragment::PortalUse => moved_to = portal.clone(),
+                    _ => {}
+                }
+            }
+            steps
+                .last_mut()
+                .expect("a Step was just opened")
+                .lines
+                .push(Line {
+                    parts,
+                    notes: Vec::new(),
+                });
+            if let Some(next) = moved_to {
+                area = next;
+                open = false;
+            }
+        }
+    }
+    Guide { steps }
+}
+
+/// Split a line into text and `{kind|value}` tags.
+fn fragments(
+    text: &str,
+    comment: Option<&str>,
+    name_of: &impl Fn(&str) -> String,
+) -> Vec<Fragment> {
+    let mut out = Vec::new();
+    let mut rest = text;
+    while let Some(start) = rest.find('{') {
+        let Some(len) = rest[start..].find('}') else {
+            break;
+        };
+        push_text(&mut out, &rest[..start]);
+        let tag = &rest[start + 1..start + len];
+        out.push(tag_fragment(tag, comment, name_of));
+        rest = &rest[start + len + 1..];
+    }
+    push_text(&mut out, rest);
+    out
+}
+
+fn push_text(out: &mut Vec<Fragment>, text: &str) {
+    if !text.is_empty() {
+        out.push(Fragment::Text {
+            text: text.to_owned(),
+        });
+    }
+}
+
+fn tag_fragment(tag: &str, comment: Option<&str>, name_of: &impl Fn(&str) -> String) -> Fragment {
+    let mut fields = tag.split('|');
+    let kind = fields.next().unwrap_or_default();
+    let value = fields.next().map(str::to_owned);
+    let text = |v: Option<String>| v.unwrap_or_default();
+    match kind {
+        "enter" => {
+            let area = text(value);
+            Fragment::Enter {
+                name: name_of(&area),
+                area,
+            }
+        }
+        "waypoint" => Fragment::Waypoint {
+            name: value.as_deref().map(name_of),
+            area: value,
+        },
+        "waypoint_get" => Fragment::WaypointGet,
+        "logout" => Fragment::Logout,
+        "portal" if value.as_deref() == Some("set") => Fragment::PortalSet,
+        "portal" => Fragment::PortalUse,
+        "quest" => Fragment::Quest {
+            name: comment.map_or_else(|| text(value), str::to_owned),
+        },
+        "quest_text" => Fragment::QuestItem { text: text(value) },
+        "kill" => Fragment::Kill { name: text(value) },
+        "arena" => Fragment::Arena { name: text(value) },
+        "trial" => Fragment::Trial,
+        "crafting" => Fragment::Crafting,
+        "ascend" => Fragment::Ascend {
+            difficulty: text(value),
+        },
+        "dir" => Fragment::Dir {
+            degrees: value.and_then(|v| v.parse().ok()).unwrap_or(0),
+        },
+        "area" => {
+            let area = text(value);
+            Fragment::Area {
+                name: name_of(&area),
+                area,
+            }
+        }
+        _ => Fragment::Generic {
+            text: value.unwrap_or_else(|| kind.to_owned()),
+        },
+    }
+}
+
+/// Render-ready view of a Character's place in the Guide.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GuideView {
+    pub character: Option<String>,
+    pub options: GuideOptions,
+    /// 0-based index of the current Step, and how many there are.
+    pub position: usize,
+    pub total: usize,
+    pub current: Option<Step>,
+    pub upcoming: Vec<Step>,
+    /// Every Step of the current act, for the full-act view.
+    pub act_steps: Vec<Step>,
+}
+
+impl GuideView {
+    pub fn build(book: &GuideBook, profile: Option<&Profile>) -> Self {
+        let options = profile.map_or_else(GuideOptions::default, |p| p.guide_options);
+        let guide = book.guide(options);
+        let position = profile
+            .and_then(|p| p.guide_step)
+            .map_or(0, |id| guide.index_of(id));
+        let current = guide.steps.get(position).cloned();
+        let act = current.as_ref().map_or(1, |s| s.act);
+        Self {
+            character: profile.map(|p| p.name.clone()),
+            options,
+            position,
+            total: guide.steps.len(),
+            upcoming: guide
+                .steps
+                .iter()
+                .skip(position + 1)
+                .take(3)
+                .cloned()
+                .collect(),
+            act_steps: guide
+                .steps
+                .iter()
+                .filter(|s| s.act == act)
+                .cloned()
+                .collect(),
+            current,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn book() -> GuideBook {
+        GuideBook::bundled()
+    }
+
+    fn texts(step: &Step) -> String {
+        step.lines
+            .iter()
+            .flat_map(|l| &l.parts)
+            .map(|p| match p {
+                Fragment::Text { text } => text.clone(),
+                Fragment::Kill { name } => format!("<{name}>"),
+                Fragment::Enter { name, .. } => format!("[{name}]"),
+                Fragment::Quest { name } => format!("({name})"),
+                _ => String::new(),
+            })
+            .collect()
+    }
+
+    #[test]
+    fn first_steps_follow_act_one() {
+        let g = book();
+        let g = g.guide(GuideOptions::default());
+        assert_eq!(g.steps[0].area, "1_1_1");
+        assert!(texts(&g.steps[0]).contains("<Hillock>"));
+        assert_eq!(g.steps[1].area, "1_1_town");
+        assert!(texts(&g.steps[1]).contains("(Enemy at the Gate)"));
+        assert_eq!(g.steps[2].area, "1_1_2");
+    }
+
+    #[test]
+    fn every_act_has_steps_and_areas_have_names() {
+        let book = book();
+        let g = book.guide(GuideOptions::default());
+        for act in 1..=10 {
+            assert!(g.steps.iter().any(|s| s.act == act), "act {act}");
+        }
+        assert!(
+            g.steps.iter().all(|s| !s.area_name.contains('_')),
+            "unnamed area"
+        );
+    }
+
+    #[test]
+    fn options_change_the_route() {
+        let book = book();
+        let all = |o| texts_all(book.guide(o));
+        let league = all(GuideOptions::default());
+        let casual = all(GuideOptions {
+            league_start: false,
+            ..Default::default()
+        });
+        assert!(league.contains("Hailrake") && !casual.contains("Hailrake"));
+
+        let alira = all(GuideOptions {
+            bandit: BanditChoice::Alira,
+            ..Default::default()
+        });
+        assert!(alira.contains("Help ") && alira.contains("Alira"));
+        assert!(!league.contains("Help <Alira"));
+    }
+
+    fn texts_all(g: &Guide) -> String {
+        g.steps.iter().map(texts).collect()
+    }
+
+    #[test]
+    fn logout_returns_to_town() {
+        let book = book();
+        let g = book.guide(GuideOptions::default());
+        // Act 1 league start: kill Hailrake on the Tidal Island, logout, hand in.
+        let i = g
+            .steps
+            .iter()
+            .position(|s| s.area == "1_1_2a")
+            .expect("Tidal Island step");
+        assert_eq!(g.steps[i + 1].area, "1_1_town");
+    }
+
+    #[test]
+    fn auto_advance_is_forward_and_short_sighted() {
+        let book = book();
+        let g = book.guide(GuideOptions::default());
+        assert_eq!(g.advance(0, "1_1_town"), Some(1));
+        assert_eq!(g.advance(1, "1_1_1"), None, "never backwards");
+        // Towns only match nearby; other Areas further ahead.
+        let town_far = (TOWN_LOOKAHEAD + 1..g.steps.len())
+            .find(|&i| g.steps[i].area == "1_2_town")
+            .unwrap();
+        assert!(
+            !g.steps[1..=TOWN_LOOKAHEAD]
+                .iter()
+                .any(|s| s.area == "1_2_town")
+        );
+        assert!(town_far > TOWN_LOOKAHEAD);
+        assert_eq!(g.advance(0, "1_2_town"), None);
+        let ledge = g.steps.iter().position(|s| s.area == "1_1_5").unwrap();
+        assert!(ledge <= AREA_LOOKAHEAD);
+        assert_eq!(g.advance(0, "1_1_5"), Some(ledge), "skipping ahead");
+    }
+
+    #[test]
+    fn profile_progress_and_commands() {
+        let book = book();
+        let mut p = Profile::new("Exile");
+        book.on_area(&mut p, "1_1_1");
+        let g = book.guide(p.guide_options);
+        assert_eq!(p.guide_step, Some(g.steps[0].id));
+        book.on_area(&mut p, "1_1_town");
+        assert_eq!(p.guide_step, Some(g.steps[1].id));
+        book.command(&mut p, GuideCommand::Next);
+        assert_eq!(p.guide_step, Some(g.steps[2].id));
+        book.command(&mut p, GuideCommand::Previous);
+        book.command(&mut p, GuideCommand::Previous);
+        book.command(&mut p, GuideCommand::Previous);
+        assert_eq!(p.guide_step, Some(g.steps[0].id), "clamped at start");
+
+        // Lost: find me jumps to where they are.
+        p.last_area = Some("1_2_town".into());
+        book.command(&mut p, GuideCommand::FindMe);
+        assert_eq!(g.steps[g.index_of(p.guide_step.unwrap())].area, "1_2_town");
+    }
+
+    #[test]
+    fn progress_survives_changing_options() {
+        let book = book();
+        let mut p = Profile::new("Exile");
+        p.last_area = Some("1_3_town".into());
+        book.command(&mut p, GuideCommand::FindMe);
+        let before = p.guide_step.unwrap();
+        p.guide_options.league_start = false;
+        let g = book.guide(p.guide_options);
+        let i = g.index_of(before);
+        assert!(g.steps[i].id >= before);
+        assert_eq!(g.steps[i].act, 3);
+    }
+
+    #[test]
+    fn replaying_the_real_run_keeps_up() {
+        use crate::log::{LogEvent, replay};
+        let path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/witch-acts1-9.log"
+        );
+        let book = book();
+        let mut p = Profile::new("TestExile");
+        for r in replay(std::io::BufReader::new(std::fs::File::open(path).unwrap())) {
+            if let LogEvent::AreaGenerated { area_id, .. } = r.event {
+                book.on_area(&mut p, &area_id);
+            }
+        }
+        let g = book.guide(p.guide_options);
+        let step = &g.steps[g.index_of(p.guide_step.unwrap())];
+        // The run ends in Act 9 (it last left The Quarry for Highgate).
+        assert_eq!(step.act, 9, "guide fell behind at {}", step.area);
+    }
+}

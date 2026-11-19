@@ -87,6 +87,11 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
   - [x] Middle-click Calibration: fully zoomed out, scale = game height / 10 000; click gives position
   - [ ] Verify middle-click Calibration in-game
 - [ ] **M2**: Guide Overlay, auto-advance, Bandit Choice, Direction Hints.
+  - [x] exile-leveling Routes vendored; parsed into per-Area Steps with league-start/Bandit variants
+  - [x] Auto-advance (towns look 3 Steps ahead, other Areas 15; never back); replay of real run tracks to Act 9
+  - [x] Guide Overlay with ◀ ▶ ⌖ ☰ buttons, full-act view, Alt+[ / Alt+] / Alt+J / Alt+G
+  - [x] League start + Bandit Choice per Character
+  - [ ] Verify in-game
 - [ ] **M3**: PoB import, gem links panel, Quest/Vendor Rewards in Guide, Vendor Regex, full tree Overlay.
 - [ ] **M4**: Lab Overlay, Trial tracking.
 - [ ] **M5**: hotkey rebinding, layout persistence, Runs tab polish, signed releases + updater.

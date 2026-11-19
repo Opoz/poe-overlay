@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{clock::Millis, run::Run};
+use crate::{clock::Millis, guide::GuideOptions, run::Run};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -23,6 +23,15 @@ pub struct Profile {
     /// Picked mastery effect per mastery (both by Client Log id).
     #[serde(default)]
     pub masteries: BTreeMap<String, u32>,
+    /// League start and Bandit Choice for this Character's Guide.
+    #[serde(default)]
+    pub guide_options: GuideOptions,
+    /// Id of the Current Step; `None` until placed in the Guide.
+    #[serde(default)]
+    pub guide_step: Option<u32>,
+    /// The last Area this Character was seen entering (Area ID).
+    #[serde(default)]
+    pub last_area: Option<String>,
 }
 
 impl Profile {
@@ -35,6 +44,9 @@ impl Profile {
             run: None,
             passives: BTreeSet::new(),
             masteries: BTreeMap::new(),
+            guide_options: GuideOptions::default(),
+            guide_step: None,
+            last_area: None,
         }
     }
 }

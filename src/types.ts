@@ -59,6 +59,9 @@ export interface Profile {
 	run: Run | null;
 	passives: string[];
 	masteries: Record<string, number>;
+	guideOptions: GuideOptions;
+	guideStep: number | null;
+	lastArea: string | null;
 }
 
 export interface TreeNode {
@@ -129,3 +132,55 @@ export type TimerCommand =
 	| "split"
 	| "undoSplit"
 	| "reset";
+
+export type BanditChoice = "killAll" | "alira" | "kraityn" | "oak";
+
+export interface GuideOptions {
+	leagueStart: boolean;
+	bandit: BanditChoice;
+}
+
+export type Fragment =
+	| { kind: "text"; text: string }
+	| { kind: "enter"; area: string; name: string }
+	| { kind: "waypoint"; area: string | null; name: string | null }
+	| { kind: "waypointGet" }
+	| { kind: "logout" }
+	| { kind: "portalSet" }
+	| { kind: "portalUse" }
+	| { kind: "quest"; name: string }
+	| { kind: "questItem"; text: string }
+	| { kind: "kill"; name: string }
+	| { kind: "arena"; name: string }
+	| { kind: "trial" }
+	| { kind: "generic"; text: string }
+	| { kind: "crafting" }
+	| { kind: "ascend"; difficulty: string }
+	| { kind: "dir"; degrees: number }
+	| { kind: "area"; area: string; name: string };
+
+export interface GuideLine {
+	parts: Fragment[];
+	notes: Fragment[][];
+}
+
+export interface GuideStep {
+	id: number;
+	act: number;
+	area: string;
+	areaName: string;
+	lines: GuideLine[];
+}
+
+export interface GuidePayload {
+	character: string | null;
+	options: GuideOptions;
+	position: number;
+	total: number;
+	current: GuideStep | null;
+	upcoming: GuideStep[];
+	actSteps: GuideStep[];
+	actView: boolean;
+}
+
+export type GuideCommand = "next" | "previous" | "findMe";

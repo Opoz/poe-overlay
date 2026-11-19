@@ -35,6 +35,8 @@ pub struct Settings {
     pub category: String,
     pub pause_in_hideout: bool,
     pub timer_overlay: OverlayPlacement,
+    pub guide_overlay: OverlayPlacement,
+    pub act_overlay: OverlayPlacement,
     pub overlay_opacity: f64,
 }
 
@@ -45,6 +47,8 @@ impl Default for Settings {
             category: "Default".into(),
             pause_in_hideout: true,
             timer_overlay: OverlayPlacement { x: 0.01, y: 0.25 },
+            guide_overlay: OverlayPlacement { x: 0.01, y: 0.55 },
+            act_overlay: OverlayPlacement { x: 0.3, y: 0.08 },
             overlay_opacity: 1.0,
         }
     }

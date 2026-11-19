@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { createResource, For, onCleanup, Show } from "solid-js";
 import { formatLocalDate } from "../format";
-import type { Characters, Profile } from "../types";
+import type { BanditChoice, Characters, GuideOptions, Profile } from "../types";
 
 /** Profiles seen in the Client Log, and which one is assumed to be played. */
 export default function CharactersCard() {
@@ -23,6 +23,11 @@ export default function CharactersCard() {
 		} catch (e) {
 			alert(`Could not rebuild: ${e}`);
 		}
+		refetch();
+	};
+
+	const setGuide = async (name: string, options: GuideOptions) => {
+		await invoke("set_guide_options", { name, options });
 		refetch();
 	};
 
@@ -52,6 +57,7 @@ export default function CharactersCard() {
 							<th>Run</th>
 							<th>Last level up</th>
 							<th>Passives</th>
+							<th>Guide</th>
 							<th />
 						</tr>
 					</thead>
@@ -63,6 +69,7 @@ export default function CharactersCard() {
 									active={characters()?.active === p.name}
 									onSelect={() => select(p.name)}
 									onRebuild={() => rebuild(p.name)}
+									onGuide={(options) => setGuide(p.name, options)}
 								/>
 							)}
 						</For>
@@ -78,7 +85,9 @@ function ProfileRow(props: {
 	active: boolean;
 	onSelect: () => void;
 	onRebuild: () => void;
+	onGuide: (options: GuideOptions) => void;
 }) {
+	const options = () => props.profile.guideOptions;
 	const runLabel = () => {
 		const run = props.profile.run;
 		if (!run) return "—";
@@ -106,6 +115,36 @@ function ProfileRow(props: {
 				>
 					Rebuild from log
 				</button>
+			</td>
+			<td class="guide-options">
+				<label title="Include league-start steps (early waypoints, side bosses, strongboxes)">
+					<input
+						type="checkbox"
+						checked={options().leagueStart}
+						onChange={(e) =>
+							props.onGuide({
+								...options(),
+								leagueStart: e.currentTarget.checked,
+							})
+						}
+					/>
+					League start
+				</label>
+				<select
+					title="Bandit choice"
+					value={options().bandit}
+					onChange={(e) =>
+						props.onGuide({
+							...options(),
+							bandit: e.currentTarget.value as BanditChoice,
+						})
+					}
+				>
+					<option value="killAll">Kill all bandits</option>
+					<option value="alira">Help Alira</option>
+					<option value="kraityn">Help Kraityn</option>
+					<option value="oak">Help Oak</option>
+				</select>
 			</td>
 			<td>
 				<Show

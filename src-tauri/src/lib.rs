@@ -12,6 +12,7 @@ use std::{
 };
 
 use poe_core::{
+    guide::{GuideCommand, GuideOptions, GuideView},
     run::{Command, Run},
     tree::{TreeNode, TreeView},
     view::TimerView,
@@ -34,6 +35,8 @@ pub struct AppState {
     settings: Mutex<Settings>,
     /// Interact Mode: Overlays accept the mouse.
     interact: AtomicBool,
+    /// The full-act Guide view is open.
+    act_view: AtomicBool,
 }
 
 /// Event carrying a fresh [`TimerView`] to every window.
@@ -43,6 +46,8 @@ const STATUS: &str = "status";
 const INTERACT: &str = "interact-mode";
 /// Event carrying a fresh [`TreeView`] to every window.
 const TREE_VIEW: &str = "tree-view";
+/// Event carrying a fresh [`GuideView`] (plus whether the act view is open).
+const GUIDE_VIEW: &str = "guide-view";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -51,7 +56,7 @@ struct Status {
     game_running: bool,
 }
 
-fn hotkeys() -> [(Shortcut, Hotkey); 6] {
+fn hotkeys() -> [(Shortcut, Hotkey); 10] {
     let alt = Some(Modifiers::ALT);
     let alt_shift = Some(Modifiers::ALT | Modifiers::SHIFT);
     [
@@ -70,6 +75,19 @@ fn hotkeys() -> [(Shortcut, Hotkey); 6] {
         (Shortcut::new(alt, Code::KeyE), Hotkey::InteractMode),
         (Shortcut::new(alt, Code::KeyT), Hotkey::TreeOverlay),
         (Shortcut::new(alt_shift, Code::KeyT), Hotkey::Calibrate),
+        (
+            Shortcut::new(alt, Code::BracketRight),
+            Hotkey::Guide(GuideCommand::Next),
+        ),
+        (
+            Shortcut::new(alt, Code::BracketLeft),
+            Hotkey::Guide(GuideCommand::Previous),
+        ),
+        (
+            Shortcut::new(alt, Code::KeyJ),
+            Hotkey::Guide(GuideCommand::FindMe),
+        ),
+        (Shortcut::new(alt, Code::KeyG), Hotkey::ActView),
     ]
 }
 
@@ -79,6 +97,8 @@ enum Hotkey {
     InteractMode,
     TreeOverlay,
     Calibrate,
+    Guide(GuideCommand),
+    ActView,
 }
 
 fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
@@ -100,7 +120,79 @@ fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
             state.tracker.lock().unwrap().toggle_calibration();
             emit_tree(app);
         }
+        Hotkey::Guide(command) => {
+            state.tracker.lock().unwrap().guide_command(command);
+            emit_guide(app);
+        }
+        Hotkey::ActView => {
+            state.act_view.fetch_xor(true, Ordering::SeqCst);
+            emit_guide(app);
+        }
     }
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct GuidePayload {
+    #[serde(flatten)]
+    view: GuideView,
+    act_view: bool,
+}
+
+fn guide_payload(app: &AppHandle) -> GuidePayload {
+    let state = app.state::<AppState>();
+    let view = state.tracker.lock().unwrap().guide_view();
+    GuidePayload {
+        view,
+        act_view: state.act_view.load(Ordering::SeqCst),
+    }
+}
+
+/// Sends the Guide only when it changed, so the act view isn't re-rendered
+/// (and scrolled) every second.
+fn emit_guide(app: &AppHandle) {
+    static LAST: Mutex<String> = Mutex::new(String::new());
+    let payload = guide_payload(app);
+    let Ok(json) = serde_json::to_string(&payload) else {
+        return;
+    };
+    let mut last = LAST.lock().unwrap();
+    if *last != json {
+        let _ = app.emit(GUIDE_VIEW, payload);
+        *last = json;
+    }
+}
+
+#[tauri::command]
+fn get_guide_view(app: AppHandle) -> GuidePayload {
+    guide_payload(&app)
+}
+
+#[tauri::command]
+fn guide_command(app: AppHandle, state: tauri::State<AppState>, command: GuideCommand) {
+    state.tracker.lock().unwrap().guide_command(command);
+    emit_guide(&app);
+}
+
+#[tauri::command]
+fn toggle_act_view(app: AppHandle, state: tauri::State<AppState>) {
+    state.act_view.fetch_xor(true, Ordering::SeqCst);
+    emit_guide(&app);
+}
+
+#[tauri::command]
+fn set_guide_options(
+    app: AppHandle,
+    state: tauri::State<AppState>,
+    name: String,
+    options: GuideOptions,
+) {
+    state
+        .tracker
+        .lock()
+        .unwrap()
+        .set_guide_options(&name, options);
+    emit_guide(&app);
 }
 
 fn emit_tree(app: &AppHandle) {
@@ -289,6 +381,7 @@ fn spawn_tracking_loop(app: AppHandle) {
             if read_any || last_emit.elapsed() > Duration::from_secs(1) {
                 emit_view(&app);
                 emit_tree(&app);
+                emit_guide(&app);
                 last_emit = Instant::now();
             }
 
@@ -311,16 +404,47 @@ fn spawn_tracking_loop(app: AppHandle) {
             let wanted = {
                 let tracker = state.tracker.lock().unwrap();
                 let tree = tracker.tree_overlay();
-                overlay::Wanted {
-                    timer_placement: state.settings.lock().unwrap().timer_overlay,
-                    interact: state.interact.load(Ordering::SeqCst),
-                    tree_visible: tree.visible,
-                    tree_clickable: tree.calibrating.is_some(),
-                }
+                let settings = state.settings.lock().unwrap();
+                [
+                    overlay::Wanted {
+                        label: overlay::TIMER,
+                        anchor: overlay::Anchor::At(settings.timer_overlay),
+                        visible: true,
+                        clickable: false,
+                    },
+                    overlay::Wanted {
+                        label: overlay::TREE,
+                        anchor: overlay::Anchor::Cover,
+                        visible: tree.visible,
+                        clickable: tree.calibrating.is_some(),
+                    },
+                    // The Guide has buttons, so it takes clicks (never focus).
+                    overlay::Wanted {
+                        label: overlay::GUIDE,
+                        anchor: overlay::Anchor::At(settings.guide_overlay),
+                        visible: true,
+                        clickable: true,
+                    },
+                    overlay::Wanted {
+                        label: overlay::ACT,
+                        anchor: overlay::Anchor::At(settings.act_overlay),
+                        visible: state.act_view.load(Ordering::SeqCst),
+                        clickable: true,
+                    },
+                ]
             };
-            if let Some(moved) = overlays.sync(&app, game, wanted) {
+            let interact = state.interact.load(Ordering::SeqCst);
+            let moved = overlays.sync(&app, game, interact, &wanted);
+            if !moved.is_empty() {
                 let mut settings = state.settings.lock().unwrap();
-                settings.timer_overlay = moved;
+                for (label, placement) in moved {
+                    match label {
+                        overlay::TIMER => settings.timer_overlay = placement,
+                        overlay::GUIDE => settings.guide_overlay = placement,
+                        overlay::ACT => settings.act_overlay = placement,
+                        _ => {}
+                    }
+                }
                 Storage::new(data_dir()).save_settings(&settings);
             }
 
@@ -394,6 +518,7 @@ pub fn run() {
             tracker: Mutex::new(tracker),
             settings: Mutex::new(settings),
             interact: AtomicBool::new(false),
+            act_view: AtomicBool::new(false),
         })
         .invoke_handler(tauri::generate_handler![
             get_timer_view,
@@ -409,6 +534,10 @@ pub fn run() {
             get_tree_view,
             tree_click,
             toggle_tree,
+            get_guide_view,
+            guide_command,
+            toggle_act_view,
+            set_guide_options,
             rebuild_passives,
         ])
         .on_window_event(|window, event| {

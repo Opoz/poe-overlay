@@ -1,0 +1,99 @@
+import { For, Show } from "solid-js";
+import type { Fragment, GuideStep } from "../types";
+
+/** One Guide Step: the Area, then its instructions with notes. */
+export default function StepView(props: {
+	step: GuideStep;
+	compact?: boolean;
+}) {
+	return (
+		<div class="step" classList={{ compact: props.compact }}>
+			<div class="step-area">
+				<span class="step-act">A{props.step.act}</span> {props.step.areaName}
+			</div>
+			<ul class="step-lines">
+				<For
+					each={props.compact ? props.step.lines.slice(0, 2) : props.step.lines}
+				>
+					{(line) => (
+						<li>
+							<Parts parts={line.parts} />
+							<Show when={!props.compact && line.notes.length > 0}>
+								<ul class="step-notes">
+									<For each={line.notes}>
+										{(note) => (
+											<li>
+												<Parts parts={note} />
+											</li>
+										)}
+									</For>
+								</ul>
+							</Show>
+						</li>
+					)}
+				</For>
+				<Show when={props.compact && props.step.lines.length > 2}>
+					<li class="more">…</li>
+				</Show>
+			</ul>
+		</div>
+	);
+}
+
+function Parts(props: { parts: Fragment[] }) {
+	return <For each={props.parts}>{(part) => <Part part={part} />}</For>;
+}
+
+function Part(props: { part: Fragment }) {
+	const p = props.part;
+	switch (p.kind) {
+		case "text":
+			return <>{p.text}</>;
+		case "enter":
+			return <span class="t-area">{p.name}</span>;
+		case "area":
+			return <span class="t-area">{p.name}</span>;
+		case "waypoint":
+			return p.name ? (
+				<span class="t-waypoint">
+					Waypoint ➞ <span class="t-area">{p.name}</span>
+				</span>
+			) : (
+				<span class="t-waypoint">waypoint</span>
+			);
+		case "waypointGet":
+			return <span class="t-waypoint">Get the waypoint</span>;
+		case "logout":
+			return <span class="t-logout">Log out</span>;
+		case "portalSet":
+			return <span class="t-waypoint">portal</span>;
+		case "portalUse":
+			return <span class="t-waypoint">the portal</span>;
+		case "quest":
+			return <span class="t-quest">{p.name}</span>;
+		case "questItem":
+			return <span class="t-item">{p.text}</span>;
+		case "kill":
+			return <span class="t-kill">{p.name}</span>;
+		case "arena":
+			return <span class="t-area">{p.name}</span>;
+		case "trial":
+			return <span class="t-trial">the Trial of Ascendancy</span>;
+		case "generic":
+			return <span class="t-generic">{p.text}</span>;
+		case "crafting":
+			return <span class="t-generic">the crafting recipe</span>;
+		case "ascend":
+			return <span class="t-trial">Ascend ({p.difficulty})</span>;
+		case "dir":
+			return (
+				<span
+					class="t-dir"
+					title={`${p.degrees}°`}
+					style={{ transform: `rotate(${p.degrees}deg)` }}
+				>
+					↑
+				</span>
+			);
+	}
+}

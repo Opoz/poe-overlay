@@ -4,6 +4,8 @@ use std::path::PathBuf;
 
 use poe_core::{
     clock::Millis,
+    guide::{GuideBook, GuideCommand, GuideOptions, GuideView},
+    log::LogEvent,
     profile::Profile,
     run::{Command, Run, RunTimer, TimerEvent, TimerSettings},
     tail::LogTail,
@@ -29,6 +31,7 @@ pub struct Tracker {
     saved_offset: Option<u64>,
     tree: PassiveTree,
     tree_overlay: TreeOverlay,
+    guides: GuideBook,
 }
 
 impl Tracker {
@@ -54,6 +57,7 @@ impl Tracker {
             saved_offset: None,
             tree: PassiveTree::bundled(),
             tree_overlay: session.tree,
+            guides: GuideBook::bundled(),
         }
     }
 
@@ -88,10 +92,15 @@ impl Tracker {
         if records.is_empty() {
             return false;
         }
-        let events: Vec<_> = records
-            .iter()
-            .flat_map(|r| self.timer.on_record(r))
-            .collect();
+        let mut events = Vec::new();
+        for record in &records {
+            events.extend(self.timer.on_record(record));
+            if let LogEvent::AreaGenerated { area_id, .. } = &record.event
+                && let Some(profile) = self.timer.active_profile_mut()
+            {
+                self.guides.on_area(profile, area_id);
+            }
+        }
         if !events.is_empty() {
             self.handle(events);
             self.save_session();
@@ -188,6 +197,26 @@ impl Tracker {
     pub fn set_allocations(&mut self, name: &str, allocations: poe_core::tree::Allocations) {
         self.timer.set_allocations(name, allocations);
         self.save_session();
+    }
+
+    pub fn guide_view(&self) -> GuideView {
+        let active = self.timer.active();
+        let profile = active.and_then(|n| self.timer.profiles().find(|p| p.name == n));
+        GuideView::build(&self.guides, profile)
+    }
+
+    pub fn guide_command(&mut self, command: GuideCommand) {
+        if let Some(profile) = self.timer.active_profile_mut() {
+            self.guides.command(profile, command);
+            self.save_session();
+        }
+    }
+
+    pub fn set_guide_options(&mut self, name: &str, options: GuideOptions) {
+        if let Some(profile) = self.timer.profile_mut(name) {
+            profile.guide_options = options;
+            self.save_session();
+        }
     }
 
     pub fn history(&self) -> &[Run] {
