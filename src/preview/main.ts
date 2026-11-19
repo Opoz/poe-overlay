@@ -64,6 +64,17 @@ async function boot() {
 		treeKey: "P",
 		panelOpacity: Number(params.get("opacity") ?? 0.85),
 		overlays: { gems: { scale: 1, opacity: 0.95, shown: true } },
+		cloneFrames: [
+			{
+				slot: 0,
+				name: "Flasks",
+				source: [0.02, 0.9, 0.12, 0.08],
+				target: { x: 0.45, y: 0.6 },
+				scale: 1.5,
+				opacity: 0.9,
+				enabled: true,
+			},
+		],
 	};
 
 	// Mirrors src-tauri/src/hotkeys.rs (one rebound, one unset, for show).
@@ -149,7 +160,14 @@ async function boot() {
 		get_interact: params.has("interact"),
 		hotkey_failures: params.has("conflict") ? ["alt+KeyR"] : [],
 		get_hotkeys: hotkeyRows,
-		get_overlays_shown: { timer: true, guide: true, xp: true, gems: false },
+		get_overlays_shown: {
+			timer: true,
+			guide: true,
+			xp: true,
+			gems: false,
+			notes: false,
+			layouts: true,
+		},
 	};
 
 	mockWindows(label);

@@ -22,7 +22,7 @@ const SHOTS = [
 	["main", "w=main", 960, 680],
 	["main-characters", "w=main&page=characters", 960, 680],
 	["main-build", "w=main&page=build", 960, 680],
-	["main-overlays", "w=main&page=overlays", 960, 680],
+	["main-overlays", "w=main&page=overlays", 960, 1500],
 	["main-history", "w=main&page=history", 960, 680],
 	["main-shortcuts", "w=main&page=shortcuts", 960, 1100],
 	["main-settings", "w=main&page=settings&conflict", 960, 680],

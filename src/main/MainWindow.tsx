@@ -75,6 +75,8 @@ export default function MainWindow() {
 		createResource(() => invoke<HistoryView>("get_history"));
 
 	onEvent<Status>("status", setStatus);
+	// Changes made elsewhere (screen copies picked in game, reset positions).
+	onEvent<Settings>("settings", (s) => setSettingsLocal(s));
 	const [hotkeyFailures, setHotkeyFailures] = createSignal<string[]>([]);
 	onEvent<string[]>("hotkey-failures", setHotkeyFailures);
 	invoke<string[]>("hotkey_failures").then(setHotkeyFailures);

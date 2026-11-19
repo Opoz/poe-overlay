@@ -57,6 +57,8 @@ pub struct Settings {
     pub hotkeys: BTreeMap<String, String>,
     /// Per-Overlay size, opacity and visibility, by window label.
     pub overlays: BTreeMap<String, OverlayLook>,
+    /// Screen copies of parts of the game window.
+    pub clone_frames: Vec<crate::clone::CloneFrame>,
 }
 
 /// How one Overlay looks.
@@ -121,6 +123,7 @@ impl Default for Settings {
             panel_opacity: 0.85,
             hotkeys: BTreeMap::new(),
             overlays: BTreeMap::new(),
+            clone_frames: Vec::new(),
         }
     }
 }

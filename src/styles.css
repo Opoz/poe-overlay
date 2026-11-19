@@ -1603,3 +1603,49 @@ code {
 	font-family: inherit;
 	font-size: 0.95em;
 }
+
+/* ------------------------------------------------------- screen copies */
+
+.clone-picker {
+	position: fixed;
+	inset: 0;
+	cursor: crosshair;
+	background: rgb(0 0 0 / 0.25);
+}
+
+.clone-box {
+	position: absolute;
+	outline: 2px solid var(--brass);
+	background: rgb(217 174 98 / 0.12);
+}
+
+.clone-frame {
+	position: fixed;
+	inset: 0;
+	outline: 2px dashed var(--brass);
+	outline-offset: -2px;
+	cursor: move;
+}
+
+.clone-frame span {
+	position: absolute;
+	left: 4px;
+	top: 3px;
+	padding: 0 4px;
+	border-radius: 3px;
+	background: rgb(var(--basalt) / 0.85);
+	color: var(--brass);
+	font-size: 12px;
+}
+
+.name-input {
+	width: 160px;
+}
+
+.callout-info {
+	margin: 12px 0 0;
+	padding: 8px 12px;
+	border-radius: 5px;
+	background: var(--brass-dim);
+	box-shadow: var(--marker);
+}

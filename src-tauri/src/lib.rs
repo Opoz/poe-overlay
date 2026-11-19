@@ -1,3 +1,4 @@
+mod clone;
 mod hotkeys;
 mod lab_import;
 mod layouts;
@@ -72,6 +73,8 @@ pub struct AppState {
     layouts_visible: AtomicBool,
     /// Images found for the current Area.
     layouts: Mutex<layouts::Cache>,
+    /// The screen copy whose source is being dragged out, if any.
+    clone_picking: Mutex<Option<usize>>,
     /// Bound hotkeys (from Settings), and whether they changed since the
     /// tracking loop last registered them.
     bindings: Mutex<Vec<(Shortcut, Hotkey)>>,
@@ -729,6 +732,115 @@ fn get_overlays_shown(
     .collect()
 }
 
+fn save_and_announce(app: &AppHandle, settings: &Settings) {
+    Storage::new(data_dir()).save_settings(settings);
+    let _ = app.emit("settings", settings);
+}
+
+/// Start a new screen copy: the player drags out its source over the game.
+#[tauri::command]
+fn add_clone_frame(state: tauri::State<AppState>) -> Result<usize, String> {
+    let mut settings = state.settings.lock().unwrap();
+    let slot = clone::free_slot(&settings.clone_frames)
+        .ok_or("That's the most screen copies there can be (8).")?;
+    settings.clone_frames.push(clone::CloneFrame {
+        slot,
+        name: format!("Screen copy {}", slot + 1),
+        ..Default::default()
+    });
+    *state.clone_picking.lock().unwrap() = Some(slot);
+    Ok(slot)
+}
+
+/// Drag out a new source for an existing screen copy.
+#[tauri::command]
+fn repick_clone_frame(state: tauri::State<AppState>, slot: usize) {
+    *state.clone_picking.lock().unwrap() = Some(slot);
+}
+
+/// The player dragged out a source (fractions of the game window).
+#[tauri::command]
+fn clone_pick(
+    app: AppHandle,
+    state: tauri::State<AppState>,
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+) {
+    let Some(slot) = state.clone_picking.lock().unwrap().take() else {
+        return;
+    };
+    let mut settings = state.settings.lock().unwrap();
+    if let Some(f) = settings.clone_frames.iter_mut().find(|f| f.slot == slot) {
+        let new = !f.has_source();
+        f.source = [
+            x.clamp(0.0, 1.0),
+            y.clamp(0.0, 1.0),
+            width.clamp(0.002, 1.0),
+            height.clamp(0.002, 1.0),
+        ];
+        if new {
+            // Start just right of the source; the player moves it after.
+            f.target = storage::OverlayPlacement {
+                x: (x + width + 0.02).min(0.9),
+                y: y.min(0.9),
+            };
+        }
+        f.enabled = true;
+    }
+    save_and_announce(&app, &settings);
+}
+
+/// Stop dragging out a source; a screen copy that never had one is dropped.
+#[tauri::command]
+fn clone_pick_cancel(app: AppHandle, state: tauri::State<AppState>) {
+    let Some(slot) = state.clone_picking.lock().unwrap().take() else {
+        return;
+    };
+    let mut settings = state.settings.lock().unwrap();
+    settings
+        .clone_frames
+        .retain(|f| f.slot != slot || f.has_source());
+    save_and_announce(&app, &settings);
+}
+
+/// Change a screen copy's name, size, opacity or whether it shows.
+#[tauri::command]
+fn set_clone_frame(
+    app: AppHandle,
+    state: tauri::State<AppState>,
+    slot: usize,
+    name: Option<String>,
+    scale: Option<f64>,
+    opacity: Option<f64>,
+    enabled: Option<bool>,
+) {
+    let mut settings = state.settings.lock().unwrap();
+    if let Some(f) = settings.clone_frames.iter_mut().find(|f| f.slot == slot) {
+        if let Some(n) = name {
+            f.name = n;
+        }
+        if let Some(s) = scale {
+            f.scale = s.clamp(0.5, 4.0);
+        }
+        if let Some(o) = opacity {
+            f.opacity = o.clamp(0.2, 1.0);
+        }
+        if let Some(e) = enabled {
+            f.enabled = e;
+        }
+    }
+    save_and_announce(&app, &settings);
+}
+
+#[tauri::command]
+fn delete_clone_frame(app: AppHandle, state: tauri::State<AppState>, slot: usize) {
+    let mut settings = state.settings.lock().unwrap();
+    settings.clone_frames.retain(|f| f.slot != slot);
+    save_and_announce(&app, &settings);
+}
+
 #[tauri::command]
 fn get_hotkeys(state: tauri::State<AppState>) -> Vec<hotkeys::HotkeyRow> {
     hotkeys::rows(&state.settings.lock().unwrap().hotkeys)
@@ -864,6 +976,7 @@ fn spawn_tracking_loop(app: AppHandle) {
             bindings.iter().map(|(s, _)| *s).collect()
         };
         let mut overlays = overlay::Follower::new(shortcuts(&app));
+        let mut clones = clone::Copies::default();
         let mut last_emit = Instant::now();
         let mut last_save = Instant::now();
         let mut last_status = None;
@@ -936,11 +1049,12 @@ fn spawn_tracking_loop(app: AppHandle) {
             }
             let lab_shown = lab_visible(&app);
 
-            let wanted = {
+            let picking = state.clone_picking.lock().unwrap().is_some();
+            let mut wanted = {
                 let tracker = state.tracker.lock().unwrap();
                 let tree = tracker.tree_overlay();
                 let settings = state.settings.lock().unwrap();
-                [
+                Vec::from([
                     overlay::Wanted {
                         label: overlay::TIMER,
                         anchor: overlay::Anchor::At(settings.timer_overlay),
@@ -1009,13 +1123,29 @@ fn spawn_tracking_loop(app: AppHandle) {
                         visible: state.act_view.load(Ordering::SeqCst),
                         clickable: true,
                     },
-                ]
+                    // Dragging out a screen copy's source.
+                    overlay::Wanted {
+                        label: clone::PICKER,
+                        anchor: overlay::Anchor::Cover,
+                        visible: picking,
+                        clickable: true,
+                    },
+                ])
             };
+            let frames = state.settings.lock().unwrap().clone_frames.clone();
+            wanted.extend(clone::wanted(&frames));
             if state.hotkeys_changed.swap(false, Ordering::SeqCst) {
                 overlays.set_shortcuts(&app, shortcuts(&app));
             }
             let interact = state.interact.load(Ordering::SeqCst);
             let moved = overlays.sync(&app, game, interact, &wanted);
+            clones.sync(
+                &app,
+                game,
+                game.and_then(platform::game_rect),
+                &frames,
+                interact,
+            );
             {
                 let mut failures = state.hotkey_failures.lock().unwrap();
                 if *failures != overlays.failed {
@@ -1036,7 +1166,14 @@ fn spawn_tracking_loop(app: AppHandle) {
                         overlay::XP => settings.xp_overlay = placement,
                         overlay::NOTES => settings.notes_overlay = placement,
                         overlay::LAYOUTS => settings.layouts_overlay = placement,
-                        _ => {}
+                        other => {
+                            if let Some(slot) = clone::LABELS.iter().position(|l| *l == other)
+                                && let Some(f) =
+                                    settings.clone_frames.iter_mut().find(|f| f.slot == slot)
+                            {
+                                f.target = placement;
+                            }
+                        }
                     }
                 }
                 Storage::new(data_dir()).save_settings(&settings);
@@ -1147,6 +1284,7 @@ pub fn run() {
             notes_visible: AtomicBool::new(notes_shown),
             layouts_visible: AtomicBool::new(layouts_shown),
             layouts: Mutex::new(layouts::Cache::default()),
+            clone_picking: Mutex::new(None),
             bindings: Mutex::new(bindings),
             hotkeys_changed: AtomicBool::new(false),
         })
@@ -1194,6 +1332,12 @@ pub fn run() {
             get_notes_view,
             toggle_notes,
             layouts::get_layouts_view,
+            add_clone_frame,
+            repick_clone_frame,
+            clone_pick,
+            clone_pick_cancel,
+            set_clone_frame,
+            delete_clone_frame,
             layouts::open_layouts_folder,
             delete_run,
         ])

@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { createResource, For, Show } from "solid-js";
 import Key from "../Key";
 import type { LayoutsPayload, OverlayLook, Settings } from "../types";
+import CloneFramesSection from "./CloneFramesSection";
 
 /** [window label, name, what decides when it shows] */
 const OVERLAYS: [string, string, string | null][] = [
@@ -180,6 +181,8 @@ export default function OverlaysPage(props: {
 					Reset positions
 				</button>
 			</div>
+
+			<CloneFramesSection settings={props.settings} />
 
 			<h3>Zone layouts</h3>
 			<p class="muted">

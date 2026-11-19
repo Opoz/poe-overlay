@@ -13,7 +13,9 @@
 		"treebar",
 		"xp",
 		"notes",
-		"layouts"
+		"layouts",
+		"picker",
+		"clone-*"
 	],
 	"permissions": [
 		"core:default",

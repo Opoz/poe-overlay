@@ -205,6 +205,19 @@ export interface Settings {
 	panelOpacity: number;
 	/** Per-Overlay look, by window label. */
 	overlays: Record<string, OverlayLook>;
+	cloneFrames: CloneFrameSettings[];
+}
+
+/** A screen copy of part of the game window. */
+export interface CloneFrameSettings {
+	slot: number;
+	name: string;
+	/** x, y, width, height as fractions of the game window. */
+	source: [number, number, number, number];
+	target: OverlayPlacement;
+	scale: number;
+	opacity: number;
+	enabled: boolean;
 }
 
 export interface OverlayLook {

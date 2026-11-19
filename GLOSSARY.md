@@ -162,5 +162,9 @@ _Avoid_: transparency, window opacity
 A global key combination bound to an app action (rebindable). Only registered while the game is focused.
 _Avoid_: keybind, hotkey (in UI text; `hotkey` is fine in code)
 
+**Screen Copy**:
+A live copy of part of the game window (flasks, a buff, a cooldown) shown elsewhere by Windows' compositor; display only, never read or acted on.
+_Avoid_: clone frame (Exile UI's name), mirror
+
 **Replay**:
 Feeding a recorded Client Log through the app as if it were being written live.

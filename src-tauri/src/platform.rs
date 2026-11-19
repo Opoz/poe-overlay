@@ -292,3 +292,62 @@ pub fn vk_for(key: &str) -> Option<u32> {
 }
 
 pub const VK_ESCAPE: u32 = 0x1B;
+
+/// A live copy of part of the game window, drawn by Windows' compositor
+/// (DWM) into one of our windows: no pixels pass through this app, and the
+/// game process isn't touched.
+pub struct Thumbnail(isize);
+
+impl Thumbnail {
+    /// Show part of `source` inside `destination` (both top-level windows).
+    pub fn register(destination: RawHwnd, source: RawHwnd) -> Option<Self> {
+        use windows::Win32::Graphics::Dwm::DwmRegisterThumbnail;
+        unsafe { DwmRegisterThumbnail(hwnd(destination), hwnd(source)) }
+            .ok()
+            .map(Self)
+    }
+
+    /// Copy `source` (game client pixels: x, y, width, height) into
+    /// `destination` (our window's client pixels), at `opacity` 0-255.
+    pub fn update(
+        &self,
+        source: (i32, i32, i32, i32),
+        destination: (i32, i32, i32, i32),
+        opacity: u8,
+    ) {
+        use windows::Win32::{
+            Foundation::{RECT, TRUE},
+            Graphics::Dwm::{
+                DWM_THUMBNAIL_PROPERTIES, DWM_TNP_OPACITY, DWM_TNP_RECTDESTINATION,
+                DWM_TNP_RECTSOURCE, DWM_TNP_SOURCECLIENTAREAONLY, DWM_TNP_VISIBLE,
+                DwmUpdateThumbnailProperties,
+            },
+        };
+        let rect = |(x, y, w, h): (i32, i32, i32, i32)| RECT {
+            left: x,
+            top: y,
+            right: x + w,
+            bottom: y + h,
+        };
+        let props = DWM_THUMBNAIL_PROPERTIES {
+            dwFlags: DWM_TNP_RECTDESTINATION
+                | DWM_TNP_RECTSOURCE
+                | DWM_TNP_OPACITY
+                | DWM_TNP_VISIBLE
+                | DWM_TNP_SOURCECLIENTAREAONLY,
+            rcDestination: rect(destination),
+            rcSource: rect(source),
+            opacity,
+            fVisible: TRUE,
+            fSourceClientAreaOnly: TRUE,
+        };
+        let _ = unsafe { DwmUpdateThumbnailProperties(self.0, &props) };
+    }
+}
+
+impl Drop for Thumbnail {
+    fn drop(&mut self) {
+        use windows::Win32::Graphics::Dwm::DwmUnregisterThumbnail;
+        let _ = unsafe { DwmUnregisterThumbnail(self.0) };
+    }
+}
