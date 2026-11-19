@@ -87,14 +87,44 @@ pub enum Book {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-struct QuestInfo {
-    offers: HashMap<String, OfferInfo>,
+pub(crate) struct QuestInfo {
+    pub(crate) offers: HashMap<String, OfferInfo>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
-struct OfferInfo {
+#[serde(rename_all = "camelCase")]
+pub(crate) struct OfferInfo {
     npc: Option<String>,
     book: Option<Book>,
+    /// Gem id -> classes that may pick it as the quest reward.
+    #[serde(default)]
+    pub(crate) quest_gems: HashMap<String, Vec<String>>,
+    /// Gem id -> who sells it from then on, and to which classes.
+    #[serde(default)]
+    pub(crate) vendor_gems: HashMap<String, VendorGem>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub(crate) struct VendorGem {
+    pub(crate) classes: Vec<String>,
+    pub(crate) npc: String,
+}
+
+/// A gem to take or buy at a quest hand-in, for the imported Build.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GemPick {
+    pub gem_id: String,
+    pub name: String,
+    /// r / g / b / w
+    pub colour: String,
+    /// Who sells it (for purchases).
+    pub npc: Option<String>,
+}
+
+/// Parse the bundled quest data (shared by the Guide and gem planning).
+pub(crate) fn bundled_quests() -> HashMap<String, QuestInfo> {
+    serde_json::from_str(QUESTS_JSON).expect("bundled quests.json is valid")
 }
 
 /// One piece of an instruction: plain text or a tagged game term.
@@ -120,10 +150,20 @@ pub enum Fragment {
     PortalUse,
     Quest {
         name: String,
+        /// Quest and reward offer ids, for looking up rewards. A hand-in can
+        /// pay out several offers (separate reward picks).
+        quest_id: String,
+        offer_ids: Vec<String>,
         /// Who to hand it in to.
         npc: Option<String>,
         /// A book given as the reward.
         book: Option<Book>,
+        /// For the imported Build: the gems to take as rewards...
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        take: Vec<GemPick>,
+        /// ...and gems to buy now that this quest unlocked them.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        buy: Vec<GemPick>,
     },
     QuestItem {
         text: String,
@@ -195,8 +235,7 @@ pub struct GuideBook {
 
 impl GuideBook {
     pub fn bundled() -> Self {
-        let quests: HashMap<String, QuestInfo> =
-            serde_json::from_str(QUESTS_JSON).expect("bundled quests.json is valid");
+        let quests = bundled_quests();
         let areas: HashMap<String, AreaInfo> =
             serde_json::from_str(AREAS_JSON).expect("bundled areas.json is valid");
         let mut guides = HashMap::new();
@@ -440,17 +479,41 @@ fn with_quest_offers(
         let mut f = tag.split('|');
         (f.next()? == "quest").then(|| {
             let quest = f.next().unwrap_or_default().to_owned();
-            let offer = f.next().map_or_else(|| quest.clone(), str::to_owned);
-            (quest, offer)
+            // `{quest|id|offer...}` names offers; `{quest|id}` means all of them.
+            let named: Vec<String> = f.map(str::to_owned).collect();
+            (quest, named)
         })
     });
     for part in &mut parts {
-        if let Fragment::Quest { npc, book, .. } = part
-            && let Some((quest, offer)) = tags.next()
-            && let Some(o) = quests.get(&quest).and_then(|q| q.offers.get(&offer))
+        if let Fragment::Quest {
+            npc,
+            book,
+            quest_id,
+            offer_ids,
+            ..
+        } = part
+            && let Some((quest, named)) = tags.next()
         {
-            *npc = o.npc.clone();
-            *book = o.book;
+            let offers = quests.get(&quest).map(|q| &q.offers);
+            let ids: Vec<String> = if named.is_empty() {
+                let mut all: Vec<String> = offers
+                    .map(|o| o.keys().cloned().collect())
+                    .unwrap_or_default();
+                // Region-specific variants (Chinese client) aren't ours.
+                all.retain(|id| !id.ends_with("_tencent"));
+                all.sort();
+                all
+            } else {
+                named
+            };
+            let infos: Vec<&OfferInfo> = ids
+                .iter()
+                .filter_map(|id| offers.and_then(|o| o.get(id)))
+                .collect();
+            *npc = infos.iter().find_map(|o| o.npc.clone());
+            *book = infos.iter().find_map(|o| o.book);
+            *quest_id = quest;
+            *offer_ids = ids;
         }
     }
     parts
@@ -508,8 +571,12 @@ fn tag_fragment(tag: &str, comment: Option<&str>, name_of: &impl Fn(&str) -> Str
         "portal" => Fragment::PortalUse,
         "quest" => Fragment::Quest {
             name: comment.map_or_else(|| text(value), str::to_owned),
+            quest_id: String::new(),
+            offer_ids: Vec::new(),
             npc: None,
             book: None,
+            take: Vec::new(),
+            buy: Vec::new(),
         },
         "quest_text" => Fragment::QuestItem { text: text(value) },
         "kill" => Fragment::Kill { name: text(value) },
@@ -661,7 +728,9 @@ mod tests {
             .flat_map(|s| &s.lines)
             .flat_map(|l| &l.parts)
             .filter_map(|p| match p {
-                Fragment::Quest { name, npc, book } => Some((name.clone(), npc.clone(), *book)),
+                Fragment::Quest {
+                    name, npc, book, ..
+                } => Some((name.clone(), npc.clone(), *book)),
                 _ => None,
             })
             .collect();

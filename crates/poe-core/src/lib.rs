@@ -2,9 +2,11 @@
 
 pub mod area;
 pub mod clock;
+pub mod gems;
 pub mod guide;
 pub mod log;
 pub mod pb;
+pub mod pob;
 pub mod profile;
 pub mod run;
 pub mod tail;

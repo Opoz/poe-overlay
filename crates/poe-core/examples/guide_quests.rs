@@ -5,7 +5,10 @@ fn main() {
     for s in &book.guide(GuideOptions::default()).steps {
         for l in &s.lines {
             for p in &l.parts {
-                if let Fragment::Quest { name, npc, book } = p {
+                if let Fragment::Quest {
+                    name, npc, book, ..
+                } = p
+                {
                     println!(
                         "A{} {:<28} {:<18} {:?}",
                         s.act,
