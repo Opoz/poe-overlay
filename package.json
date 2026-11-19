@@ -11,7 +11,11 @@
 		"tauri": "tauri",
 		"check": "biome check . && tsc --noEmit",
 		"fix": "biome check --write .",
-		"test": "vitest run --passWithNoTests"
+		"test": "vitest run --passWithNoTests",
+		"gate": "node scripts/gate.mjs",
+		"preview:shots": "node scripts/preview.mjs",
+		"build:signed": "node scripts/build-signed.mjs",
+		"icon": "node scripts/icon.mjs"
 	},
 	"license": "MIT",
 	"dependencies": {

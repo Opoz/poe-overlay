@@ -32,8 +32,5 @@ The key has no password, so `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` can stay unset.
 
 ## Building locally
 
-`pnpm tauri build` signs the updater files, so it needs the key:
-
-```sh
-TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/poe-overlay.key)" pnpm tauri build
-```
+`pnpm tauri build` signs the updater files, so it needs the key. `pnpm build:signed`
+reads it from `~/.tauri/poe-overlay.key` and runs the build.
