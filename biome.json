@@ -7,7 +7,12 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**", "!crates/poe-core/data", "!src-tauri/gen"]
+		"includes": [
+			"**",
+			"!crates/poe-core/data",
+			"!src-tauri/gen",
+			"!src/preview/fixtures.json"
+		]
 	},
 	"formatter": {
 		"enabled": true,
