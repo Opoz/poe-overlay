@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { createSignal, For, onCleanup, Show } from "solid-js";
 import { onEvent } from "../events";
+import type { RegexCopied } from "../types";
 import StepView from "./StepView";
 import { guideCommand, toggleActView, useGuide } from "./useGuide";
 
@@ -11,6 +12,14 @@ export default function GuideOverlay() {
 	const [interact, setInteract] = createSignal(false);
 	onEvent<boolean>("interact-mode", setInteract);
 	invoke<boolean>("get_interact").then(setInteract);
+
+	const [copied, setCopied] = createSignal<RegexCopied | null>(null);
+	let hideCopied: number | undefined;
+	onEvent<RegexCopied>("regex-copied", (c) => {
+		setCopied(c);
+		clearTimeout(hideCopied);
+		hideCopied = window.setTimeout(() => setCopied(null), 3500);
+	});
 
 	// In Interact Mode the panel is a drag handle; otherwise buttons work.
 	const startDrag = (e: MouseEvent) => {
@@ -49,6 +58,15 @@ export default function GuideOverlay() {
 					>
 						⌖
 					</button>
+					<Show when={(guide()?.vendorRegex.length ?? 0) > 0}>
+						<button
+							type="button"
+							title="Copy the vendor search for the gems to buy here (Alt+R)"
+							onClick={() => invoke("copy_regex")}
+						>
+							🔍
+						</button>
+					</Show>
 					<button
 						type="button"
 						title="Full act (Alt+G)"
@@ -59,6 +77,15 @@ export default function GuideOverlay() {
 					</button>
 				</span>
 			</header>
+			<Show when={copied()}>
+				{(c) => (
+					<div class="toast">
+						{c().text
+							? `Vendor search copied${c().of > 1 ? ` (part ${c().part} of ${c().of})` : ""}: paste it into the vendor's search box`
+							: "Nothing to buy at this step"}
+					</div>
+				)}
+			</Show>
 			<Show when={interact()}>
 				<div class="hint">drag · Alt+E to lock</div>
 			</Show>

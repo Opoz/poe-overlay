@@ -4,6 +4,7 @@ import { onEvent } from "../events";
 import { formatDuration, formatLocalDate } from "../format";
 import type { Run, Settings, Status, TimerCommand } from "../types";
 import { useTimerView } from "../useTimerView";
+import BuildCard from "./BuildCard";
 import CharactersCard from "./CharactersCard";
 
 const command = (c: TimerCommand) => invoke("timer_command", { command: c });
@@ -129,6 +130,8 @@ export default function MainWindow() {
 			</section>
 
 			<CharactersCard />
+
+			<BuildCard />
 
 			<section class="card">
 				<h2>Settings</h2>

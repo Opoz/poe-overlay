@@ -14,10 +14,12 @@
 
 import { writeFile } from "node:fs/promises";
 
-const EXLEV = "https://raw.githubusercontent.com/HeartofPhos/exile-leveling/main/common/data/json";
+const EXLEV =
+	"https://raw.githubusercontent.com/HeartofPhos/exile-leveling/main/common/data/json";
 const ITEMS =
 	"https://raw.githubusercontent.com/repoe-fork/repoe-fork.github.io/master/data/base_items.json";
-const OUT = (name) => new URL(`../crates/poe-core/data/${name}`, import.meta.url);
+const OUT = (name) =>
+	new URL(`../crates/poe-core/data/${name}`, import.meta.url);
 
 const BOOKS = { "Book of Skill": "skill", "Book of Regrets": "regrets" };
 const COLOURS = { strength: "r", dexterity: "g", intelligence: "b", none: "w" };

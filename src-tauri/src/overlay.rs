@@ -20,13 +20,16 @@ pub const TREE: &str = "tree";
 pub const GUIDE: &str = "guide";
 /// The full-act Guide view.
 pub const ACT: &str = "act";
+/// Gem links for the current level.
+pub const GEMS: &str = "gems";
 
 /// (label, logical width, logical height, opacity)
-const WINDOWS: [(&str, f64, f64, f64); 4] = [
+const WINDOWS: [(&str, f64, f64, f64); 5] = [
     (TIMER, 280.0, 340.0, 1.0),
     (TREE, 800.0, 600.0, 1.0),
     (GUIDE, 380.0, 420.0, 1.0),
     (ACT, 520.0, 720.0, 1.0),
+    (GEMS, 320.0, 420.0, 1.0),
 ];
 
 pub fn create_overlays(app: &AppHandle, opacity: f64) -> tauri::Result<()> {

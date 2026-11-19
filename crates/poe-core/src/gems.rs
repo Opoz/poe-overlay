@@ -186,6 +186,44 @@ impl GemPlan {
     }
 }
 
+/// Add the Build's gem picks to a Guide view: what to take and buy at each
+/// hand-in shown, the current Step's Vendor Regex, and gems that can't be
+/// had from quests.
+pub fn decorate_view(
+    view: &mut crate::guide::GuideView,
+    data: &GemData,
+    guide: &Guide,
+    build: &Build,
+) {
+    let plan = GemPlan::build(data, guide, build);
+    for step in view
+        .current
+        .iter_mut()
+        .chain(view.upcoming.iter_mut())
+        .chain(view.act_steps.iter_mut())
+    {
+        plan.decorate(step);
+    }
+    view.vendor_regex = view
+        .current
+        .as_ref()
+        .map(|s| vendor_regex(step_purchases(s).iter().map(|g| g.name.as_str())))
+        .unwrap_or_default();
+    view.unobtainable = plan.unobtainable;
+}
+
+/// Gems to buy at a (decorated) Step.
+pub fn step_purchases(step: &crate::guide::Step) -> Vec<&GemPick> {
+    step.lines
+        .iter()
+        .flat_map(|l| &l.parts)
+        .flat_map(|p| match p {
+            Fragment::Quest { buy, .. } => buy.iter().collect::<Vec<_>>(),
+            _ => Vec::new(),
+        })
+        .collect()
+}
+
 /// Search strings for the vendor search box that highlight `gems`, each at
 /// most [`SEARCH_LIMIT`] characters (several if the names don't fit in one).
 pub fn vendor_regex<'a>(gems: impl IntoIterator<Item = &'a str>) -> Vec<String> {
@@ -211,6 +249,77 @@ pub fn vendor_regex<'a>(gems: impl IntoIterator<Item = &'a str>) -> Vec<String> 
         out.push(format!("\"{}\"", current.join("|")));
     }
     out
+}
+
+/// What the gem links Overlay shows.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GemsView {
+    pub character: Option<String>,
+    pub level: u32,
+    pub has_build: bool,
+    /// Skill Groups for the current level, gems coloured.
+    pub groups: Vec<GroupView>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GroupView {
+    pub label: Option<String>,
+    pub skill_set: Option<String>,
+    pub slot: Option<String>,
+    pub levels: Option<crate::pob::LevelRange>,
+    pub gems: Vec<GemView>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GemView {
+    pub name: String,
+    pub colour: String,
+    pub support: bool,
+    /// Can't be used yet at this character level.
+    pub too_high: bool,
+}
+
+impl GemsView {
+    pub fn build(data: &GemData, profile: Option<&crate::profile::Profile>) -> Self {
+        let level = profile.map_or(1, |p| p.level);
+        let build = profile.and_then(|p| p.build.as_ref());
+        let groups = build
+            .map(|b| {
+                groups_for_level(b, level)
+                    .into_iter()
+                    .map(|g| GroupView {
+                        label: g.label.clone(),
+                        skill_set: g.skill_set.clone(),
+                        slot: g.slot.clone(),
+                        levels: g.levels,
+                        gems: g
+                            .gems
+                            .iter()
+                            .filter(|gem| gem.enabled)
+                            .map(|gem| {
+                                let info = gem.gem_id.as_deref().and_then(|id| data.gem(id));
+                                GemView {
+                                    name: gem.name.clone(),
+                                    colour: info.map_or_else(|| "w".into(), |i| i.colour.clone()),
+                                    support: info.is_some_and(|i| i.support),
+                                    too_high: info.is_some_and(|i| i.level > level),
+                                }
+                            })
+                            .collect(),
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        Self {
+            character: profile.map(|p| p.name.clone()),
+            level,
+            has_build: build.is_some(),
+            groups,
+        }
+    }
 }
 
 /// Skill Groups for a character level: those whose range includes it, plus

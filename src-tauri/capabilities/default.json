@@ -2,6 +2,6 @@
 	"$schema": "../gen/schemas/desktop-schema.json",
 	"identifier": "default",
 	"description": "Main window and Overlays",
-	"windows": ["main", "timer", "tree", "guide", "act"],
+	"windows": ["main", "timer", "tree", "guide", "act", "gems"],
 	"permissions": ["core:default", "core:window:allow-start-dragging"]
 }

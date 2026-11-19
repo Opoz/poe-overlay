@@ -37,6 +37,7 @@ pub struct Settings {
     pub timer_overlay: OverlayPlacement,
     pub guide_overlay: OverlayPlacement,
     pub act_overlay: OverlayPlacement,
+    pub gems_overlay: OverlayPlacement,
     pub overlay_opacity: f64,
 }
 
@@ -49,6 +50,7 @@ impl Default for Settings {
             timer_overlay: OverlayPlacement { x: 0.01, y: 0.25 },
             guide_overlay: OverlayPlacement { x: 0.01, y: 0.55 },
             act_overlay: OverlayPlacement { x: 0.3, y: 0.08 },
+            gems_overlay: OverlayPlacement { x: 0.78, y: 0.3 },
             overlay_opacity: 1.0,
         }
     }

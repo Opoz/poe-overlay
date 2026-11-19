@@ -12,6 +12,7 @@ use std::{
 };
 
 use poe_core::{
+    gems::GemsView,
     guide::{GuideCommand, GuideOptions, GuideView},
     run::{Command, Run},
     tree::{TreeNode, TreeView},
@@ -37,6 +38,10 @@ pub struct AppState {
     interact: AtomicBool,
     /// The full-act Guide view is open.
     act_view: AtomicBool,
+    /// The gem links Overlay is showing.
+    gems_visible: AtomicBool,
+    /// Which Vendor Regex chunk the next Alt+R copies, and for which list.
+    regex_cursor: Mutex<(Vec<String>, usize)>,
 }
 
 /// Event carrying a fresh [`TimerView`] to every window.
@@ -48,6 +53,10 @@ const INTERACT: &str = "interact-mode";
 const TREE_VIEW: &str = "tree-view";
 /// Event carrying a fresh [`GuideView`] (plus whether the act view is open).
 const GUIDE_VIEW: &str = "guide-view";
+/// Event carrying a fresh [`GemsView`] (plus whether it's showing).
+const GEMS_VIEW: &str = "gems-view";
+/// Event: a Vendor Regex was copied (or there was nothing to copy).
+const REGEX_COPIED: &str = "regex-copied";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -56,7 +65,7 @@ struct Status {
     game_running: bool,
 }
 
-fn hotkeys() -> [(Shortcut, Hotkey); 10] {
+fn hotkeys() -> [(Shortcut, Hotkey); 12] {
     let alt = Some(Modifiers::ALT);
     let alt_shift = Some(Modifiers::ALT | Modifiers::SHIFT);
     [
@@ -88,6 +97,8 @@ fn hotkeys() -> [(Shortcut, Hotkey); 10] {
             Hotkey::Guide(GuideCommand::FindMe),
         ),
         (Shortcut::new(alt, Code::KeyG), Hotkey::ActView),
+        (Shortcut::new(alt, Code::KeyL), Hotkey::GemLinks),
+        (Shortcut::new(alt, Code::KeyR), Hotkey::VendorRegex),
     ]
 }
 
@@ -99,6 +110,8 @@ enum Hotkey {
     Calibrate,
     Guide(GuideCommand),
     ActView,
+    GemLinks,
+    VendorRegex,
 }
 
 fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
@@ -128,7 +141,147 @@ fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
             state.act_view.fetch_xor(true, Ordering::SeqCst);
             emit_guide(app);
         }
+        Hotkey::GemLinks => {
+            state.gems_visible.fetch_xor(true, Ordering::SeqCst);
+            emit_gems(app);
+        }
+        Hotkey::VendorRegex => copy_vendor_regex(app),
     }
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RegexCopied {
+    text: Option<String>,
+    /// 1-based part, when the gems need several searches.
+    part: usize,
+    of: usize,
+}
+
+/// Copy the current Step's Vendor Regex; repeated presses cycle through the
+/// parts when the gems don't fit in one search.
+fn copy_vendor_regex(app: &AppHandle) {
+    use tauri_plugin_clipboard_manager::ClipboardExt;
+    let state = app.state::<AppState>();
+    let regexes = state.tracker.lock().unwrap().guide_view().vendor_regex;
+    let mut cursor = state.regex_cursor.lock().unwrap();
+    if cursor.0 != regexes {
+        *cursor = (regexes.clone(), 0);
+    }
+    let payload = match regexes.get(cursor.1) {
+        Some(text) => {
+            let _ = app.clipboard().write_text(text.clone());
+            let part = cursor.1 + 1;
+            cursor.1 = part % regexes.len();
+            RegexCopied {
+                text: Some(text.clone()),
+                part,
+                of: regexes.len(),
+            }
+        }
+        None => RegexCopied {
+            text: None,
+            part: 0,
+            of: 0,
+        },
+    };
+    let _ = app.emit(REGEX_COPIED, payload);
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct GemsPayload {
+    #[serde(flatten)]
+    view: GemsView,
+    visible: bool,
+}
+
+fn gems_payload(app: &AppHandle) -> GemsPayload {
+    let state = app.state::<AppState>();
+    let view = state.tracker.lock().unwrap().gems_view();
+    GemsPayload {
+        view,
+        visible: state.gems_visible.load(Ordering::SeqCst),
+    }
+}
+
+/// Sends the gem links only when they changed.
+fn emit_gems(app: &AppHandle) {
+    static LAST: Mutex<String> = Mutex::new(String::new());
+    let payload = gems_payload(app);
+    let Ok(json) = serde_json::to_string(&payload) else {
+        return;
+    };
+    let mut last = LAST.lock().unwrap();
+    if *last != json {
+        let _ = app.emit(GEMS_VIEW, payload);
+        *last = json;
+    }
+}
+
+#[tauri::command]
+fn get_gems_view(app: AppHandle) -> GemsPayload {
+    gems_payload(&app)
+}
+
+#[tauri::command]
+fn toggle_gems(app: AppHandle, state: tauri::State<AppState>) {
+    state.gems_visible.fetch_xor(true, Ordering::SeqCst);
+    emit_gems(&app);
+}
+
+#[tauri::command]
+fn copy_regex(app: AppHandle) {
+    copy_vendor_regex(&app);
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ImportSummary {
+    class: String,
+    ascendancy: Option<String>,
+    skill_groups: usize,
+    tree_stages: usize,
+}
+
+/// Import a Path of Building code or pobb.in / pastebin link for a Character.
+#[tauri::command]
+async fn import_build(
+    app: AppHandle,
+    name: String,
+    input: String,
+) -> Result<ImportSummary, String> {
+    let code = match poe_core::pob::source(&input) {
+        poe_core::pob::Source::Code(code) => code,
+        poe_core::pob::Source::Fetch(url) => tauri::async_runtime::spawn_blocking(move || {
+            ureq::get(&url)
+                .call()
+                .map_err(|e| format!("could not fetch the link: {e}"))?
+                .body_mut()
+                .read_to_string()
+                .map_err(|e| format!("could not read the link: {e}"))
+        })
+        .await
+        .map_err(|e| e.to_string())??,
+    };
+    let build = poe_core::pob::import(&code).map_err(|e| e.to_string())?;
+    let summary = ImportSummary {
+        class: build.class.clone(),
+        ascendancy: build.ascendancy.clone(),
+        skill_groups: build.skill_groups.len(),
+        tree_stages: build.tree_stages.len(),
+    };
+    let stored = app.state::<AppState>().tracker.lock().unwrap().set_build(
+        &name,
+        build,
+        input.trim().to_owned(),
+    );
+    if !stored {
+        return Err(format!("no character named {name}"));
+    }
+    emit_guide(&app);
+    emit_gems(&app);
+    Ok(summary)
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -382,6 +535,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                 emit_view(&app);
                 emit_tree(&app);
                 emit_guide(&app);
+                emit_gems(&app);
                 last_emit = Instant::now();
             }
 
@@ -426,6 +580,12 @@ fn spawn_tracking_loop(app: AppHandle) {
                         clickable: true,
                     },
                     overlay::Wanted {
+                        label: overlay::GEMS,
+                        anchor: overlay::Anchor::At(settings.gems_overlay),
+                        visible: state.gems_visible.load(Ordering::SeqCst),
+                        clickable: false,
+                    },
+                    overlay::Wanted {
                         label: overlay::ACT,
                         anchor: overlay::Anchor::At(settings.act_overlay),
                         visible: state.act_view.load(Ordering::SeqCst),
@@ -442,6 +602,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                         overlay::TIMER => settings.timer_overlay = placement,
                         overlay::GUIDE => settings.guide_overlay = placement,
                         overlay::ACT => settings.act_overlay = placement,
+                        overlay::GEMS => settings.gems_overlay = placement,
                         _ => {}
                     }
                 }
@@ -502,6 +663,7 @@ pub fn run() {
     let tracker = Tracker::new(storage, &settings);
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, shortcut, event| {
@@ -519,6 +681,8 @@ pub fn run() {
             settings: Mutex::new(settings),
             interact: AtomicBool::new(false),
             act_view: AtomicBool::new(false),
+            gems_visible: AtomicBool::new(false),
+            regex_cursor: Mutex::new((Vec::new(), 0)),
         })
         .invoke_handler(tauri::generate_handler![
             get_timer_view,
@@ -538,6 +702,10 @@ pub fn run() {
             guide_command,
             toggle_act_view,
             set_guide_options,
+            get_gems_view,
+            toggle_gems,
+            copy_regex,
+            import_build,
             rebuild_passives,
         ])
         .on_window_event(|window, event| {

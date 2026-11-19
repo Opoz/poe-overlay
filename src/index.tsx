@@ -1,6 +1,7 @@
 /* @refresh reload */
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { render } from "solid-js/web";
+import GemsOverlay from "./gems/GemsOverlay";
 import ActOverlay from "./guide/ActOverlay";
 import GuideOverlay from "./guide/GuideOverlay";
 import MainWindow from "./main/MainWindow";
@@ -17,5 +18,6 @@ render(() => {
 	if (label === "tree") return <TreeOverlay />;
 	if (label === "guide") return <GuideOverlay />;
 	if (label === "act") return <ActOverlay />;
+	if (label === "gems") return <GemsOverlay />;
 	return <MainWindow />;
 }, document.getElementById("root") as HTMLElement);

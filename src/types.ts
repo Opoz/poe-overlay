@@ -62,6 +62,14 @@ export interface Profile {
 	guideOptions: GuideOptions;
 	guideStep: number | null;
 	lastArea: string | null;
+	build: {
+		class: string;
+		ascendancy: string | null;
+		skillGroups: unknown[];
+		treeStages: unknown[];
+	} | null;
+	buildSource: string | null;
+	banditSetByHand: boolean;
 }
 
 export interface TreeNode {
@@ -153,6 +161,8 @@ export type Fragment =
 			name: string;
 			npc: string | null;
 			book: "skill" | "regrets" | null;
+			take?: GemPick[];
+			buy?: GemPick[];
 	  }
 	| { kind: "questItem"; text: string }
 	| { kind: "kill"; name: string }
@@ -177,6 +187,13 @@ export interface GuideStep {
 	lines: GuideLine[];
 }
 
+export interface GemPick {
+	gemId: string;
+	name: string;
+	colour: "r" | "g" | "b" | "w";
+	npc: string | null;
+}
+
 export interface GuidePayload {
 	character: string | null;
 	options: GuideOptions;
@@ -186,6 +203,49 @@ export interface GuidePayload {
 	upcoming: GuideStep[];
 	actSteps: GuideStep[];
 	actView: boolean;
+	vendorRegex: string[];
+	unobtainable: GemPick[];
+}
+
+export interface LevelRange {
+	from: number;
+	to: number | null;
+}
+
+export interface GemView {
+	name: string;
+	colour: "r" | "g" | "b" | "w";
+	support: boolean;
+	tooHigh: boolean;
+}
+
+export interface GroupView {
+	label: string | null;
+	skillSet: string | null;
+	slot: string | null;
+	levels: LevelRange | null;
+	gems: GemView[];
+}
+
+export interface GemsPayload {
+	character: string | null;
+	level: number;
+	hasBuild: boolean;
+	groups: GroupView[];
+	visible: boolean;
+}
+
+export interface RegexCopied {
+	text: string | null;
+	part: number;
+	of: number;
+}
+
+export interface BuildSummary {
+	class: string;
+	ascendancy: string | null;
+	skillGroups: number;
+	treeStages: number;
 }
 
 export type GuideCommand = "next" | "previous" | "findMe";

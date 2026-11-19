@@ -96,6 +96,39 @@ impl std::fmt::Display for PobError {
     }
 }
 
+/// What the player pasted: an export code, or a link to fetch one from.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Source {
+    Code(String),
+    /// URL that returns the raw export code.
+    Fetch(String),
+}
+
+/// Recognise pobb.in and pastebin links (fetched as raw code); anything else
+/// is treated as a code.
+pub fn source(input: &str) -> Source {
+    let s = input.trim();
+    let path = s
+        .trim_start_matches("https://")
+        .trim_start_matches("http://")
+        .trim_start_matches("www.");
+    let id = |rest: &str| {
+        rest.trim_start_matches('/')
+            .trim_start_matches("raw/")
+            .split(['/', '?', '#'])
+            .next()
+            .unwrap_or_default()
+            .to_owned()
+    };
+    if let Some(rest) = path.strip_prefix("pobb.in") {
+        return Source::Fetch(format!("https://pobb.in/{}/raw", id(rest)));
+    }
+    if let Some(rest) = path.strip_prefix("pastebin.com") {
+        return Source::Fetch(format!("https://pastebin.com/raw/{}", id(rest)));
+    }
+    Source::Code(s.to_owned())
+}
+
 /// Decode a PoB export code into its XML.
 pub fn decode(code: &str) -> Result<String, PobError> {
     let cleaned: String = code
@@ -413,6 +446,27 @@ mod tests {
         let code = encode(XML);
         let messy = format!("  {}\n", code.replace('-', "+").replace('_', "/"));
         assert!(import(&messy).is_ok());
+    }
+
+    #[test]
+    fn recognises_links() {
+        assert_eq!(
+            source(" https://pobb.in/AbC123 "),
+            Source::Fetch("https://pobb.in/AbC123/raw".into())
+        );
+        assert_eq!(
+            source("pobb.in/AbC123/raw"),
+            Source::Fetch("https://pobb.in/AbC123/raw".into())
+        );
+        assert_eq!(
+            source("https://pastebin.com/xyz789"),
+            Source::Fetch("https://pastebin.com/raw/xyz789".into())
+        );
+        assert_eq!(
+            source("https://pastebin.com/raw/xyz789"),
+            Source::Fetch("https://pastebin.com/raw/xyz789".into())
+        );
+        assert_eq!(source("eNrtWl1v2zYU"), Source::Code("eNrtWl1v2zYU".into()));
     }
 
     #[test]

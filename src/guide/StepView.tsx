@@ -1,5 +1,5 @@
 import { For, Show } from "solid-js";
-import type { Fragment, GuideStep } from "../types";
+import type { Fragment, GemPick, GuideStep } from "../types";
 
 /** One Guide Step: the Area, then its instructions with notes. */
 export default function StepView(props: {
@@ -92,6 +92,16 @@ function Part(props: { part: Fragment }) {
 							respec
 						</span>
 					)}
+					{(p.take?.length ?? 0) > 0 && (
+						<span class="gem-line">
+							take <Gems gems={p.take ?? []} />
+						</span>
+					)}
+					{(p.buy?.length ?? 0) > 0 && (
+						<span class="gem-line">
+							buy <Gems gems={p.buy ?? []} showNpc />
+						</span>
+					)}
 				</>
 			);
 		case "questItem":
@@ -121,4 +131,33 @@ function Part(props: { part: Fragment }) {
 				</span>
 			);
 	}
+}
+
+/** Gems as coloured chips; purchases grouped by who sells them. */
+function Gems(props: { gems: GemPick[]; showNpc?: boolean }) {
+	const byNpc = () => {
+		const groups = new Map<string, GemPick[]>();
+		for (const g of props.gems) {
+			const key = props.showNpc ? (g.npc ?? "") : "";
+			groups.set(key, [...(groups.get(key) ?? []), g]);
+		}
+		return [...groups.entries()];
+	};
+	return (
+		<For each={byNpc()}>
+			{([npc, gems]) => (
+				<>
+					<For each={gems}>
+						{(g) => <span class={`gem gem-${g.colour}`}>{g.name}</span>}
+					</For>
+					{npc && (
+						<>
+							{" "}
+							from <span class="t-npc">{npc}</span>{" "}
+						</>
+					)}
+				</>
+			)}
+		</For>
+	);
 }

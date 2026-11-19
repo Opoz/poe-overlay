@@ -4,8 +4,10 @@ use std::path::PathBuf;
 
 use poe_core::{
     clock::Millis,
+    gems::{GemData, GemsView, decorate_view},
     guide::{GuideBook, GuideCommand, GuideOptions, GuideView},
     log::LogEvent,
+    pob::Build,
     profile::Profile,
     run::{Command, Run, RunTimer, TimerEvent, TimerSettings},
     tail::LogTail,
@@ -32,6 +34,7 @@ pub struct Tracker {
     tree: PassiveTree,
     tree_overlay: TreeOverlay,
     guides: GuideBook,
+    gem_data: GemData,
 }
 
 impl Tracker {
@@ -58,6 +61,7 @@ impl Tracker {
             tree: PassiveTree::bundled(),
             tree_overlay: session.tree,
             guides: GuideBook::bundled(),
+            gem_data: GemData::bundled(),
         }
     }
 
@@ -202,7 +206,30 @@ impl Tracker {
     pub fn guide_view(&self) -> GuideView {
         let active = self.timer.active();
         let profile = active.and_then(|n| self.timer.profiles().find(|p| p.name == n));
-        GuideView::build(&self.guides, profile)
+        let mut view = GuideView::build(&self.guides, profile);
+        if let Some(p) = profile
+            && let Some(build) = &p.build
+        {
+            let guide = self.guides.guide(p.guide_options);
+            decorate_view(&mut view, &self.gem_data, guide, build);
+        }
+        view
+    }
+
+    pub fn gems_view(&self) -> GemsView {
+        let active = self.timer.active();
+        let profile = active.and_then(|n| self.timer.profiles().find(|p| p.name == n));
+        GemsView::build(&self.gem_data, profile)
+    }
+
+    /// Attach an imported Build to a Character.
+    pub fn set_build(&mut self, name: &str, build: Build, source: String) -> bool {
+        let Some(profile) = self.timer.profile_mut(name) else {
+            return false;
+        };
+        profile.apply_build(build, source);
+        self.save_session();
+        true
     }
 
     pub fn guide_command(&mut self, command: GuideCommand) {
@@ -214,6 +241,9 @@ impl Tracker {
 
     pub fn set_guide_options(&mut self, name: &str, options: GuideOptions) {
         if let Some(profile) = self.timer.profile_mut(name) {
+            if profile.guide_options.bandit != options.bandit {
+                profile.bandit_set_by_hand = true;
+            }
             profile.guide_options = options;
             self.save_session();
         }

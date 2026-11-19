@@ -615,6 +615,13 @@ pub struct GuideView {
     pub upcoming: Vec<Step>,
     /// Every Step of the current act, for the full-act view.
     pub act_steps: Vec<Step>,
+    /// Vendor Regex for the gems to buy at the current Step (filled in when
+    /// a Build is imported).
+    #[serde(default)]
+    pub vendor_regex: Vec<String>,
+    /// Build gems no quest or vendor provides for this class.
+    #[serde(default)]
+    pub unobtainable: Vec<GemPick>,
 }
 
 impl GuideView {
@@ -644,6 +651,8 @@ impl GuideView {
                 .filter(|s| s.act == act)
                 .cloned()
                 .collect(),
+            vendor_regex: Vec::new(),
+            unobtainable: Vec::new(),
             current,
         }
     }
