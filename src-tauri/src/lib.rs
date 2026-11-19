@@ -796,6 +796,12 @@ fn spawn_tracking_loop(app: AppHandle) {
                 &app,
                 game.is_some_and(|g| platform::foreground_window() == g),
             );
+            // A leftover "Show tree" button only lasts until the next area.
+            if state.tracker.lock().unwrap().take_area_changed()
+                && state.tree_pill.swap(false, Ordering::SeqCst)
+            {
+                emit_tree(&app);
+            }
             // Final Izaro room: offer "Show ascendancy" for the plaque.
             if state.tracker.lock().unwrap().take_lab_end() {
                 state.tree_pill.store(true, Ordering::SeqCst);

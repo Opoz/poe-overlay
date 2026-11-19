@@ -39,6 +39,10 @@ pub struct Tracker {
     lab: LabState,
     /// Entered the final lab room since the shell last checked.
     lab_end_entered: bool,
+    /// Ascendancy mode was switched on by the final lab room (not by hand).
+    ascendancy_auto: bool,
+    /// Entered any Area since the shell last checked.
+    area_changed: bool,
     /// Area ID from the last "Generating level" line, paired with the
     /// following "You have entered" line (which has the room name).
     pending_area: Option<String>,
@@ -72,6 +76,8 @@ impl Tracker {
             lab: session.lab,
             pending_area: None,
             lab_end_entered: false,
+            ascendancy_auto: false,
+            area_changed: false,
         }
     }
 
@@ -111,8 +117,13 @@ impl Tracker {
             events.extend(self.timer.on_record(record));
             if let LogEvent::AreaGenerated { area_id, .. } = &record.event {
                 self.pending_area = Some(area_id.clone());
+                self.area_changed = true;
                 if area_id.contains("Labyrinth") && area_id.contains("_end") {
                     self.lab_end_entered = true;
+                } else if self.ascendancy_auto {
+                    // Left the plaque room: back to the main tree.
+                    self.tree_overlay.ascendancy = false;
+                    self.ascendancy_auto = false;
                 }
                 if let Some(profile) = self.timer.active_profile_mut() {
                     self.guides.on_area(profile, area_id);
@@ -251,11 +262,17 @@ impl Tracker {
     pub fn take_lab_end(&mut self) -> bool {
         let entered = self.lab_end_entered;
         self.lab_end_entered = false;
-        if entered {
+        if entered && !self.tree_overlay.ascendancy {
             // The plaque opens the ascendancy panel: be ready for it.
             self.tree_overlay.ascendancy = true;
+            self.ascendancy_auto = true;
         }
         entered
+    }
+
+    /// Entered any Area since last asked.
+    pub fn take_area_changed(&mut self) -> bool {
+        std::mem::take(&mut self.area_changed)
     }
 
     pub fn set_allocations(&mut self, name: &str, allocations: poe_core::tree::Allocations) {

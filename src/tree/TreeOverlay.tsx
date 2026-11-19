@@ -49,9 +49,7 @@ export default function TreeOverlay() {
 		if (
 			v?.visible &&
 			v.transform &&
-			(v.planned.length > 0 ||
-				v.plannedMasteries.length > 0 ||
-				v.ascendancyPlanned.length > 0)
+			(v.planned.length > 0 || v.plannedMasteries.length > 0)
 		) {
 			setPulse((Math.sin(performance.now() / 450) + 1) / 2);
 		}
@@ -170,7 +168,7 @@ function draw(
 
 	if (!nodes || !view || view.calibrating) return;
 	if (view.ascendancy) {
-		drawAscendancy(ctx, nodes, view, pulse);
+		drawAscendancy(ctx, nodes, view);
 		return;
 	}
 	const t = view.transform;
@@ -364,7 +362,6 @@ function drawAscendancy(
 	ctx: CanvasRenderingContext2D,
 	nodes: TreeNode[],
 	view: TreeView,
-	pulse: number,
 ) {
 	const t = view.ascendancyTransform;
 	const name = view.ascendancyName;
@@ -408,25 +405,25 @@ function drawAscendancy(
 		ctx.stroke();
 	}
 
-	const numPx = Math.max(17, 46 * t.scale);
-	const badgeR = numPx * 0.72;
-	ctx.font = `700 ${numPx}px "Segoe UI", sans-serif`;
+	// Planned ascendancy nodes: a quiet dashed ring and a small number (it's a
+	// small area; the order matters less than on the main tree).
+	const numPx = Math.max(12, 30 * t.scale);
+	ctx.setLineDash([4, 3]);
+	ctx.lineWidth = 2;
+	ctx.strokeStyle = "rgba(242, 201, 76, 0.75)";
+	ctx.font = `600 ${numPx}px "Segoe UI", sans-serif`;
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
 	view.ascendancyPlanned.forEach((id, i) => {
 		const n = byId.get(id);
 		if (!n) return;
 		const [x, y] = at(n);
-		ctx.strokeStyle = `rgba(255, 220, 120, ${0.5 + pulse * 0.5})`;
-		ctx.lineWidth = 2 + pulse * 3;
+		const r = Math.max(6, RADIUS[n.kind] * t.scale);
 		ctx.beginPath();
-		ctx.arc(x, y, badgeR + 3 + pulse * 4, 0, Math.PI * 2);
+		ctx.arc(x, y, r, 0, Math.PI * 2);
 		ctx.stroke();
-		ctx.fillStyle = "rgba(242, 201, 76, 1)";
-		ctx.beginPath();
-		ctx.arc(x, y, badgeR, 0, Math.PI * 2);
-		ctx.fill();
-		ctx.fillStyle = "rgba(18, 19, 22, 1)";
-		ctx.fillText(String(i + 1), x, y + numPx * 0.05);
+		ctx.fillStyle = "rgba(242, 201, 76, 0.9)";
+		ctx.fillText(String(i + 1), x + r + numPx * 0.5, y - r);
 	});
+	ctx.setLineDash([]);
 }
