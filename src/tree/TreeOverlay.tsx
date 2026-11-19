@@ -198,61 +198,61 @@ function draw(
 		ctx.stroke();
 	}
 
-	// Next Points from the Build: breathing gold rings, the next few numbered.
+	// Next Points from the Build. The next few are gold numbered badges
+	// centred on the node with a breathing glow; the rest are dashed rings.
 	const NUMBERED = 10;
+	const numPx = Math.max(17, 46 * t.scale);
+	const badgeR = numPx * 0.72;
 	ctx.setLineDash([Math.max(3, 12 * t.scale), Math.max(2, 8 * t.scale)]);
 	ctx.lineWidth = Math.max(2, 6 * t.scale);
-	view.planned.forEach((id, i) => {
+	ctx.strokeStyle = "rgba(242, 201, 76, 0.5)";
+	for (const id of view.planned.slice(NUMBERED)) {
 		const n = byId.get(id);
-		if (!n) return;
+		if (!n) continue;
 		const [x, y] = at(n);
-		const next = i < NUMBERED;
-		ctx.lineWidth = next
-			? Math.max(2, 6 * t.scale) * (1 + pulse * 1.2)
-			: Math.max(2, 6 * t.scale);
-		ctx.strokeStyle = `rgba(242, 201, 76, ${next ? 0.45 + pulse * 0.55 : 0.45})`;
 		ctx.beginPath();
 		ctx.arc(x, y, Math.max(4, RADIUS[n.kind] * t.scale), 0, Math.PI * 2);
 		ctx.stroke();
-	});
+	}
 	ctx.setLineDash([]);
-	// Glow outside the ring (added light, so it brightens what's under it).
+
+	const next = view.planned
+		.slice(0, NUMBERED)
+		.map((id, i) => ({ n: byId.get(id), i }))
+		.filter((x): x is { n: TreeNode; i: number } => !!x.n);
+	// Glow first (added light, brightening the tree under it)...
 	ctx.globalCompositeOperation = "lighter";
-	view.planned.slice(0, NUMBERED).forEach((id) => {
-		const n = byId.get(id);
-		if (!n) return;
+	for (const { n } of next) {
 		const [x, y] = at(n);
-		const r = Math.max(6, RADIUS[n.kind] * t.scale);
-		const outer = r * (1.9 + pulse * 1.3);
-		const glow = ctx.createRadialGradient(x, y, r, x, y, outer);
-		glow.addColorStop(0, `rgba(242, 201, 76, ${0.25 + pulse * 0.45})`);
-		glow.addColorStop(1, "rgba(242, 201, 76, 0)");
+		const outer = badgeR * (2 + pulse * 1.6);
+		const glow = ctx.createRadialGradient(x, y, badgeR * 0.8, x, y, outer);
+		glow.addColorStop(0, `rgba(255, 206, 84, ${0.35 + pulse * 0.5})`);
+		glow.addColorStop(1, "rgba(255, 206, 84, 0)");
 		ctx.fillStyle = glow;
 		ctx.beginPath();
 		ctx.arc(x, y, outer, 0, Math.PI * 2);
-		ctx.arc(x, y, r, 0, Math.PI * 2, true);
 		ctx.fill();
-	});
+	}
 	ctx.globalCompositeOperation = "source-over";
-	const numPx = Math.max(17, 46 * t.scale);
+	// ...then a pulsing ring and the solid numbered badge on top.
 	ctx.font = `700 ${numPx}px "Segoe UI", sans-serif`;
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
-	view.planned.slice(0, NUMBERED).forEach((id, i) => {
-		const n = byId.get(id);
-		if (!n) return;
+	for (const { n, i } of next) {
 		const [x, y] = at(n);
-		const r = Math.max(4, RADIUS[n.kind] * t.scale);
-		const bx = x + r * 0.9;
-		const by = y - r * 0.9;
+		ctx.strokeStyle = `rgba(255, 220, 120, ${0.5 + pulse * 0.5})`;
+		ctx.lineWidth = 2 + pulse * 3;
+		ctx.beginPath();
+		ctx.arc(x, y, badgeR + 3 + pulse * 4, 0, Math.PI * 2);
+		ctx.stroke();
 		// Solid gold badge, dark number: unlike the outlined mastery numbers.
 		ctx.fillStyle = "rgba(242, 201, 76, 1)";
 		ctx.beginPath();
-		ctx.arc(bx, by, numPx * 0.7, 0, Math.PI * 2);
+		ctx.arc(x, y, badgeR, 0, Math.PI * 2);
 		ctx.fill();
 		ctx.fillStyle = "rgba(18, 19, 22, 1)";
-		ctx.fillText(String(i + 1), bx, by + numPx * 0.05);
-	});
+		ctx.fillText(String(i + 1), x, y + numPx * 0.05);
+	}
 
 	// Planned mastery picks (blue) and ones already made (gold).
 	drawMasteryBadges(

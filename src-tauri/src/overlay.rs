@@ -60,6 +60,19 @@ pub fn create_overlays(app: &AppHandle, opacity: f64) -> tauri::Result<()> {
     Ok(())
 }
 
+/// Put the small Overlays back above the full-window tree Overlay. Clicking
+/// the tree Overlay's content can bring it to the front (the web view inside
+/// it isn't covered by "never activate").
+pub fn raise_small(app: &AppHandle) {
+    for (label, ..) in WINDOWS {
+        if label != TREE
+            && let Some(h) = app.get_webview_window(label).as_ref().and_then(raw)
+        {
+            platform::raise(h);
+        }
+    }
+}
+
 fn raw(window: &WebviewWindow) -> Option<RawHwnd> {
     window.hwnd().ok().map(|h| h.0 as RawHwnd)
 }

@@ -570,6 +570,7 @@ fn tree_click(app: AppHandle, state: tauri::State<AppState>, x: f64, y: f64) {
         .and_then(platform::game_rect)
         .map_or(0.0, |r| f64::from(r.height));
     state.tracker.lock().unwrap().tree_click(x, y, height);
+    overlay::raise_small(&app);
     emit_tree(&app);
 }
 
