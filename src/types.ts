@@ -58,6 +58,7 @@ export interface Profile {
 	lastSeen: number;
 	run: Run | null;
 	passives: string[];
+	masteries: Record<string, number>;
 }
 
 export interface TreeNode {
@@ -96,6 +97,7 @@ export interface TreeView {
 	classStart: TreeNode | null;
 	partner: TreeNode | null;
 	allocated: number[];
+	masteries: { node: number; option: number }[];
 }
 
 export interface Characters {

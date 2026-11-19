@@ -139,13 +139,14 @@ impl Tracker {
     pub fn tree_view(&self) -> TreeView {
         let active = self.timer.active();
         let profile = active.and_then(|n| self.timer.profiles().find(|p| p.name == n));
-        let empty = Default::default();
+        let (no_passives, no_masteries) = (Default::default(), Default::default());
         TreeView::build(
             &self.tree,
             &self.tree_overlay,
             active,
             profile.and_then(|p| p.class.as_deref()),
-            profile.map_or(&empty, |p| &p.passives),
+            profile.map_or(&no_passives, |p| &p.passives),
+            profile.map_or(&no_masteries, |p| &p.masteries),
         )
     }
 
@@ -184,8 +185,8 @@ impl Tracker {
         true
     }
 
-    pub fn set_passives(&mut self, name: &str, passives: std::collections::BTreeSet<String>) {
-        self.timer.set_passives(name, passives);
+    pub fn set_allocations(&mut self, name: &str, allocations: poe_core::tree::Allocations) {
+        self.timer.set_allocations(name, allocations);
         self.save_session();
     }
 

@@ -319,10 +319,11 @@ impl RunTimer {
         self.state.profiles.get_mut(name)
     }
 
-    /// Replace a Character's passives (e.g. rebuilt from the whole Client Log).
-    pub fn set_passives(&mut self, name: &str, passives: std::collections::BTreeSet<String>) {
+    /// Replace a Character's allocations (e.g. rebuilt from the whole Client Log).
+    pub fn set_allocations(&mut self, name: &str, allocations: crate::tree::Allocations) {
         if let Some(p) = self.state.profiles.get_mut(name) {
-            p.passives = passives;
+            p.passives = allocations.passives;
+            p.masteries = allocations.masteries;
         }
     }
 
@@ -399,6 +400,13 @@ impl RunTimer {
             LogEvent::PassiveUnallocated { id, .. } => {
                 if let Some(p) = self.active_profile_mut() {
                     p.passives.remove(id);
+                    p.masteries.remove(id);
+                }
+            }
+            LogEvent::MasteryEffectAllocated { effect, mastery } => {
+                if let Some(p) = self.active_profile_mut() {
+                    p.passives.insert(mastery.clone());
+                    p.masteries.insert(mastery.clone(), *effect);
                 }
             }
             LogEvent::LoadingScreen { seconds, .. } => {
@@ -508,6 +516,7 @@ impl RunTimer {
             run.class = Some(class.to_owned());
             // A reused name: a new Character, so its old passives are gone too.
             profile.passives.clear();
+            profile.masteries.clear();
             // A reused name: the old Character's unfinished Run is over.
             if let Some(old) = profile.run.replace(run)
                 && !old.is_finished()

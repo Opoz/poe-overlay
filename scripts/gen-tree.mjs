@@ -71,6 +71,10 @@ for (const n of Object.values(ggg.nodes)) {
 		...(n.classStartIndex !== undefined
 			? { classStart: n.classStartIndex }
 			: {}),
+		// In the order the game lists them, so a pick's position is its option number.
+		...(n.masteryEffects?.length
+			? { masteryEffects: n.masteryEffects.map((e) => e.effect) }
+			: {}),
 		out: (n.out ?? []).map(Number),
 	});
 	kept.add(n.skill);

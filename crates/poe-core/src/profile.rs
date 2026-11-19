@@ -1,6 +1,6 @@
 //! Profiles: what the app keeps per Character.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
@@ -20,6 +20,9 @@ pub struct Profile {
     /// Allocated passives, as Client Log passive ids.
     #[serde(default)]
     pub passives: BTreeSet<String>,
+    /// Picked mastery effect per mastery (both by Client Log id).
+    #[serde(default)]
+    pub masteries: BTreeMap<String, u32>,
 }
 
 impl Profile {
@@ -31,6 +34,7 @@ impl Profile {
             last_seen: 0,
             run: None,
             passives: BTreeSet::new(),
+            masteries: BTreeMap::new(),
         }
     }
 }

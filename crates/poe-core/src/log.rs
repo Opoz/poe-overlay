@@ -64,6 +64,11 @@ pub enum LogEvent {
         id: String,
         name: String,
     },
+    /// A mastery effect was picked. `mastery` is the mastery's passive id.
+    MasteryEffectAllocated {
+        effect: u32,
+        mastery: String,
+    },
     /// A loading screen finished, with its measured duration.
     LoadingScreen {
         area_name: String,
@@ -120,6 +125,15 @@ fn parse_message(msg: &str) -> Option<LogEvent> {
     if let Some(rest) = msg.strip_prefix("Successfully allocated passive skill id: ") {
         let (id, name) = parse_passive(rest)?;
         return Some(LogEvent::PassiveAllocated { id, name });
+    }
+    if let Some(rest) = msg.strip_prefix("Successfully allocated mastery effect id: ") {
+        // `41544, mastery: mastery_minionoffence186, name: Minion Offence Mastery`
+        let (effect, rest) = rest.split_once(", mastery: ")?;
+        let (mastery, _name) = rest.split_once(", name: ")?;
+        return Some(LogEvent::MasteryEffectAllocated {
+            effect: effect.parse().ok()?,
+            mastery: mastery.to_owned(),
+        });
     }
     if let Some(rest) = msg.strip_prefix("Successfully unallocated passive skill id: ") {
         let (id, name) = parse_passive(rest)?;
@@ -290,6 +304,19 @@ mod tests {
             ),
             Some(LogEvent::PassiveUnallocated { .. })
         ));
+    }
+
+    #[test]
+    fn mastery_effect() {
+        assert_eq!(
+            event(
+                "2026/11/17 21:37:05 15228171 fb7ace4a [INFO Client 4976] Successfully allocated mastery effect id: 41544, mastery: mastery_minionoffence186, name: Minion Offence Mastery"
+            ),
+            Some(LogEvent::MasteryEffectAllocated {
+                effect: 41544,
+                mastery: "mastery_minionoffence186".into()
+            })
+        );
     }
 
     #[test]

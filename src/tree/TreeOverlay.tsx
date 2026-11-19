@@ -153,4 +153,22 @@ function draw(
 		ctx.arc(x, y, Math.max(4, RADIUS[n.kind] * t.scale), 0, Math.PI * 2);
 		ctx.stroke();
 	}
+
+	// Mastery picks: which option down the in-game list was chosen.
+	const fontPx = Math.max(12, 70 * t.scale);
+	ctx.font = `700 ${fontPx}px "Segoe UI", sans-serif`;
+	ctx.textAlign = "center";
+	ctx.textBaseline = "middle";
+	for (const pick of view.masteries) {
+		const n = byId.get(pick.node);
+		if (!n) continue;
+		const [x, y] = at(n);
+		const r = fontPx * 0.75;
+		ctx.fillStyle = "rgba(14, 15, 18, 0.85)";
+		ctx.beginPath();
+		ctx.arc(x, y, r, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.fillStyle = "rgba(242, 201, 76, 1)";
+		ctx.fillText(String(pick.option), x, y + fontPx * 0.05);
+	}
 }

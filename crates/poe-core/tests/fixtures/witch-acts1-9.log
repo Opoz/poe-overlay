@@ -88,6 +88,7 @@
 2026/11/17 21:36:35 15198531 1186a803 [DEBUG Client 4976] Generating level 9 area "1_1_7_2" with seed 848448104
 2026/11/17 21:36:36 15199203 cffb06be [INFO Client 4976] : You have entered The Upper Prison.
 2026/11/17 21:36:36 15199328 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Upper Prison) Duration = 0.922953 seconds
+2026/11/17 21:37:05 15228171 fb7ace4a [INFO Client 4976] Successfully allocated mastery effect id: 41544, mastery: mastery_minionoffence186, name: Minion Offence Mastery
 2026/11/17 21:38:46 15329093 cffb06be [INFO Client 4976] : TestExile has been slain.
 2026/11/17 21:41:24 15487500 1186a803 [DEBUG Client 4976] Generating level 13 area "1_1_town" with seed 1
 2026/11/17 21:41:25 15488218 cffb06be [INFO Client 4976] : You have entered Lioneye's Watch.
@@ -273,6 +274,7 @@
 2026/11/17 22:56:24 19987218 cffb06be [INFO Client 4976] : You have entered The Caverns.
 2026/11/17 22:56:24 19987312 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Caverns) Duration = 0.923849 seconds
 2026/11/17 22:56:55 20018328 cffb06be [INFO Client 4976] : TestExile (Witch) is now level 21
+2026/11/17 22:57:00 20023500 fb7ace4a [INFO Client 4976] Successfully allocated mastery effect id: 46636, mastery: mastery_miniondefence180, name: Minion Defence Mastery
 2026/11/17 22:57:33 20056296 1186a803 [DEBUG Client 4976] Generating level 23 area "1_2_14_3" with seed 4171621163
 2026/11/17 22:57:34 20056750 cffb06be [INFO Client 4976] : You have entered The Ancient Pyramid.
 2026/11/17 22:57:34 20056796 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ancient Pyramid) Duration = 0.616902 seconds
@@ -602,6 +604,7 @@
 2026/11/18 00:56:24 27187015 cffb06be [INFO Client 4976] : You have entered The Chamber of Innocence.
 2026/11/18 00:56:24 27187078 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Chamber of Innocence) Duration = 0.768839 seconds
 2026/11/18 00:57:48 27271562 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 40
+2026/11/18 01:01:01 27463718 fb7ace4a [INFO Client 4976] Successfully allocated mastery effect id: 38454, mastery: mastery_life131, name: Life Mastery
 2026/11/18 01:01:03 27466296 1186a803 [DEBUG Client 4976] Generating level 44 area "1_5_4b" with seed 3022843244
 2026/11/18 01:01:04 27466828 cffb06be [INFO Client 4976] : You have entered The Torched Courts.
 2026/11/18 01:01:04 27466921 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Torched Courts) Duration = 0.700726 seconds
@@ -684,6 +687,7 @@
 2026/11/18 01:50:26 30428625 1186a803 [DEBUG Client 4976] Generating level 47 area "2_6_8" with seed 2379181860
 2026/11/18 01:50:26 30429234 cffb06be [INFO Client 4976] : You have entered Prisoner's Gate.
 2026/11/18 01:50:26 30429484 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (Prisoner's Gate) Duration = 0.937087 seconds
+2026/11/18 01:52:28 30551406 fb7ace4a [INFO Client 4976] Successfully allocated mastery effect id: 64875, mastery: mastery_mana162, name: Mana Mastery
 2026/11/18 01:52:56 30578703 1186a803 [DEBUG Client 4976] Generating level 48 area "2_6_9" with seed 3027541528
 2026/11/18 01:52:56 30579562 cffb06be [INFO Client 4976] : You have entered The Western Forest.
 2026/11/18 01:52:57 30579796 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Western Forest) Duration = 1.17836 seconds
@@ -770,6 +774,7 @@
 2026/11/18 02:17:24 32047234 cffb06be [INFO Client 4976] : You have entered The Den.
 2026/11/18 02:17:24 32047328 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Den) Duration = 0.582388 seconds
 2026/11/18 02:17:46 32069453 cffb06be [INFO Client 4976] : TestExile (Necromancer) is now level 52
+2026/11/18 02:17:52 32075015 fb7ace4a [INFO Client 4976] Successfully allocated mastery effect id: 4500, mastery: mastery_shield213, name: Block Mastery
 2026/11/18 02:18:02 32085234 1186a803 [DEBUG Client 4976] Generating level 53 area "2_7_7" with seed 1577340273
 2026/11/18 02:18:03 32086062 cffb06be [INFO Client 4976] : You have entered The Ashen Fields.
 2026/11/18 02:18:03 32086421 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Ashen Fields) Duration = 1.25936 seconds
@@ -877,6 +882,7 @@
 2026/11/18 02:55:07 34310343 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Solaris Temple Level 2) Duration = 1.12601 seconds
 2026/11/18 02:55:10 34312875 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: shield_defences1063, name: Shield Block and Elemental Resistances with a Shield
 2026/11/18 02:55:10 34313328 fb7ae248 [INFO Client 4976] Successfully allocated passive skill id: shield_mastery34, name: Sanctuary
+2026/11/18 02:55:12 34315406 fb7ace4a [INFO Client 4976] Successfully allocated mastery effect id: 30612, mastery: mastery_shield212, name: Shield Mastery
 2026/11/18 02:56:27 34390593 1186a803 [DEBUG Client 4976] Generating level 60 area "2_8_town" with seed 1
 2026/11/18 02:56:28 34391531 cffb06be [INFO Client 4976] : You have entered The Sarn Encampment.
 2026/11/18 02:56:29 34392171 a15e95e2 [INFO Client 4976] [LOADING SCREEN] (The Sarn Encampment) Duration = 1.67398 seconds

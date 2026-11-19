@@ -161,16 +161,16 @@ async fn rebuild_passives(app: AppHandle, name: String) -> Result<usize, String>
     let passives = tauri::async_runtime::spawn_blocking(move || {
         let file = std::fs::File::open(&path).map_err(|e| e.to_string())?;
         let records = poe_core::log::replay(std::io::BufReader::new(file));
-        Ok::<_, String>(poe_core::tree::passives_from_log(records, &who))
+        Ok::<_, String>(poe_core::tree::allocations_from_log(records, &who))
     })
     .await
     .map_err(|e| e.to_string())??;
-    let count = passives.len();
+    let count = passives.passives.len();
     app.state::<AppState>()
         .tracker
         .lock()
         .unwrap()
-        .set_passives(&name, passives);
+        .set_allocations(&name, passives);
     emit_tree(&app);
     Ok(count)
 }
