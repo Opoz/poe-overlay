@@ -164,7 +164,7 @@ export default function LabOverlay() {
 									}}
 								>
 									<title>
-										{room.name}
+										{titleCase(room.name)}
 										{room.contents.raw.length
 											? ` — ${room.contents.raw.join(", ")}`
 											: ""}
@@ -177,13 +177,17 @@ export default function LabOverlay() {
 										rx="3"
 									/>
 									<text x={pos().x} y={pos().y - 13} class="lab-name">
-										{room.izaro ? "Izaro" : room.name.split(" ").pop()}
+										{room.izaro
+											? "Izaro"
+											: titleCase(room.name.split(" ").pop() ?? "")}
 									</text>
 									<text x={pos().x} y={pos().y + 22} class="lab-marks">
 										{room.contents.darkshrine ? "D" : ""}
 										{room.contents.silverKey ? "K" : ""}
 										{room.contents.silverDoor ? "🔒" : ""}
 										{room.contents.argus ? "A" : ""}
+										{room.contents.gauntlet ? "G" : ""}
+										{room.contents.puzzle ? "P" : ""}
 									</text>
 								</g>
 							);
@@ -201,9 +205,16 @@ export default function LabOverlay() {
 						/>
 						Darkshrine detour
 					</label>
-					<span class="muted">D darkshrine · K key · 🔒 door · A Argus</span>
+					<span class="muted">
+						D darkshrine · K key · 🔒 door · A Argus · G gauntlet · P puzzle
+					</span>
 				</div>
 			</Show>
 		</div>
 	);
+}
+
+/** poelab writes room names in lowercase ("estate path"). */
+function titleCase(s: string): string {
+	return s.replace(/\b\w/g, (c) => c.toUpperCase());
 }

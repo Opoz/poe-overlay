@@ -275,6 +275,8 @@ export interface LabRoom {
 		silverKey: boolean;
 		silverDoor: boolean;
 		argus: boolean;
+		gauntlet: boolean;
+		puzzle: boolean;
 		raw: string[];
 	};
 	izaro: boolean;

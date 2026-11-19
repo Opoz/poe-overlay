@@ -57,6 +57,9 @@ pub struct RoomContents {
     pub silver_key: bool,
     pub silver_door: bool,
     pub argus: bool,
+    /// Trap / escort gauntlets and switch puzzles (they cost time).
+    pub gauntlet: bool,
+    pub puzzle: bool,
     /// Everything listed, as written in the file.
     pub raw: Vec<String>,
 }
@@ -154,6 +157,8 @@ impl LabLayout {
                         silver_key: has("key"),
                         silver_door: has("door"),
                         argus: has("argus"),
+                        gauntlet: has("gauntlet"),
+                        puzzle: has("puzzle"),
                         raw: raw.clone(),
                     },
                     name,
@@ -486,6 +491,58 @@ mod tests {
         s.on_area("1_Labyrinth_x", "Estate Path");
         let v = LabView::build(&s, "2026-11-19");
         assert_eq!(v.route, [1, 3], "via the darkshrine room");
+    }
+
+    /// A real poelab compass file (Normal, 2026-11-19): three Izaro fights at
+    /// rooms 2, 5 and 10; lowercase names; numbers as strings.
+    const REAL: &str = include_str!("../tests/fixtures/poelab-normal-2026-11-19.json");
+
+    #[test]
+    fn real_compass_file() {
+        let l = LabLayout::parse(REAL).unwrap();
+        assert_eq!(l.difficulty, Some(Difficulty::Normal));
+        assert_eq!(l.rooms.len(), 10);
+        let izaro: Vec<usize> = (0..10).filter(|&i| l.rooms[i].izaro).collect();
+        assert_eq!(izaro, [1, 4, 9]);
+        assert_eq!(l.rooms[2].exits, [4, 3], "basilica halls: NE then NW");
+        assert!(l.rooms[0].contents.darkshrine);
+        assert!(l.rooms[3].contents.gauntlet && l.rooms[3].contents.darkshrine);
+        assert!(l.rooms[5].contents.puzzle);
+        assert!(l.rooms[7].contents.silver_key && l.rooms[7].contents.silver_door);
+        assert_eq!((l.rooms[0].x, l.rooms[0].y), (106.0, 128.0));
+    }
+
+    #[test]
+    fn real_lab_run() {
+        let mut s = LabState::default();
+        s.load(LabLayout::parse(REAL).unwrap());
+        let route = |s: &LabState| LabView::build(s, "2026-11-19").route;
+        assert_eq!(
+            route(&s),
+            [0, 1],
+            "entrance, then straight to the first fight"
+        );
+
+        // The log says "Estate Path" where the file says "estate path".
+        s.on_area("Labyrinth_Airlock", "Aspirants' Plaza");
+        s.on_area("1_Labyrinth_P_straight", "Estate Path");
+        s.on_area("1_Labyrinth_boss_1", "Aspirant's Trial");
+        assert_eq!(s.current, Some(1));
+        assert_eq!(route(&s), [2, 4], "on to the second fight");
+
+        s.darkshrine_detour = true;
+        s.on_area("1_Labyrinth_B_x", "Basilica Halls");
+        assert_eq!(route(&s), [3, 4], "via the mansion passage darkshrine");
+
+        s.darkshrine_detour = false;
+        s.on_area("1_Labyrinth_boss_2", "Aspirant's Trial");
+        assert_eq!(s.current, Some(4));
+        // To the final fight: Mansion Halls, then Domain Walkways or
+        // Sepulchre Halls, then Izaro.
+        let r = route(&s);
+        assert_eq!(r.len(), 3);
+        assert_eq!(r[0], 5);
+        assert_eq!(r.last(), Some(&9));
     }
 
     #[test]
