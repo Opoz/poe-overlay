@@ -262,3 +262,42 @@ export interface BuildSummary {
 }
 
 export type GuideCommand = "next" | "previous" | "findMe";
+
+export type LabDifficulty = "normal" | "cruel" | "merciless" | "eternal";
+
+export interface LabRoom {
+	name: string;
+	x: number;
+	y: number;
+	exits: number[];
+	contents: {
+		darkshrine: boolean;
+		silverKey: boolean;
+		silverDoor: boolean;
+		argus: boolean;
+		raw: string[];
+	};
+	izaro: boolean;
+}
+
+export interface LabPayload {
+	layout: {
+		difficulty: LabDifficulty | null;
+		date: string | null;
+		rooms: LabRoom[];
+	} | null;
+	current: number | null;
+	visited: number[];
+	route: number[];
+	darkshrineDetour: boolean;
+	inLab: boolean;
+	running: LabDifficulty | null;
+	outdated: boolean;
+	wrongDifficulty: boolean;
+	visible: boolean;
+}
+
+export interface LabImportStatus {
+	state: "watching" | "opened" | "loaded" | "failed" | "stopped";
+	message: string;
+}

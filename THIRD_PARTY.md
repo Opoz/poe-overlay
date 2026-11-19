@@ -13,6 +13,10 @@ Campaign route files and area data in `crates/poe-core/data/exile-leveling/` com
 - [grindinggear/skilltree-export](https://github.com/grindinggear/skilltree-export): GGG's official passive tree export (layout, names, connections).
 - [repoe-fork](https://github.com/repoe-fork/repoe-fork.github.io): maps the passive ids printed in the Client Log to tree nodes.
 
+## poelab
+
+Lab layouts come from [poelab.com](https://www.poelab.com/): the player opens the site in their own browser and copies the day's compass file. Nothing is downloaded from poelab automatically. Please support poelab by allowing its ads.
+
 ## Path of Exile
 
 Path of Exile is a trademark of Grinding Gear Games. This project is not affiliated with or endorsed by Grinding Gear Games.

@@ -55,8 +55,8 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
 
 ### Lab
 
-- Player copies poelab's daily lab-layout link; app reads clipboard on hotkey, downloads JSON, renders rooms. No scraping.
-- Trial completion tracked from the Client Log.
+- "Open today's lab (Alt+Shift+B)" opens poelab and watches the clipboard while the game is unfocused; copying the compass link opens it in the browser (poelab's browser check blocks app downloads), copying its JSON text loads it. No scraping, no background clipboard watching.
+- Trials aren't tracked: the log has no completion line; following the Guide is enough.
 
 ## Default hotkeys (until rebinding in M5)
 
@@ -99,5 +99,10 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
   - [x] Next Points on the tree Overlay towards the Tree Stage for the current level; planned mastery options
   - [x] Manual level-range assignment for Skill Groups (Build section)
   - [ ] Verify in-game with a real PoB build
-- [ ] **M4**: Lab Overlay, Trial tracking.
+- [ ] **M4**: Lab Overlay.
+  - [x] Load poelab's compass file the Exile UI way: open poelab, watch the clipboard (only during an import, only while the game isn't focused) for the link (opened in the browser, since poelab blocks downloads) or the JSON text; "Load copied" button
+  - [x] Current room from the Client Log (Area ID + room name, matching the current room's exits), route to the next Izaro fight, darkshrine detour, date/difficulty warnings
+  - [x] Lab Overlay: auto in plaza/lab, Alt+B toggle, Alt+Shift+B open poelab
+  - [x] Trials: not tracked (no log line); they stay Guide Steps
+  - [ ] Test against a real compass file; verify in-game
 - [ ] **M5**: hotkey rebinding, layout persistence, Runs tab polish, signed releases + updater.

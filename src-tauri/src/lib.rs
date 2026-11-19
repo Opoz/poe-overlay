@@ -1,3 +1,4 @@
+mod lab_import;
 mod overlay;
 mod platform;
 mod storage;
@@ -14,6 +15,7 @@ use std::{
 use poe_core::{
     gems::GemsView,
     guide::{GuideCommand, GuideOptions, GuideView},
+    lab::LabView,
     run::{Command, Run},
     tree::{TreeNode, TreeView},
     view::TimerView,
@@ -42,6 +44,11 @@ pub struct AppState {
     gems_visible: AtomicBool,
     /// Which Vendor Regex chunk the next Alt+R copies, and for which list.
     regex_cursor: Mutex<(Vec<String>, usize)>,
+    /// A lab layout import in progress (watching the clipboard).
+    lab_import: Mutex<Option<lab_import::LabImport>>,
+    /// The player toggled the lab Overlay; `None` = automatic (shown in the
+    /// lab). Reset on entering or leaving the lab.
+    lab_manual: Mutex<Option<bool>>,
 }
 
 /// Event carrying a fresh [`TimerView`] to every window.
@@ -57,6 +64,8 @@ const GUIDE_VIEW: &str = "guide-view";
 const GEMS_VIEW: &str = "gems-view";
 /// Event: a Vendor Regex was copied (or there was nothing to copy).
 const REGEX_COPIED: &str = "regex-copied";
+/// Event carrying a fresh [`LabView`] (plus whether it's showing).
+const LAB_VIEW: &str = "lab-view";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -65,7 +74,7 @@ struct Status {
     game_running: bool,
 }
 
-fn hotkeys() -> [(Shortcut, Hotkey); 12] {
+fn hotkeys() -> [(Shortcut, Hotkey); 14] {
     let alt = Some(Modifiers::ALT);
     let alt_shift = Some(Modifiers::ALT | Modifiers::SHIFT);
     [
@@ -99,6 +108,8 @@ fn hotkeys() -> [(Shortcut, Hotkey); 12] {
         (Shortcut::new(alt, Code::KeyG), Hotkey::ActView),
         (Shortcut::new(alt, Code::KeyL), Hotkey::GemLinks),
         (Shortcut::new(alt, Code::KeyR), Hotkey::VendorRegex),
+        (Shortcut::new(alt, Code::KeyB), Hotkey::LabOverlay),
+        (Shortcut::new(alt_shift, Code::KeyB), Hotkey::LabImport),
     ]
 }
 
@@ -112,6 +123,8 @@ enum Hotkey {
     ActView,
     GemLinks,
     VendorRegex,
+    LabOverlay,
+    LabImport,
 }
 
 fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
@@ -146,7 +159,78 @@ fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
             emit_gems(app);
         }
         Hotkey::VendorRegex => copy_vendor_regex(app),
+        Hotkey::LabOverlay => {
+            let shown = lab_visible(app);
+            *state.lab_manual.lock().unwrap() = Some(!shown);
+            emit_lab(app);
+        }
+        Hotkey::LabImport => lab_import::start(app),
     }
+}
+
+/// Shown when toggled on, else automatically while in the lab.
+fn lab_visible(app: &AppHandle) -> bool {
+    let state = app.state::<AppState>();
+    let manual = *state.lab_manual.lock().unwrap();
+    manual.unwrap_or_else(|| state.tracker.lock().unwrap().lab_view().in_lab)
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LabPayload {
+    #[serde(flatten)]
+    view: LabView,
+    visible: bool,
+}
+
+fn lab_payload(app: &AppHandle) -> LabPayload {
+    let view = app.state::<AppState>().tracker.lock().unwrap().lab_view();
+    LabPayload {
+        view,
+        visible: lab_visible(app),
+    }
+}
+
+/// Sends the lab view only when it changed.
+pub(crate) fn emit_lab(app: &AppHandle) {
+    static LAST: Mutex<String> = Mutex::new(String::new());
+    let payload = lab_payload(app);
+    let Ok(json) = serde_json::to_string(&payload) else {
+        return;
+    };
+    let mut last = LAST.lock().unwrap();
+    if *last != json {
+        let _ = app.emit(LAB_VIEW, payload);
+        *last = json;
+    }
+}
+
+#[tauri::command]
+fn get_lab_view(app: AppHandle) -> LabPayload {
+    lab_payload(&app)
+}
+
+#[tauri::command]
+fn lab_open(app: AppHandle) {
+    lab_import::start(&app);
+}
+
+#[tauri::command]
+fn lab_load_clipboard(app: AppHandle) {
+    lab_import::load_clipboard(&app);
+}
+
+#[tauri::command]
+fn lab_toggle(app: AppHandle, state: tauri::State<AppState>) {
+    let shown = lab_visible(&app);
+    *state.lab_manual.lock().unwrap() = Some(!shown);
+    emit_lab(&app);
+}
+
+#[tauri::command]
+fn set_lab_detour(app: AppHandle, state: tauri::State<AppState>, on: bool) {
+    state.tracker.lock().unwrap().set_lab_detour(on);
+    emit_lab(&app);
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -531,6 +615,7 @@ fn spawn_tracking_loop(app: AppHandle) {
         let mut last_emit = Instant::now();
         let mut last_save = Instant::now();
         let mut last_status = None;
+        let mut was_in_lab = false;
         loop {
             let state = app.state::<AppState>();
             let game = platform::find_game_window();
@@ -553,6 +638,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                 emit_tree(&app);
                 emit_guide(&app);
                 emit_gems(&app);
+                emit_lab(&app);
                 last_emit = Instant::now();
             }
 
@@ -571,6 +657,19 @@ fn spawn_tracking_loop(app: AppHandle) {
                 let _ = app.emit(STATUS, status.clone());
                 last_status = Some(status);
             }
+
+            lab_import::tick(
+                &app,
+                game.is_some_and(|g| platform::foreground_window() == g),
+            );
+            let in_lab = state.tracker.lock().unwrap().lab_view().in_lab;
+            if in_lab != was_in_lab {
+                // Entering or leaving the lab returns the Overlay to automatic.
+                *state.lab_manual.lock().unwrap() = None;
+                was_in_lab = in_lab;
+                emit_lab(&app);
+            }
+            let lab_shown = lab_visible(&app);
 
             let wanted = {
                 let tracker = state.tracker.lock().unwrap();
@@ -597,6 +696,12 @@ fn spawn_tracking_loop(app: AppHandle) {
                         clickable: true,
                     },
                     overlay::Wanted {
+                        label: overlay::LAB,
+                        anchor: overlay::Anchor::At(settings.lab_overlay),
+                        visible: lab_shown,
+                        clickable: true,
+                    },
+                    overlay::Wanted {
                         label: overlay::GEMS,
                         anchor: overlay::Anchor::At(settings.gems_overlay),
                         visible: state.gems_visible.load(Ordering::SeqCst),
@@ -620,6 +725,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                         overlay::GUIDE => settings.guide_overlay = placement,
                         overlay::ACT => settings.act_overlay = placement,
                         overlay::GEMS => settings.gems_overlay = placement,
+                        overlay::LAB => settings.lab_overlay = placement,
                         _ => {}
                     }
                 }
@@ -700,6 +806,8 @@ pub fn run() {
             act_view: AtomicBool::new(false),
             gems_visible: AtomicBool::new(false),
             regex_cursor: Mutex::new((Vec::new(), 0)),
+            lab_import: Mutex::new(None),
+            lab_manual: Mutex::new(None),
         })
         .invoke_handler(tauri::generate_handler![
             get_timer_view,
@@ -724,6 +832,11 @@ pub fn run() {
             copy_regex,
             import_build,
             set_group_levels,
+            get_lab_view,
+            lab_open,
+            lab_load_clipboard,
+            lab_toggle,
+            set_lab_detour,
             rebuild_passives,
         ])
         .on_window_event(|window, event| {

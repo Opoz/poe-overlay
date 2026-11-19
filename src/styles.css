@@ -33,7 +33,9 @@ html[data-window="guide"] body,
 html[data-window="act"],
 html[data-window="act"] body,
 html[data-window="gems"],
-html[data-window="gems"] body {
+html[data-window="gems"] body,
+html[data-window="lab"],
+html[data-window="lab"] body {
 	background: transparent;
 	overflow: hidden;
 	user-select: none;
@@ -600,4 +602,84 @@ button:disabled {
 
 tr.disabled td {
 	opacity: 0.5;
+}
+
+/* Lab */
+.lab {
+	font-size: 13px;
+}
+
+.toast.warn {
+	background: rgb(229 83 75 / 0.22);
+}
+
+.lab-map {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.lab-edge {
+	stroke: #3a3d45;
+	stroke-width: 2;
+}
+
+.lab-edge.route {
+	stroke: var(--gold);
+	stroke-width: 3;
+}
+
+.lab-room rect {
+	fill: #22252c;
+	stroke: #555a66;
+	stroke-width: 1.5;
+}
+
+.lab-room.visited rect {
+	fill: rgb(76 195 138 / 0.35);
+}
+
+.lab-room.route rect {
+	stroke: var(--gold);
+	stroke-width: 2;
+}
+
+.lab-room.izaro rect {
+	stroke: #ff7a6b;
+}
+
+.lab-room.current rect {
+	fill: #b48cff;
+	stroke: #e2d4ff;
+}
+
+.lab-name {
+	fill: var(--muted);
+	font-size: 10px;
+	text-anchor: middle;
+}
+
+.lab-room.route .lab-name,
+.lab-room.current .lab-name {
+	fill: var(--text);
+}
+
+.lab-marks {
+	fill: var(--gold);
+	font-size: 10px;
+	font-weight: 700;
+	text-anchor: middle;
+}
+
+.lab-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 4px;
+}
+
+.lab-footer label {
+	display: flex;
+	gap: 6px;
+	align-items: center;
 }

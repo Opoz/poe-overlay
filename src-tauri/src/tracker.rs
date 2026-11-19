@@ -6,6 +6,7 @@ use poe_core::{
     clock::Millis,
     gems::{GemData, GemsView, decorate_view},
     guide::{GuideBook, GuideCommand, GuideOptions, GuideView},
+    lab::{LabLayout, LabState, LabView},
     log::LogEvent,
     pob::Build,
     profile::Profile,
@@ -35,6 +36,10 @@ pub struct Tracker {
     tree_overlay: TreeOverlay,
     guides: GuideBook,
     gem_data: GemData,
+    lab: LabState,
+    /// Area ID from the last "Generating level" line, paired with the
+    /// following "You have entered" line (which has the room name).
+    pending_area: Option<String>,
 }
 
 impl Tracker {
@@ -62,6 +67,8 @@ impl Tracker {
             tree_overlay: session.tree,
             guides: GuideBook::bundled(),
             gem_data: GemData::bundled(),
+            lab: session.lab,
+            pending_area: None,
         }
     }
 
@@ -99,10 +106,16 @@ impl Tracker {
         let mut events = Vec::new();
         for record in &records {
             events.extend(self.timer.on_record(record));
-            if let LogEvent::AreaGenerated { area_id, .. } = &record.event
-                && let Some(profile) = self.timer.active_profile_mut()
+            if let LogEvent::AreaGenerated { area_id, .. } = &record.event {
+                self.pending_area = Some(area_id.clone());
+                if let Some(profile) = self.timer.active_profile_mut() {
+                    self.guides.on_area(profile, area_id);
+                }
+            }
+            if let LogEvent::AreaEntered { name } = &record.event
+                && let Some(area_id) = self.pending_area.take()
             {
-                self.guides.on_area(profile, area_id);
+                self.lab.on_area(&area_id, name);
             }
         }
         if !events.is_empty() {
@@ -268,6 +281,21 @@ impl Tracker {
         }
     }
 
+    pub fn lab_view(&self) -> LabView {
+        let today = chrono::Utc::now().format("%Y-%m-%d").to_string();
+        LabView::build(&self.lab, &today)
+    }
+
+    pub fn load_lab(&mut self, layout: LabLayout) {
+        self.lab.load(layout);
+        self.save_session();
+    }
+
+    pub fn set_lab_detour(&mut self, on: bool) {
+        self.lab.darkshrine_detour = on;
+        self.save_session();
+    }
+
     pub fn history(&self) -> &[Run] {
         &self.history
     }
@@ -299,6 +327,7 @@ impl Tracker {
             log_offset: offset,
             timer: self.timer.save(now_ms()),
             tree: self.tree_overlay.clone(),
+            lab: self.lab.clone(),
         });
         self.saved_offset = Some(offset);
     }

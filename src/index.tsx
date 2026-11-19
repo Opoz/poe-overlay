@@ -4,6 +4,7 @@ import { render } from "solid-js/web";
 import GemsOverlay from "./gems/GemsOverlay";
 import ActOverlay from "./guide/ActOverlay";
 import GuideOverlay from "./guide/GuideOverlay";
+import LabOverlay from "./lab/LabOverlay";
 import MainWindow from "./main/MainWindow";
 import TimerOverlay from "./timer/TimerOverlay";
 import TreeOverlay from "./tree/TreeOverlay";
@@ -19,5 +20,6 @@ render(() => {
 	if (label === "guide") return <GuideOverlay />;
 	if (label === "act") return <ActOverlay />;
 	if (label === "gems") return <GemsOverlay />;
+	if (label === "lab") return <LabOverlay />;
 	return <MainWindow />;
 }, document.getElementById("root") as HTMLElement);

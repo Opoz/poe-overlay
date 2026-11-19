@@ -7,6 +7,7 @@ use std::{
 };
 
 use poe_core::{
+    lab::LabState,
     run::{Run, TimerState},
     tree::TreeOverlay,
 };
@@ -38,6 +39,7 @@ pub struct Settings {
     pub guide_overlay: OverlayPlacement,
     pub act_overlay: OverlayPlacement,
     pub gems_overlay: OverlayPlacement,
+    pub lab_overlay: OverlayPlacement,
     pub overlay_opacity: f64,
 }
 
@@ -51,6 +53,7 @@ impl Default for Settings {
             guide_overlay: OverlayPlacement { x: 0.01, y: 0.55 },
             act_overlay: OverlayPlacement { x: 0.3, y: 0.08 },
             gems_overlay: OverlayPlacement { x: 0.78, y: 0.3 },
+            lab_overlay: OverlayPlacement { x: 0.55, y: 0.08 },
             overlay_opacity: 1.0,
         }
     }
@@ -67,6 +70,8 @@ pub struct Session {
     pub timer: TimerState,
     /// Tree Overlay visibility and Calibration.
     pub tree: TreeOverlay,
+    /// Loaded Lab Layout and progress through it.
+    pub lab: LabState,
 }
 
 pub struct Storage {

@@ -4,6 +4,7 @@ pub mod area;
 pub mod clock;
 pub mod gems;
 pub mod guide;
+pub mod lab;
 pub mod log;
 pub mod pb;
 pub mod pob;
