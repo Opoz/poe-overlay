@@ -3,7 +3,9 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { createSignal, onCleanup, onMount, Show } from "solid-js";
 import { autoSizeWindow } from "../autoSize";
 import { onEvent } from "../events";
+import { withKey } from "../hotkeys";
 import { NextIcon, PrevIcon } from "../icons";
+import Key from "../Key";
 import type { TreeView } from "../types";
 
 /**
@@ -43,7 +45,7 @@ export default function TreeBar() {
 				when={view()?.visible}
 				fallback={
 					<button type="button" onClick={toggle}>
-						Show tree <kbd>Alt+T</kbd>
+						Show tree <Key id="tree.toggle" />
 					</button>
 				}
 			>
@@ -56,7 +58,7 @@ export default function TreeBar() {
 					<button
 						type="button"
 						class="icon-button"
-						title="Previous tree (Alt+Shift+[)"
+						title={withKey("Previous tree", "tree.previous")}
 						aria-label="Previous tree"
 						onClick={() => cycle(-1)}
 					>
@@ -68,7 +70,7 @@ export default function TreeBar() {
 					<button
 						type="button"
 						class="icon-button"
-						title="Next tree (Alt+Shift+])"
+						title={withKey("Next tree", "tree.next")}
 						aria-label="Next tree"
 						onClick={() => cycle(1)}
 					>
@@ -94,7 +96,7 @@ export default function TreeBar() {
 					{view()?.editing ? "Done fixing" : "Fix points"}
 				</button>
 				<button type="button" class="treebar-hide" onClick={toggle}>
-					Hide <kbd>Alt+T</kbd>
+					Hide <Key id="tree.toggle" />
 				</button>
 			</Show>
 		</div>

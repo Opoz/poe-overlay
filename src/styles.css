@@ -1201,3 +1201,69 @@ html[data-window]:not([data-window="main"]) {
 		scroll-behavior: auto !important;
 	}
 }
+
+/* ------------------------------------------------------------ shortcuts */
+
+.shortcuts {
+	max-width: 680px;
+}
+
+.shortcuts tr.group th {
+	padding-top: 22px;
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--bone);
+}
+
+.shortcuts tbody:first-child tr.group th {
+	padding-top: 4px;
+}
+
+.shortcuts td.binding {
+	width: 170px;
+}
+
+.shortcuts td.row-actions {
+	width: 140px;
+	text-align: right;
+	white-space: nowrap;
+}
+
+.shortcuts td.row-actions button + button {
+	margin-left: 6px;
+}
+
+.keycap-button {
+	min-width: 120px;
+	justify-content: flex-start;
+	background: transparent;
+	border-color: transparent;
+	padding: 3px 6px;
+}
+
+.keycap-button kbd {
+	font-size: 14px;
+	color: var(--bone);
+	padding: 1px 7px;
+}
+
+.keycap-button.capturing {
+	border-color: var(--brass);
+	color: var(--brass);
+	background: var(--brass-dim);
+}
+
+.small-text {
+	font-size: 13px;
+	margin-top: 2px;
+}
+
+/* Clear only shows on the row being pointed at or focused. */
+.shortcuts .reveal {
+	opacity: 0;
+}
+
+.shortcuts tr:hover .reveal,
+.shortcuts tr:focus-within .reveal {
+	opacity: 1;
+}

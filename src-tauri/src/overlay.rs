@@ -130,6 +130,19 @@ impl Follower {
         }
     }
 
+    /// Swap in rebound hotkeys (re-registering them if they're live).
+    pub fn set_shortcuts(&mut self, app: &AppHandle, shortcuts: Vec<Shortcut>) {
+        if self.hotkeys_on {
+            for s in &self.shortcuts {
+                let _ = app.global_shortcut().unregister(*s);
+            }
+        }
+        self.shortcuts = shortcuts;
+        // Registered afresh on the next sync while the game is focused.
+        self.hotkeys_on = false;
+        self.failed.clear();
+    }
+
     /// Returns the new placements of Overlays the player finished moving
     /// (when Interact Mode ends).
     pub fn sync(

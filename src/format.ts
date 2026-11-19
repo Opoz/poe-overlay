@@ -47,15 +47,21 @@ const KEY_NAMES: Record<string, string> = {
 	Backslash: "\\",
 };
 
-/** A shortcut as the backend names it (`alt+shift+KeyS`) for people: `Alt+Shift+S`. */
+const MODIFIER_ORDER = ["control", "alt", "shift", "super"];
+
+/** A shortcut as the backend names it (`shift+alt+KeyS`) for people: `Alt+Shift+S`. */
 export function formatShortcut(s: string): string {
-	return s
-		.split("+")
-		.map((part) => {
-			if (/^Key[A-Z]$/.test(part)) return part.slice(3);
-			if (/^Digit\d$/.test(part)) return part.slice(5);
-			if (part in KEY_NAMES) return KEY_NAMES[part];
-			return part.charAt(0).toUpperCase() + part.slice(1);
-		})
-		.join("+");
+	const parts = s.split("+");
+	const key = parts.pop() ?? "";
+	const mods = parts
+		.map((m) => m.toLowerCase())
+		.sort((a, b) => MODIFIER_ORDER.indexOf(a) - MODIFIER_ORDER.indexOf(b))
+		.map((m) =>
+			m === "control" ? "Ctrl" : m.charAt(0).toUpperCase() + m.slice(1),
+		);
+	let name = key;
+	if (/^Key[A-Z]$/.test(key)) name = key.slice(3);
+	else if (/^Digit\d$/.test(key)) name = key.slice(5);
+	else if (key in KEY_NAMES) name = KEY_NAMES[key];
+	return [...mods, name].join("+");
 }

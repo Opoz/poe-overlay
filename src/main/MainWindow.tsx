@@ -16,6 +16,7 @@ import {
 	formatLocalDate,
 	formatShortcut,
 } from "../format";
+import Key from "../Key";
 import {
 	PAUSE_LABEL,
 	type Run,
@@ -27,6 +28,7 @@ import { useTimerView } from "../useTimerView";
 import BuildCard from "./BuildCard";
 import CharactersCard from "./CharactersCard";
 import Mark from "./Mark";
+import ShortcutsPage from "./ShortcutsPage";
 
 const command = (c: TimerCommand) => invoke("timer_command", { command: c });
 
@@ -35,6 +37,7 @@ const PAGES = [
 	["characters", "Characters"],
 	["build", "Build"],
 	["overlays", "Overlays"],
+	["shortcuts", "Shortcuts"],
 	["history", "History"],
 	["settings", "Settings"],
 ] as const;
@@ -168,6 +171,11 @@ export default function MainWindow() {
 						<Match when={page() === "overlays"}>
 							<OverlaysPage />
 						</Match>
+						<Match when={page() === "shortcuts"}>
+							<Show when={settings()}>
+								{(s) => <ShortcutsPage settings={s()} save={save} />}
+							</Show>
+						</Match>
 						<Match when={page() === "history"}>
 							<HistoryPage runs={history() ?? []} />
 						</Match>
@@ -210,13 +218,13 @@ function RunPage(props: { live: ReturnType<typeof useTimerView> }) {
 			<div class="buttons">
 				<button type="button" onClick={() => command("togglePause")}>
 					{view()?.phase?.phase === "paused" ? "Resume" : "Pause"}{" "}
-					<kbd>Alt+P</kbd>
+					<Key id="timer.pause" />
 				</button>
 				<button type="button" onClick={() => command("split")}>
-					Split <kbd>Alt+S</kbd>
+					Split <Key id="timer.split" />
 				</button>
 				<button type="button" onClick={() => command("undoSplit")}>
-					Undo split <kbd>Alt+Shift+S</kbd>
+					Undo split <Key id="timer.undoSplit" />
 				</button>
 				<button type="button" onClick={() => command("start")}>
 					Start now
@@ -288,8 +296,8 @@ function OverlaysPage() {
 			<h2>Overlays</h2>
 			<p class="lede">
 				Overlays show while the game is focused. Run the game in windowed
-				fullscreen. Press <kbd>Alt+E</kbd> to unlock them for dragging, and
-				again to lock.
+				fullscreen. Press <Key id="overlays.interact" /> to unlock them for
+				dragging, and again to lock.
 			</p>
 			<h3>Passive tree</h3>
 			<p class="muted">
@@ -303,13 +311,13 @@ function OverlaysPage() {
 					type="button"
 					onClick={() => invoke("toggle_tree", { calibrate: false })}
 				>
-					Show or hide <kbd>Alt+T</kbd>
+					Show or hide <Key id="tree.toggle" />
 				</button>
 				<button
 					type="button"
 					onClick={() => invoke("toggle_tree", { calibrate: true })}
 				>
-					Calibrate <kbd>Alt+Shift+T</kbd>
+					Calibrate <Key id="tree.calibrate" />
 				</button>
 			</div>
 		</section>
@@ -433,22 +441,6 @@ function SettingsPage(props: {
 					{Math.round(s().panelOpacity * 100)}%
 					<div class="help">
 						How solid the overlay backgrounds are. Text stays fully opaque.
-					</div>
-				</Field>
-				<Field label="Passive tree key">
-					<input
-						class="level-input"
-						maxLength={1}
-						value={s().treeKey ?? ""}
-						onChange={(e) =>
-							props.save({
-								treeKey: e.currentTarget.value.trim().toUpperCase() || null,
-							})
-						}
-					/>
-					<div class="help">
-						Your in-game key for the passive tree. Pressing it shows the tree
-						overlay too, and Escape hides it. Leave empty to turn this off.
 					</div>
 				</Field>
 				<Field label="Client log">

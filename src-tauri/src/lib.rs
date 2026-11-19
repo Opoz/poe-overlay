@@ -1,3 +1,4 @@
+mod hotkeys;
 mod lab_import;
 mod overlay;
 mod platform;
@@ -26,9 +27,10 @@ use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
 };
-use tauri_plugin_global_shortcut::{Code, Modifiers, Shortcut, ShortcutState};
+use tauri_plugin_global_shortcut::{Shortcut, ShortcutState};
 
 use crate::{
+    hotkeys::Hotkey,
     storage::{Settings, Storage, data_dir},
     tracker::Tracker,
 };
@@ -59,6 +61,10 @@ pub struct AppState {
     tree_pill: AtomicBool,
     /// The XP level ruler Overlay is showing.
     xp_visible: AtomicBool,
+    /// Bound hotkeys (from Settings), and whether they changed since the
+    /// tracking loop last registered them.
+    bindings: Mutex<Vec<(Shortcut, Hotkey)>>,
+    hotkeys_changed: AtomicBool,
 }
 
 /// Event carrying a fresh [`TimerView`] to every window.
@@ -84,72 +90,6 @@ const HOTKEY_FAILURES: &str = "hotkey-failures";
 struct Status {
     log_path: Option<String>,
     game_running: bool,
-}
-
-fn hotkeys() -> [(Shortcut, Hotkey); 17] {
-    let alt = Some(Modifiers::ALT);
-    let alt_shift = Some(Modifiers::ALT | Modifiers::SHIFT);
-    [
-        (
-            Shortcut::new(alt, Code::KeyP),
-            Hotkey::Timer(Command::TogglePause),
-        ),
-        (
-            Shortcut::new(alt, Code::KeyS),
-            Hotkey::Timer(Command::Split),
-        ),
-        (
-            Shortcut::new(alt_shift, Code::KeyS),
-            Hotkey::Timer(Command::UndoSplit),
-        ),
-        (Shortcut::new(alt, Code::KeyE), Hotkey::InteractMode),
-        (Shortcut::new(alt, Code::KeyT), Hotkey::TreeOverlay),
-        (Shortcut::new(alt_shift, Code::KeyT), Hotkey::Calibrate),
-        (
-            Shortcut::new(alt, Code::BracketRight),
-            Hotkey::Guide(GuideCommand::Next),
-        ),
-        (
-            Shortcut::new(alt, Code::BracketLeft),
-            Hotkey::Guide(GuideCommand::Previous),
-        ),
-        (
-            Shortcut::new(alt, Code::KeyJ),
-            Hotkey::Guide(GuideCommand::FindMe),
-        ),
-        (Shortcut::new(alt, Code::KeyG), Hotkey::ActView),
-        (Shortcut::new(alt, Code::KeyL), Hotkey::GemLinks),
-        // Not Alt+R: the NVIDIA App takes it for its performance overlay.
-        (Shortcut::new(alt, Code::KeyV), Hotkey::VendorRegex),
-        (Shortcut::new(alt, Code::KeyB), Hotkey::LabOverlay),
-        (Shortcut::new(alt, Code::KeyX), Hotkey::XpRuler),
-        (Shortcut::new(alt_shift, Code::KeyB), Hotkey::LabImport),
-        (
-            Shortcut::new(alt_shift, Code::BracketLeft),
-            Hotkey::TreeStage(-1),
-        ),
-        (
-            Shortcut::new(alt_shift, Code::BracketRight),
-            Hotkey::TreeStage(1),
-        ),
-    ]
-}
-
-#[derive(Debug, Clone, Copy)]
-enum Hotkey {
-    Timer(Command),
-    InteractMode,
-    TreeOverlay,
-    Calibrate,
-    Guide(GuideCommand),
-    ActView,
-    GemLinks,
-    VendorRegex,
-    LabOverlay,
-    LabImport,
-    XpRuler,
-    /// Show the previous / next Tree Stage.
-    TreeStage(i32),
 }
 
 fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
@@ -648,6 +588,32 @@ fn set_settings(app: AppHandle, state: tauri::State<AppState>, settings: Setting
 }
 
 #[tauri::command]
+fn get_hotkeys(state: tauri::State<AppState>) -> Vec<hotkeys::HotkeyRow> {
+    hotkeys::rows(&state.settings.lock().unwrap().hotkeys)
+}
+
+/// Bind an action to a shortcut (`None` unbinds; `id` `None` resets all).
+#[tauri::command]
+fn set_hotkey(
+    app: AppHandle,
+    state: tauri::State<AppState>,
+    id: Option<String>,
+    shortcut: Option<String>,
+) -> Result<Vec<hotkeys::HotkeyRow>, String> {
+    let mut settings = state.settings.lock().unwrap();
+    match id {
+        Some(id) => hotkeys::rebind(&mut settings.hotkeys, &id, shortcut.as_deref())?,
+        None => settings.hotkeys.clear(),
+    }
+    Storage::new(data_dir()).save_settings(&settings);
+    *state.bindings.lock().unwrap() = hotkeys::bindings(&settings.hotkeys);
+    state.hotkeys_changed.store(true, Ordering::SeqCst);
+    let rows = hotkeys::rows(&settings.hotkeys);
+    let _ = app.emit("hotkeys", &rows);
+    Ok(rows)
+}
+
+#[tauri::command]
 fn get_history(state: tauri::State<AppState>) -> Vec<Run> {
     state.tracker.lock().unwrap().history().to_vec()
 }
@@ -739,7 +705,12 @@ fn on_middle_click(app: &AppHandle, x: i32, y: i32) {
 /// Background loop: find the game, follow its log, keep Overlays in place.
 fn spawn_tracking_loop(app: AppHandle) {
     std::thread::spawn(move || {
-        let mut overlays = overlay::Follower::new(hotkeys().map(|(s, _)| s).to_vec());
+        let shortcuts = |app: &AppHandle| -> Vec<Shortcut> {
+            let state = app.state::<AppState>();
+            let bindings = state.bindings.lock().unwrap();
+            bindings.iter().map(|(s, _)| *s).collect()
+        };
+        let mut overlays = overlay::Follower::new(shortcuts(&app));
         let mut last_emit = Instant::now();
         let mut last_save = Instant::now();
         let mut last_status = None;
@@ -870,6 +841,9 @@ fn spawn_tracking_loop(app: AppHandle) {
                     },
                 ]
             };
+            if state.hotkeys_changed.swap(false, Ordering::SeqCst) {
+                overlays.set_shortcuts(&app, shortcuts(&app));
+            }
             let interact = state.interact.load(Ordering::SeqCst);
             let moved = overlays.sync(&app, game, interact, &wanted);
             {
@@ -948,6 +922,7 @@ pub fn run() {
     let storage = Storage::new(data_dir());
     let settings = storage.load_settings();
     let tracker = Tracker::new(storage, &settings);
+    let bindings = hotkeys::bindings(&settings.hotkeys);
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -957,7 +932,15 @@ pub fn run() {
                     if event.state() != ShortcutState::Pressed {
                         return;
                     }
-                    if let Some((_, hotkey)) = hotkeys().into_iter().find(|(s, _)| s == shortcut) {
+                    let hotkey = app
+                        .state::<AppState>()
+                        .bindings
+                        .lock()
+                        .unwrap()
+                        .iter()
+                        .find(|(s, _)| s == shortcut)
+                        .map(|(_, h)| *h);
+                    if let Some(hotkey) = hotkey {
                         on_hotkey(app, hotkey);
                     }
                 })
@@ -976,6 +959,8 @@ pub fn run() {
             hotkey_failures: Mutex::new(Vec::new()),
             tree_pill: AtomicBool::new(false),
             xp_visible: AtomicBool::new(true),
+            bindings: Mutex::new(bindings),
+            hotkeys_changed: AtomicBool::new(false),
         })
         .invoke_handler(tauri::generate_handler![
             get_timer_view,
@@ -1013,6 +998,8 @@ pub fn run() {
             toggle_tree_edit,
             hotkey_failures,
             rebuild_passives,
+            get_hotkeys,
+            set_hotkey,
         ])
         .on_window_event(|window, event| {
             // Closing the main window sends it to the tray.

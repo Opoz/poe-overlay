@@ -24,6 +24,7 @@ const SHOTS = [
 	["main-build", "w=main&page=build", 960, 680],
 	["main-overlays", "w=main&page=overlays", 960, 680],
 	["main-history", "w=main&page=history", 960, 680],
+	["main-shortcuts", "w=main&page=shortcuts", 960, 1100],
 	["main-settings", "w=main&page=settings&conflict", 960, 680],
 	["guide-dark", "w=guide", 520, 480],
 	["guide-bright", "w=guide&bg=bright", 520, 480],

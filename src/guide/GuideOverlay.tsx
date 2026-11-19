@@ -3,6 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { autoSizeWindow } from "../autoSize";
 import { onEvent } from "../events";
+import { withKey } from "../hotkeys";
 import { FindIcon, ListIcon, NextIcon, PrevIcon, SearchIcon } from "../icons";
 import type { RegexCopied } from "../types";
 import StepView from "./StepView";
@@ -58,7 +59,7 @@ export default function GuideOverlay() {
 					<button
 						type="button"
 						class="icon-button"
-						title="Previous step (Alt+[)"
+						title={withKey("Previous step", "guide.previous")}
 						aria-label="Previous step"
 						onClick={() => guideCommand({ kind: "previous" })}
 					>
@@ -67,7 +68,7 @@ export default function GuideOverlay() {
 					<button
 						type="button"
 						class="icon-button"
-						title="Next step (Alt+])"
+						title={withKey("Next step", "guide.next")}
 						aria-label="Next step"
 						onClick={() => guideCommand({ kind: "next" })}
 					>
@@ -76,7 +77,10 @@ export default function GuideOverlay() {
 					<button
 						type="button"
 						class="icon-button"
-						title="Find me: jump to the area you're in (Alt+J)"
+						title={withKey(
+							"Find me: jump to the area you're in",
+							"guide.findMe",
+						)}
 						aria-label="Find me"
 						onClick={() => guideCommand({ kind: "findMe" })}
 					>
@@ -86,7 +90,10 @@ export default function GuideOverlay() {
 						<button
 							type="button"
 							class="icon-button"
-							title="Copy the vendor search for the gems to buy here (Alt+V)"
+							title={withKey(
+								"Copy the vendor search for the gems to buy here",
+								"gems.vendorSearch",
+							)}
 							aria-label="Copy vendor search"
 							onClick={() => invoke("copy_regex")}
 						>
@@ -96,7 +103,7 @@ export default function GuideOverlay() {
 					<button
 						type="button"
 						class="icon-button"
-						title="Full act (Alt+G)"
+						title={withKey("Full act", "guide.act")}
 						aria-label="Full act"
 						classList={{ on: guide()?.actView }}
 						onClick={toggleActView}
@@ -118,7 +125,9 @@ export default function GuideOverlay() {
 				)}
 			</Show>
 			<Show when={interact()}>
-				<div class="interact-hint">Drag to move. Alt+E locks.</div>
+				<div class="interact-hint">
+					Drag to move. {withKey("Lock", "overlays.interact")} when done.
+				</div>
 			</Show>
 			<Show
 				when={guide()?.current}

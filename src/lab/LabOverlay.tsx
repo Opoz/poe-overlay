@@ -4,7 +4,9 @@ import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { autoSizeWindow } from "../autoSize";
 import { onEvent } from "../events";
 import { titleCase } from "../format";
+import { withKey } from "../hotkeys";
 import { CloseIcon } from "../icons";
+import Key from "../Key";
 import type { LabImportStatus, LabPayload, LabRoom } from "../types";
 
 const DOORS: Record<string, { words: string; angle: number }> = {
@@ -111,7 +113,7 @@ export default function LabOverlay() {
 						title="Open poelab and pick up the compass file you copy"
 						onClick={() => invoke("lab_open")}
 					>
-						Open today's lab <kbd>Alt+Shift+B</kbd>
+						Open today's lab <Key id="lab.import" />
 					</button>
 					<button
 						type="button"
@@ -123,7 +125,7 @@ export default function LabOverlay() {
 					<button
 						type="button"
 						class="icon-button"
-						title="Hide (Alt+B)"
+						title={withKey("Hide", "lab.toggle")}
 						aria-label="Hide"
 						onClick={() => invoke("lab_toggle")}
 					>

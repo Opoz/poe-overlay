@@ -63,6 +63,53 @@ async function boot() {
 		panelOpacity: Number(params.get("opacity") ?? 0.85),
 	};
 
+	// Mirrors src-tauri/src/hotkeys.rs (one rebound, one unset, for show).
+	const hotkeyRows = [
+		["timer.pause", "Pause or resume the timer", "Timer", "alt+KeyP"],
+		["timer.split", "Split", "Timer", "alt+KeyS"],
+		["timer.undoSplit", "Undo the last split", "Timer", "shift+alt+KeyS"],
+		["guide.next", "Next step", "Guide", "alt+BracketRight"],
+		["guide.previous", "Previous step", "Guide", "alt+BracketLeft"],
+		[
+			"guide.findMe",
+			"Find me: jump to the area you're in",
+			"Guide",
+			"alt+KeyJ",
+		],
+		["guide.act", "Show the full act", "Guide", "alt+KeyG"],
+		["gems.links", "Show gem links", "Gems", "alt+KeyL"],
+		["gems.vendorSearch", "Copy the vendor search", "Gems", "alt+KeyV"],
+		[
+			"tree.toggle",
+			"Show or hide the tree overlay",
+			"Passive tree",
+			"alt+KeyT",
+		],
+		[
+			"tree.calibrate",
+			"Calibrate the tree overlay",
+			"Passive tree",
+			"shift+alt+KeyT",
+		],
+		[
+			"tree.previous",
+			"Previous build tree",
+			"Passive tree",
+			"shift+alt+BracketLeft",
+		],
+		["tree.next", "Next build tree", "Passive tree", "shift+alt+BracketRight"],
+		["lab.toggle", "Show or hide the lab map", "Labyrinth", "alt+KeyB"],
+		["lab.import", "Open today's lab on poelab", "Labyrinth", "shift+alt+KeyB"],
+		["xp.toggle", "Show or hide the XP ruler", "Overlays", "alt+KeyX"],
+		["overlays.interact", "Unlock overlays for moving", "Overlays", "alt+KeyE"],
+	].map(([id, label, group, def]) => ({
+		id,
+		label,
+		group,
+		default: def,
+		shortcut: id === "xp.toggle" ? "" : id === "timer.split" ? "F2" : def,
+	}));
+
 	const responses: Record<string, unknown> = {
 		get_timer_view: fixtures.timer,
 		get_guide_view: { ...fixtures.guide, actView: params.has("act") },
@@ -83,6 +130,7 @@ async function boot() {
 		get_history: fixtures.history,
 		get_interact: params.has("interact"),
 		hotkey_failures: params.has("conflict") ? ["alt+KeyR"] : [],
+		get_hotkeys: hotkeyRows,
 	};
 
 	mockWindows(label);

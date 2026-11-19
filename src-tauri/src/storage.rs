@@ -2,6 +2,7 @@
 //! (the app identifier; plain `poe-overlay` is taken by an unrelated app).
 
 use std::{
+    collections::BTreeMap,
     fs,
     path::{Path, PathBuf},
 };
@@ -49,6 +50,9 @@ pub struct Settings {
     /// How solid the Overlay panels' backgrounds are (0.2-1). Text stays
     /// fully opaque either way.
     pub panel_opacity: f64,
+    /// Rebound hotkeys: action id -> shortcut (`alt+KeyS`; empty = unbound).
+    /// Actions not listed use their defaults.
+    pub hotkeys: BTreeMap<String, String>,
 }
 
 impl Default for Settings {
@@ -66,6 +70,7 @@ impl Default for Settings {
             xp_overlay: OverlayPlacement { x: 0.56, y: 0.86 },
             tree_key: Some("P".into()),
             panel_opacity: 0.85,
+            hotkeys: BTreeMap::new(),
         }
     }
 }

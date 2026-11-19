@@ -8,6 +8,7 @@ import {
 	onCleanup,
 } from "solid-js";
 import { onEvent } from "../events";
+import { withKey } from "../hotkeys";
 import { CloseIcon } from "../icons";
 import StepView from "./StepView";
 import { guideCommand, toggleActView, useGuide } from "./useGuide";
@@ -74,7 +75,7 @@ export default function ActOverlay() {
 				<button
 					type="button"
 					class="icon-button"
-					title="Close (Alt+G)"
+					title={withKey("Close", "guide.act")}
 					aria-label="Close"
 					onClick={toggleActView}
 				>

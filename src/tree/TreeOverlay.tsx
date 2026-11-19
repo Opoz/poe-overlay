@@ -7,6 +7,7 @@ import {
 	Show,
 } from "solid-js";
 import { onEvent } from "../events";
+import { keyFor } from "../hotkeys";
 import type { AscendancyPanel, TreeNode, TreeView } from "../types";
 
 const RADIUS: Record<TreeNode["kind"], number> = {
@@ -77,7 +78,7 @@ export default function TreeOverlay() {
 			return "Level up once so the class is known, then calibrate again.";
 		const start = className(v.classStart.name);
 		if (v.calibrating.step === "quick") {
-			return `Zoom the passive tree all the way out and click the centre of your class start (${start}). Alt+Shift+T again for full two-click calibration.`;
+			return `Zoom the passive tree all the way out and click the centre of your class start (${start}). Press ${keyFor("tree.calibrate") ?? "Calibrate"} again for full two-click calibration.`;
 		}
 		if (v.calibrating.step === "classStart") {
 			return `Zoom the passive tree all the way out, then click the centre of your class start (${start}).`;
@@ -105,7 +106,10 @@ export default function TreeOverlay() {
 					<div class="tree-prompt">
 						<strong>Calibrating</strong> {text()}
 						<Show when={view()?.calibrating?.step !== "quick"}>
-							<span class="muted"> Alt+Shift+T cancels.</span>
+							<span class="muted">
+								{" "}
+								{keyFor("tree.calibrate") ?? "Calibrate"} cancels.
+							</span>
 						</Show>
 					</div>
 				)}

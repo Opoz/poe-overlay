@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { createResource, createSignal, For, onCleanup, Show } from "solid-js";
 import { onEvent } from "../events";
+import Key from "../Key";
 import type { BuildSummary, Characters, GuidePayload, Profile } from "../types";
 import GroupLevels from "./GroupLevels";
 
@@ -64,9 +65,10 @@ export default function BuildCard() {
 		<section>
 			<h2>Build</h2>
 			<p class="lede">
-				Import a Path of Building build. The gems overlay (<kbd>Alt+L</kbd>)
-				shows its links for your level, the guide's hand-in steps show which
-				gems to take and buy, and the tree overlay numbers your next passives.
+				Import a Path of Building build. The gems overlay (
+				<Key id="gems.links" />) shows its links for your level, the guide's
+				hand-in steps show which gems to take and buy, and the tree overlay
+				numbers your next passives.
 			</p>
 			<Show
 				when={active()}
@@ -168,8 +170,8 @@ export default function BuildCard() {
 							</p>
 						</Show>
 						<p class="muted">
-							At a vendor, <kbd>Alt+V</kbd> copies a search for the gems to buy
-							there.
+							At a vendor, <Key id="gems.vendorSearch" /> copies a search for
+							the gems to buy there.
 						</p>
 					</>
 				)}

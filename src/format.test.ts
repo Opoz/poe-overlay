@@ -46,7 +46,8 @@ describe("formatShortcut", () => {
 	it("names keys the way players read them", () => {
 		expect(formatShortcut("alt+KeyR")).toBe("Alt+R");
 		expect(formatShortcut("alt+shift+BracketLeft")).toBe("Alt+Shift+[");
-		expect(formatShortcut("control+Digit1")).toBe("Control+1");
+		expect(formatShortcut("control+Digit1")).toBe("Ctrl+1");
+		expect(formatShortcut("shift+alt+KeyS")).toBe("Alt+Shift+S");
 		expect(formatShortcut("F5")).toBe("F5");
 	});
 });
