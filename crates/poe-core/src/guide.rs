@@ -26,9 +26,10 @@ const ROUTES: [&str; 10] = [
 ];
 const AREAS_JSON: &str = include_str!("../data/exile-leveling/areas.json");
 
-/// How far ahead auto-advance looks for a Town just entered. Towns come up
-/// constantly (waypoints, logouts), so only nearby matches count.
-pub const TOWN_LOOKAHEAD: usize = 3;
+/// How far ahead auto-advance looks for a Town just entered. Players pop
+/// back to town all the time (selling, a portal), so only the very next Step
+/// counts: otherwise a quick trip to town skips a zone never visited.
+pub const TOWN_LOOKAHEAD: usize = 1;
 /// How far ahead auto-advance looks for any other Area. These are
 /// distinctive, so players skipping or reordering parts of the route are
 /// picked up again.
@@ -634,6 +635,22 @@ mod tests {
         let ledge = g.steps.iter().position(|s| s.area == "1_1_5").unwrap();
         assert!(ledge <= AREA_LOOKAHEAD);
         assert_eq!(g.advance(0, "1_1_5"), Some(ledge), "skipping ahead");
+    }
+
+    #[test]
+    fn town_trip_does_not_skip_an_unvisited_zone() {
+        let book = book();
+        let g = book.guide(GuideOptions::default());
+        // Act 9: Quarry ("go to the Refinery") -> Refinery -> Highgate.
+        let quarry = (0..g.steps.len() - 2)
+            .find(|&i| {
+                g.steps[i].area == "2_9_8"
+                    && g.steps[i + 1].area == "2_9_9"
+                    && g.steps[i + 2].area == "2_9_town"
+            })
+            .unwrap();
+        assert_eq!(g.advance(quarry, "2_9_town"), None);
+        assert_eq!(g.advance(quarry + 1, "2_9_town"), Some(quarry + 2));
     }
 
     #[test]
