@@ -24,4 +24,6 @@ Path of Exile 1 levelling companion: Tauri v2 + SolidJS. See `docs/PLAN.md` for 
 
 ## Branches
 
+- `docs/IN-GAME-CHECKS.md` queues what still needs checking in the real game; add an entry for every user-facing change, and tick items off only when the player confirms.
+
 - Work happens on `dev` (CI runs there). `main` only gets changes after they have been verified in-game; merge `dev` into `main` once the player confirms.
