@@ -341,7 +341,10 @@ impl Guide {
         if self.steps.get(current).is_some_and(|s| s.area == area) {
             return None;
         }
-        let lookahead = if area.ends_with("_town") {
+        // Reaching a later act can only mean progress (however the player
+        // got there), so look far ahead even for its Town.
+        let later_act = act_of(area) > self.steps.get(current).and_then(|s| act_of(&s.area));
+        let lookahead = if area.ends_with("_town") && !later_act {
             TOWN_LOOKAHEAD
         } else {
             AREA_LOOKAHEAD
@@ -363,6 +366,16 @@ impl Guide {
         (from..self.steps.len())
             .find(matches)
             .or_else(|| (0..self.steps.len()).find(matches))
+    }
+}
+
+/// The act an Area ID belongs to (`None` outside the campaign).
+fn act_of(area: &str) -> Option<u8> {
+    use crate::area::AreaKind;
+    match AreaKind::of(area) {
+        AreaKind::Campaign { act } | AreaKind::Town { act } => Some(act),
+        AreaKind::Epilogue => Some(11),
+        _ => None,
     }
 }
 
@@ -437,6 +450,34 @@ fn parse(
             };
             let parts = fragments(body, comment, &name_of);
             let parts = with_quest_offers(parts, body, quests);
+            // A lone "waypoint to where you already are" line says nothing.
+            if let [Fragment::Waypoint { area: Some(to), .. }] = parts.as_slice()
+                && *to == area
+            {
+                continue;
+            }
+            let parts = if act == 9 && is_last_line(text, line_no) && body.trim() == "{portal|use}"
+            {
+                // After the Depraved Trinity you sail from the Black Heart
+                // straight to Oriath (the route assumes Highgate first).
+                vec![
+                    Fragment::Text {
+                        text: "Talk to ".into(),
+                    },
+                    Fragment::Generic {
+                        text: "Lilly Roth".into(),
+                    },
+                    Fragment::Text {
+                        text: " and sail ➞ ".into(),
+                    },
+                    Fragment::Enter {
+                        area: "2_10_town".into(),
+                        name: name_of("2_10_town"),
+                    },
+                ]
+            } else {
+                parts
+            };
 
             if !open || steps.is_empty() {
                 steps.push(Step {
@@ -493,6 +534,15 @@ fn parse(
         }
     }
     Guide { steps }
+}
+
+/// Whether `line_no` is the last non-empty line of a route file.
+fn is_last_line(text: &str, line_no: usize) -> bool {
+    text.lines()
+        .enumerate()
+        .filter(|(_, l)| !l.trim().is_empty())
+        .last()
+        .is_some_and(|(i, _)| i == line_no)
 }
 
 /// Fill in who to hand each quest to and what book it gives. The route tag is
@@ -850,6 +900,44 @@ mod tests {
         let ledge = g.steps.iter().position(|s| s.area == "1_1_5").unwrap();
         assert!(ledge <= AREA_LOOKAHEAD);
         assert_eq!(g.advance(0, "1_1_5"), Some(ledge), "skipping ahead");
+    }
+
+    #[test]
+    fn act_9_ends_sailing_to_oriath() {
+        let book = book();
+        let g = book.guide(GuideOptions::default());
+        let core = g.steps.iter().rposition(|s| s.area == "2_9_10_2").unwrap();
+        assert_eq!(
+            g.steps[core + 1].area,
+            "2_10_town",
+            "straight to Oriath Docks"
+        );
+        assert!(texts(&g.steps[core]).contains("[Oriath Docks]"));
+        // From the Rotting Core, entering Oriath Docks moves on.
+        assert_eq!(g.advance(core, "2_10_town"), Some(core + 1));
+    }
+
+    #[test]
+    fn a_later_acts_town_always_advances() {
+        let book = book();
+        let g = book.guide(GuideOptions::default());
+        // Somewhere late in Act 5, the Act 6 town is more than one Step away.
+        let a5 = g
+            .steps
+            .iter()
+            .rposition(|s| s.act == 5 && s.area != "2_6_town")
+            .unwrap();
+        let a6_town = (a5 + 1..g.steps.len()).find(|&i| g.steps[i].area == "2_6_town");
+        if let Some(t) = a6_town
+            && t - a5 <= AREA_LOOKAHEAD
+        {
+            assert_eq!(g.advance(a5, "2_6_town"), Some(t));
+        }
+        // But the same act's town still only matches the very next Step.
+        let quarry = (0..g.steps.len() - 2)
+            .find(|&i| g.steps[i].area == "2_9_8" && g.steps[i + 1].area == "2_9_9")
+            .unwrap();
+        assert_eq!(g.advance(quarry, "2_9_town"), None);
     }
 
     #[test]

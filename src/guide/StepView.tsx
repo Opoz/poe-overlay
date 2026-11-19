@@ -41,7 +41,17 @@ export default function StepView(props: {
 }
 
 function Parts(props: { parts: Fragment[] }) {
-	return <For each={props.parts}>{(part) => <Part part={part} />}</For>;
+	// A bare "{portal|use}" line (after a boss) reads better as a sentence.
+	const lonePortal = () =>
+		props.parts.length === 1 && props.parts[0].kind === "portalUse";
+	return (
+		<Show
+			when={!lonePortal()}
+			fallback={<span class="t-waypoint">Take the portal back to town</span>}
+		>
+			<For each={props.parts}>{(part) => <Part part={part} />}</For>
+		</Show>
+	);
 }
 
 function Part(props: { part: Fragment }) {
