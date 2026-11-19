@@ -46,7 +46,11 @@ export default function TreeOverlay() {
 	const [pulse, setPulse] = createSignal(0);
 	const pulseTimer = setInterval(() => {
 		const v = view();
-		if (v?.visible && v.transform && v.planned.length > 0) {
+		if (
+			v?.visible &&
+			v.transform &&
+			(v.planned.length > 0 || v.plannedMasteries.length > 0)
+		) {
 			setPulse((Math.sin(performance.now() / 450) + 1) / 2);
 		}
 	}, 50);
@@ -262,6 +266,7 @@ function draw(
 		at,
 		t.scale,
 		"rgba(158, 197, 255, 1)",
+		pulse,
 	);
 
 	// Mastery picks: which option down the in-game list was chosen.
@@ -282,8 +287,28 @@ function drawMasteryBadges(
 	at: (n: TreeNode) => readonly [number, number],
 	scale: number,
 	colour: string,
+	/** Breathing glow strength (planned picks still to make), or null. */
+	pulse: number | null = null,
 ) {
 	const fontPx = Math.max(18, 70 * scale);
+	const r = fontPx * 0.75;
+	if (pulse !== null) {
+		ctx.globalCompositeOperation = "lighter";
+		for (const pick of picks) {
+			const n = byId.get(pick.node);
+			if (!n) continue;
+			const [x, y] = at(n);
+			const outer = r * (2 + pulse * 1.6);
+			const glow = ctx.createRadialGradient(x, y, r * 0.8, x, y, outer);
+			glow.addColorStop(0, `rgba(110, 170, 255, ${0.35 + pulse * 0.5})`);
+			glow.addColorStop(1, "rgba(110, 170, 255, 0)");
+			ctx.fillStyle = glow;
+			ctx.beginPath();
+			ctx.arc(x, y, outer, 0, Math.PI * 2);
+			ctx.fill();
+		}
+		ctx.globalCompositeOperation = "source-over";
+	}
 	ctx.font = `700 ${fontPx}px "Segoe UI", sans-serif`;
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
@@ -294,9 +319,9 @@ function drawMasteryBadges(
 		// Outlined (a mastery option), unlike the solid Next Point badges.
 		ctx.fillStyle = "rgba(14, 15, 18, 0.85)";
 		ctx.strokeStyle = colour;
-		ctx.lineWidth = 2;
+		ctx.lineWidth = pulse !== null ? 2 + pulse * 3 : 2;
 		ctx.beginPath();
-		ctx.arc(x, y, fontPx * 0.75, 0, Math.PI * 2);
+		ctx.arc(x, y, r, 0, Math.PI * 2);
 		ctx.fill();
 		ctx.stroke();
 		ctx.fillStyle = colour;

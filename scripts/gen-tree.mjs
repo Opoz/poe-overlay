@@ -65,6 +65,8 @@ for (const n of Object.values(ggg.nodes)) {
 		id: n.skill,
 		name: n.name,
 		kind: kindOf(n),
+		// Masteries are reached by allocating any node in their group.
+		group: n.group,
 		x: Math.round((g.x + radius * Math.sin(a)) * 10) / 10,
 		y: Math.round((g.y - radius * Math.cos(a)) * 10) / 10,
 		...(n.ascendancyName ? { ascendancy: n.ascendancyName } : {}),
