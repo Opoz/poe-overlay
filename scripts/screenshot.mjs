@@ -45,6 +45,8 @@ const SHOTS = [
 	["treebar-hidden", "w=treebar&hidden", 900, 90],
 	["tree", "w=tree", 1600, 900],
 	["tree-fix", "w=tree&fix", 1600, 900],
+	["atlas", "w=atlas", 1600, 900],
+	["main-atlas", "w=main&page=atlas", 960, 680],
 ];
 
 const [outArg, filter] = process.argv.slice(2);

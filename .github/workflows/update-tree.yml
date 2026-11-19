@@ -1,7 +1,8 @@
-name: Update passive tree
+name: Update passive and atlas trees
 
 # GGG updates the skill tree export around league launches and patches.
-# Every Thursday, regenerate tree.json; if it changed and the tests still
+# Every Thursday, regenerate tree.json and atlas.json; if either changed and
+# the tests still
 # pass, open a PR into dev.
 on:
   schedule:
@@ -23,12 +24,13 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/gen-tree.mjs
+      - run: node scripts/gen-atlas.mjs
 
       - name: Check for changes
         id: diff
         shell: bash
         run: |
-          if git diff --quiet -- crates/poe-core/data/tree.json; then
+          if git diff --quiet -- crates/poe-core/data/tree.json crates/poe-core/data/atlas.json; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -47,13 +49,16 @@ jobs:
         with:
           base: dev
           branch: bot/update-tree
-          add-paths: crates/poe-core/data/tree.json
-          commit-message: Update passive tree data from GGG export
-          title: Update passive tree data
+          add-paths: |
+            crates/poe-core/data/tree.json
+            crates/poe-core/data/atlas.json
+          commit-message: Update passive and atlas tree data from GGG exports
+          title: Update passive and atlas tree data
           body: |
-            GGG's skill tree export (or RePoE's passive id map) changed, so
-            `crates/poe-core/data/tree.json` was regenerated with
-            `scripts/gen-tree.mjs`. `cargo test -p poe-core` passed.
+            GGG's skill tree or atlas tree export (or RePoE's passive id map)
+            changed, so `crates/poe-core/data/tree.json` / `atlas.json` were
+            regenerated with `scripts/gen-tree.mjs` / `gen-atlas.mjs`.
+            `cargo test -p poe-core` passed.
 
             Check the tree overlay in-game after merging if a new league
             moved nodes around.

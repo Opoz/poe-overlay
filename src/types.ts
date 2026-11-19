@@ -51,6 +51,23 @@ export interface Run {
 	phase: Phase;
 }
 
+export type AtlasCalibrating =
+	| { step: "quick" }
+	| { step: "start" }
+	| { step: "partner"; startAt: [number, number] };
+
+export interface AtlasView {
+	visible: boolean;
+	calibrating: AtlasCalibrating | null;
+	transform: Transform | null;
+	start: TreeNode | null;
+	partner: TreeNode | null;
+	/** Planned nodes, including masteries. */
+	planned: number[];
+	/** One-click Calibration is possible (zoom measured). */
+	zoomKnown: boolean;
+}
+
 export interface LayoutsPayload {
 	areaId: string | null;
 	images: { label: string; src: string }[];

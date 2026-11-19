@@ -174,6 +174,14 @@ impl Storage {
         save_json(&self.dir.join("session.json"), session);
     }
 
+    pub fn load_atlas(&self) -> poe_core::atlas::AtlasOverlay {
+        load_json(&self.dir.join("atlas.json")).unwrap_or_default()
+    }
+
+    pub fn save_atlas(&self, atlas: &poe_core::atlas::AtlasOverlay) {
+        save_json(&self.dir.join("atlas.json"), atlas);
+    }
+
     pub fn load_history(&self) -> Vec<Run> {
         load_json(&self.dir.join("runs.json")).unwrap_or_default()
     }

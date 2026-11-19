@@ -7,6 +7,7 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
 - Path of Exile 1 only. A greyed-out "PoE2 (coming later)" option in settings; game data kept in per-game files so PoE2 can slot in.
 - Windows only. Platform-specific code (window styles, process detection) behind a `platform` module.
 - Personal tool first; public-ready later (signed releases, updater in M5).
+- Mostly the campaign. Two deliberate steps past it (decided 2026-11-19): screen copies (useful while levelling too) and the atlas tree overlay (endgame). Anything further past levelling gets the same explicit decision.
 
 ## Architecture
 
@@ -58,7 +59,7 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
 - "Open today's lab (Alt+Shift+B)" opens poelab and watches the clipboard while the game is unfocused; copying the compass link opens it in the browser (poelab's browser check blocks app downloads), copying its JSON text loads it. No scraping, no background clipboard watching.
 - Trials aren't tracked: the log has no completion line; following the Guide is enough.
 
-## Default hotkeys (until rebinding in M5)
+## Default hotkeys (all rebindable on the Shortcuts page)
 
 | Action                           | Key                               |
 | -------------------------------- | --------------------------------- |
@@ -107,3 +108,14 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
   - [ ] Test against a real compass file; verify in-game
 - [x] **Feedback round 1** (2026-11-19): PoB colour codes / link counts / `{n}` ignored; one skill set at a time; tree titles are targets; stable Next Points; tree bar (◀ ▶, Auto, Hide) + Alt+Shift+[ / ]; passive tree key + Escape follow the game's tree; find me uses the last campaign Area and the nearest Step; full-act view act tabs + click to jump; overlays clamp inside the game window; hotkey conflicts shown; bigger lab map.
 - [ ] **M5**: hotkey rebinding, layout persistence, Runs tab polish, signed releases + updater.
+  - [x] UI pass (one token system, sidebar main window, readable overlays at any Panel Opacity); preview harness + screenshots
+  - [x] Rebindable hotkeys (Shortcuts page), per-Overlay size / opacity / visibility, reset positions
+  - [x] History page (a bar per run, splits against the best run, delete)
+  - [x] Release workflow + signed updater; app icon
+  - [ ] Add the updater key secret; verify in-game
+- [ ] **M6**: beyond the guide.
+  - [x] Build Notes Overlay (PoB notes with their colours)
+  - [x] Zone layouts from the player's own images (none shipped)
+  - [x] Screen copies (DWM thumbnails; display only)
+  - [x] Atlas tree overlay: rings an imported plan, never covers nodes, no tracking (the log has none)
+  - [ ] Verify all four in-game

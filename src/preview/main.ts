@@ -114,6 +114,13 @@ async function boot() {
 			"shift+alt+BracketLeft",
 		],
 		["tree.next", "Next build tree", "Passive tree", "shift+alt+BracketRight"],
+		["atlas.toggle", "Show or hide the atlas overlay", "Atlas", "alt+KeyA"],
+		[
+			"atlas.calibrate",
+			"Calibrate the atlas overlay",
+			"Atlas",
+			"shift+alt+KeyA",
+		],
 		["lab.toggle", "Show or hide the lab map", "Labyrinth", "alt+KeyB"],
 		["lab.import", "Open today's lab on poelab", "Labyrinth", "shift+alt+KeyB"],
 		["xp.toggle", "Show or hide the XP ruler", "Overlays", "alt+KeyX"],
@@ -143,6 +150,8 @@ async function boot() {
 		},
 		get_lab_view: { ...fixtures.lab, visible: true },
 		get_notes_view: { ...fixtures.notes, visible: true },
+		get_atlas_view: fixtures.atlas.view,
+		get_atlas_tree: fixtures.atlas.nodes,
 		get_layouts_view: {
 			areaId: "1_3_5",
 			images: [1, 2, 3].map((n) => ({ label: String(n), src: sketch(n) })),

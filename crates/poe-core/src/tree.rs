@@ -14,6 +14,7 @@ use crate::{
 };
 
 const TREE_JSON: &str = include_str!("../data/tree.json");
+const ATLAS_JSON: &str = include_str!("../data/atlas.json");
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -80,9 +81,18 @@ pub struct PassiveTree {
 }
 
 impl PassiveTree {
-    /// The bundled tree.
+    /// The bundled passive tree.
     pub fn bundled() -> Self {
-        let file: TreeFile = serde_json::from_str(TREE_JSON).expect("bundled tree.json is valid");
+        Self::from_json(TREE_JSON)
+    }
+
+    /// The bundled atlas passive tree (same shape; its start is node 0).
+    pub fn atlas() -> Self {
+        Self::from_json(ATLAS_JSON)
+    }
+
+    fn from_json(json: &str) -> Self {
+        let file: TreeFile = serde_json::from_str(json).expect("bundled tree data is valid");
         let index = file
             .nodes
             .iter()

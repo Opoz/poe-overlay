@@ -22,6 +22,8 @@ pub enum Hotkey {
     XpRuler,
     BuildNotes,
     ZoneLayouts,
+    AtlasOverlay,
+    AtlasCalibrate,
     /// Show the previous / next Tree Stage.
     TreeStage(i32),
 }
@@ -53,7 +55,7 @@ const fn action(
     }
 }
 
-pub const ACTIONS: [Action; 19] = [
+pub const ACTIONS: [Action; 21] = [
     action(
         "timer.pause",
         Hotkey::Timer(Command::TogglePause),
@@ -159,6 +161,20 @@ pub const ACTIONS: [Action; 19] = [
         "alt+shift+BracketRight",
         "Next build tree",
         "Passive tree",
+    ),
+    action(
+        "atlas.toggle",
+        Hotkey::AtlasOverlay,
+        "alt+KeyA",
+        "Show or hide the atlas overlay",
+        "Atlas",
+    ),
+    action(
+        "atlas.calibrate",
+        Hotkey::AtlasCalibrate,
+        "alt+shift+KeyA",
+        "Calibrate the atlas overlay",
+        "Atlas",
     ),
     action(
         "lab.toggle",

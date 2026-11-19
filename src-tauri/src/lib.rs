@@ -75,6 +75,9 @@ pub struct AppState {
     layouts: Mutex<layouts::Cache>,
     /// The screen copy whose source is being dragged out, if any.
     clone_picking: Mutex<Option<usize>>,
+    /// The atlas plan Overlay, and the atlas tree it's drawn from.
+    atlas: Mutex<poe_core::atlas::AtlasOverlay>,
+    atlas_tree: poe_core::tree::PassiveTree,
     /// Bound hotkeys (from Settings), and whether they changed since the
     /// tracking loop last registered them.
     bindings: Mutex<Vec<(Shortcut, Hotkey)>>,
@@ -152,6 +155,14 @@ fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
         Hotkey::LabImport => lab_import::start(app),
         Hotkey::XpRuler => {
             state.xp_visible.fetch_xor(true, Ordering::SeqCst);
+        }
+        Hotkey::AtlasOverlay => {
+            state.atlas.lock().unwrap().toggle_visible();
+            save_atlas(app);
+        }
+        Hotkey::AtlasCalibrate => {
+            state.atlas.lock().unwrap().toggle_calibration();
+            save_atlas(app);
         }
         Hotkey::ZoneLayouts => {
             state.layouts_visible.fetch_xor(true, Ordering::SeqCst);
@@ -732,6 +743,79 @@ fn get_overlays_shown(
     .collect()
 }
 
+/// Event carrying a fresh atlas view.
+const ATLAS_VIEW: &str = "atlas-view";
+
+fn atlas_view(app: &AppHandle) -> poe_core::atlas::AtlasView {
+    let state = app.state::<AppState>();
+    let atlas = state.atlas.lock().unwrap();
+    poe_core::atlas::AtlasView::build(&state.atlas_tree, &atlas)
+}
+
+/// Save the atlas state and send the Overlay a fresh view.
+fn save_atlas(app: &AppHandle) {
+    let state = app.state::<AppState>();
+    Storage::new(data_dir()).save_atlas(&state.atlas.lock().unwrap());
+    let _ = app.emit(ATLAS_VIEW, atlas_view(app));
+}
+
+#[tauri::command]
+fn get_atlas_view(app: AppHandle) -> poe_core::atlas::AtlasView {
+    atlas_view(&app)
+}
+
+#[tauri::command]
+fn get_atlas_tree(state: tauri::State<AppState>) -> Vec<TreeNode> {
+    state.atlas_tree.nodes.clone()
+}
+
+#[tauri::command]
+fn toggle_atlas(app: AppHandle, state: tauri::State<AppState>, calibrate: bool) {
+    let mut atlas = state.atlas.lock().unwrap();
+    if calibrate {
+        atlas.toggle_calibration();
+    } else {
+        atlas.toggle_visible();
+    }
+    drop(atlas);
+    save_atlas(&app);
+}
+
+/// A Calibration click on the atlas Overlay.
+#[tauri::command]
+fn atlas_click(app: AppHandle, state: tauri::State<AppState>, x: f64, y: f64) {
+    let height = platform::find_game_window()
+        .and_then(platform::game_rect)
+        .map_or(0.0, |r| f64::from(r.height));
+    state
+        .atlas
+        .lock()
+        .unwrap()
+        .click(&state.atlas_tree, (x, y), height);
+    overlay::raise_small(&app);
+    save_atlas(&app);
+}
+
+/// Import an atlas plan from a tree link. Returns how many nodes it has.
+#[tauri::command]
+fn import_atlas(
+    app: AppHandle,
+    state: tauri::State<AppState>,
+    text: String,
+) -> Result<usize, String> {
+    let plan = poe_core::atlas::parse_plan(&text, &state.atlas_tree)?;
+    let count = plan.nodes.len();
+    state.atlas.lock().unwrap().plan = plan;
+    save_atlas(&app);
+    Ok(count)
+}
+
+#[tauri::command]
+fn clear_atlas_plan(app: AppHandle, state: tauri::State<AppState>) {
+    state.atlas.lock().unwrap().plan = poe_core::atlas::AtlasPlan::default();
+    save_atlas(&app);
+}
+
 fn save_and_announce(app: &AppHandle, settings: &Settings) {
     Storage::new(data_dir()).save_settings(settings);
     let _ = app.emit("settings", settings);
@@ -964,6 +1048,20 @@ fn on_middle_click(app: &AppHandle, x: i32, y: i32) {
     );
     if aligned {
         emit_tree(app);
+        return;
+    }
+    // Otherwise the atlas, if it's showing (needs its zoom measured once).
+    let state = app.state::<AppState>();
+    let mut atlas = state.atlas.lock().unwrap();
+    if atlas.visible
+        && atlas.align_on_start(
+            &state.atlas_tree,
+            (f64::from(gx), f64::from(gy)),
+            f64::from(r.height),
+        )
+    {
+        drop(atlas);
+        save_atlas(app);
     }
 }
 
@@ -1050,6 +1148,7 @@ fn spawn_tracking_loop(app: AppHandle) {
             let lab_shown = lab_visible(&app);
 
             let picking = state.clone_picking.lock().unwrap().is_some();
+            let atlas = state.atlas.lock().unwrap().clone();
             let mut wanted = {
                 let tracker = state.tracker.lock().unwrap();
                 let tree = tracker.tree_overlay();
@@ -1122,6 +1221,12 @@ fn spawn_tracking_loop(app: AppHandle) {
                         anchor: overlay::Anchor::At(settings.act_overlay),
                         visible: state.act_view.load(Ordering::SeqCst),
                         clickable: true,
+                    },
+                    overlay::Wanted {
+                        label: overlay::ATLAS,
+                        anchor: overlay::Anchor::Cover,
+                        visible: atlas.visible,
+                        clickable: atlas.calibrating.is_some(),
                     },
                     // Dragging out a screen copy's source.
                     overlay::Wanted {
@@ -1232,6 +1337,7 @@ pub fn run() {
     let settings = storage.load_settings();
     let tracker = Tracker::new(storage, &settings);
     let bindings = hotkeys::bindings(&settings.hotkeys);
+    let atlas = Storage::new(data_dir()).load_atlas();
     let shown = |label: &str, default: bool| settings.look(label).shown.unwrap_or(default);
     let notes_shown = shown(overlay::NOTES, false);
     let layouts_shown = shown(overlay::LAYOUTS, true);
@@ -1285,6 +1391,13 @@ pub fn run() {
             layouts_visible: AtomicBool::new(layouts_shown),
             layouts: Mutex::new(layouts::Cache::default()),
             clone_picking: Mutex::new(None),
+            atlas: Mutex::new(poe_core::atlas::AtlasOverlay {
+                // Never start shown or mid-Calibration.
+                visible: false,
+                calibrating: None,
+                ..atlas
+            }),
+            atlas_tree: poe_core::tree::PassiveTree::atlas(),
             bindings: Mutex::new(bindings),
             hotkeys_changed: AtomicBool::new(false),
         })
@@ -1332,6 +1445,12 @@ pub fn run() {
             get_notes_view,
             toggle_notes,
             layouts::get_layouts_view,
+            get_atlas_view,
+            get_atlas_tree,
+            toggle_atlas,
+            atlas_click,
+            import_atlas,
+            clear_atlas_plan,
             add_clone_frame,
             repick_clone_frame,
             clone_pick,

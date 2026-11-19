@@ -1,6 +1,7 @@
 /* @refresh reload */
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { render } from "solid-js/web";
+import AtlasOverlay from "./atlas/AtlasOverlay";
 import ClonePicker from "./clone/ClonePicker";
 import CloneWindow from "./clone/CloneWindow";
 import GemsOverlay from "./gems/GemsOverlay";
@@ -38,6 +39,7 @@ render(() => {
 	if (label === "notes") return <NotesOverlay />;
 	if (label === "layouts") return <LayoutsOverlay />;
 	if (label === "picker") return <ClonePicker />;
+	if (label === "atlas") return <AtlasOverlay />;
 	if (label.startsWith("clone-")) return <CloneWindow />;
 	return <MainWindow />;
 }, document.getElementById("root") as HTMLElement);

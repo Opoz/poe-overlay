@@ -20,6 +20,7 @@ import {
 	type TimerCommand,
 } from "../types";
 import { useTimerView } from "../useTimerView";
+import AtlasPage from "./AtlasPage";
 import BuildCard from "./BuildCard";
 import CharactersCard from "./CharactersCard";
 import HistoryPage from "./HistoryPage";
@@ -35,6 +36,7 @@ const PAGES = [
 	["characters", "Characters"],
 	["build", "Build"],
 	["overlays", "Overlays"],
+	["atlas", "Atlas"],
 	["shortcuts", "Shortcuts"],
 	["history", "History"],
 	["settings", "Settings"],
@@ -178,6 +180,9 @@ export default function MainWindow() {
 									/>
 								)}
 							</Show>
+						</Match>
+						<Match when={page() === "atlas"}>
+							<AtlasPage />
 						</Match>
 						<Match when={page() === "shortcuts"}>
 							<Show when={settings()}>

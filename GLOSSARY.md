@@ -136,6 +136,9 @@ The ordered list of passive nodes the Character should allocate next toward the 
 **Calibration**:
 Aligning the tree Overlay onto the in-game passive tree: a middle-click on the class start with the tree fully zoomed out (scale follows from the game window height).
 
+**Atlas Plan**:
+The atlas passives to take, imported from an atlas tree link and ringed by the atlas Overlay. Nothing tracks which are taken: the Client Log doesn't record atlas points.
+
 ## Labyrinth
 
 **Lab Layout**:

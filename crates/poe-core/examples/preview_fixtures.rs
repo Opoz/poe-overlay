@@ -148,6 +148,48 @@ fn build(tree: &PassiveTree, allocated: &[u32]) -> Build {
     }
 }
 
+/// The atlas with a plan grown out from the start, aligned to fill a
+/// 1600x900 window.
+fn atlas_fixture() -> Value {
+    use poe_core::atlas::{AtlasOverlay, AtlasPlan, AtlasView, atlas_start};
+    let tree = PassiveTree::atlas();
+    let start = atlas_start(&tree).unwrap().clone();
+    let mut plan: Vec<u32> = vec![start.id];
+    let mut i = 0;
+    while plan.len() < 60 && i < plan.len() {
+        let id = plan[i];
+        for n in &tree.nodes {
+            if (n.out.contains(&id) || tree.node(id).is_some_and(|m| m.out.contains(&n.id)))
+                && !plan.contains(&n.id)
+                && plan.len() < 60
+            {
+                plan.push(n.id);
+            }
+        }
+        i += 1;
+    }
+    plan.retain(|id| *id != start.id);
+    let scale = 0.06;
+    let overlay = AtlasOverlay {
+        visible: true,
+        transform: Some(Transform {
+            scale,
+            offset_x: 800.0 - start.x * scale,
+            offset_y: 450.0 - start.y * scale,
+        }),
+        zoomed_out_scale_per_px: Some(scale / 900.0),
+        plan: AtlasPlan {
+            nodes: plan,
+            masteries: vec![],
+        },
+        ..Default::default()
+    };
+    json!({
+        "view": AtlasView::build(&tree, &overlay),
+        "nodes": tree.nodes,
+    })
+}
+
 fn main() {
     let records: Vec<_> = replay(BufReader::new(std::fs::File::open(LOG).unwrap())).collect();
     let book = GuideBook::bundled();
@@ -302,6 +344,7 @@ fn main() {
         "tree": tree_view,
         "treeNodes": nodes,
         "lab": lab_view,
+        "atlas": atlas_fixture(),
         "notes": {
             "character": profile.name,
             "lines": poe_core::pob::note_lines(&profile.build.as_ref().unwrap().notes),

@@ -15,7 +15,8 @@
 		"notes",
 		"layouts",
 		"picker",
-		"clone-*"
+		"clone-*",
+		"atlas"
 	],
 	"permissions": [
 		"core:default",

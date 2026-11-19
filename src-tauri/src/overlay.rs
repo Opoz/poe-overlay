@@ -32,9 +32,11 @@ pub const XP: &str = "xp";
 pub const NOTES: &str = "notes";
 /// Zone layout images for the current Area.
 pub const LAYOUTS: &str = "layouts";
+/// The atlas plan over the in-game atlas tree (covers the game window).
+pub const ATLAS: &str = "atlas";
 
 /// (label, logical width, logical height)
-const WINDOWS: [(&str, f64, f64); 11] = [
+const WINDOWS: [(&str, f64, f64); 12] = [
     (TIMER, 280.0, 340.0),
     (TREE, 800.0, 600.0),
     (GUIDE, 380.0, 420.0),
@@ -46,6 +48,7 @@ const WINDOWS: [(&str, f64, f64); 11] = [
     (NOTES, 420.0, 560.0),
     (LAYOUTS, 900.0, 260.0),
     (crate::clone::PICKER, 800.0, 600.0),
+    (ATLAS, 800.0, 600.0),
 ];
 
 /// The Overlay's size at 100%, in logical pixels.
@@ -59,7 +62,7 @@ pub fn base_size(label: &str) -> Option<(f64, f64)> {
 /// Resize an Overlay and zoom its content (`scale` 1 = 100%). Overlays that
 /// fit their content re-measure themselves afterwards.
 pub fn apply_scale(app: &AppHandle, label: &str, scale: f64) {
-    if label == TREE {
+    if label == TREE || label == ATLAS || label == crate::clone::PICKER {
         return;
     }
     if let (Some(window), Some((w, h))) = (app.get_webview_window(label), base_size(label)) {
@@ -70,7 +73,11 @@ pub fn apply_scale(app: &AppHandle, label: &str, scale: f64) {
 
 pub fn create_overlays(app: &AppHandle, scale_of: impl Fn(&str) -> f64) -> tauri::Result<()> {
     for (label, w, h) in WINDOWS {
-        let scale = if label == TREE { 1.0 } else { scale_of(label) };
+        let scale = if matches!(label, TREE | ATLAS | crate::clone::PICKER) {
+            1.0
+        } else {
+            scale_of(label)
+        };
         let window = WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
             .title(format!("poe-overlay {label}"))
             .inner_size(w * scale, h * scale)
@@ -100,6 +107,7 @@ pub fn create_overlays(app: &AppHandle, scale_of: impl Fn(&str) -> f64) -> tauri
 pub fn raise_small(app: &AppHandle) {
     for (label, ..) in WINDOWS {
         if label != TREE
+            && label != ATLAS
             && let Some(h) = app.get_webview_window(label).as_ref().and_then(raw)
         {
             platform::raise(h);

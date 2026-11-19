@@ -1,6 +1,7 @@
 //! Domain logic for poe-overlay. No Tauri, window or OS dependencies (see ADR 0003).
 
 pub mod area;
+pub mod atlas;
 pub mod clock;
 pub mod gems;
 pub mod guide;
