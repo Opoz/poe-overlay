@@ -51,6 +51,28 @@ export interface Run {
 	phase: Phase;
 }
 
+export interface HistoryRun {
+	startedAt: number;
+	character: string | null;
+	class: string | null;
+	category: string;
+	finished: boolean;
+	actsDone: number;
+	timeMs: number | null;
+	/** Duration of each act, index act - 1. */
+	segments: (number | null)[];
+	personalBest: boolean;
+	bestSegments: boolean[];
+	/** Split minus the Personal Best's (negative = ahead), cumulative. */
+	deltas: (number | null)[];
+}
+
+export interface HistoryView {
+	categories: string[];
+	runs: HistoryRun[];
+	longestMs: number;
+}
+
 export interface Profile {
 	name: string;
 	class: string | null;

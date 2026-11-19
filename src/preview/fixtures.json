@@ -1371,30 +1371,142 @@
 			"upcoming": false
 		}
 	},
-	"history": [
-		{
-			"category": "SSF HC",
-			"character": "PreviousWitch",
-			"class": "Necromancer",
-			"countedMs": 23400000,
-			"countedUntil": 23400000,
-			"loadMs": 0,
-			"phase": { "phase": "finished" },
-			"splits": [
-				{ "loadRemovedMs": 3900000, "realMs": 3900000 },
-				{ "loadRemovedMs": 5800000, "realMs": 5800000 },
-				{ "loadRemovedMs": 7700000, "realMs": 7700000 },
-				{ "loadRemovedMs": 11100000, "realMs": 11100000 },
-				{ "loadRemovedMs": 13000000, "realMs": 13000000 },
-				{ "loadRemovedMs": 15600000, "realMs": 15600000 },
-				{ "loadRemovedMs": 17100000, "realMs": 17100000 },
-				{ "loadRemovedMs": 18800000, "realMs": 18800000 },
-				{ "loadRemovedMs": 21000000, "realMs": 21000000 },
-				{ "loadRemovedMs": 23400000, "realMs": 23400000 }
-			],
-			"startedAt": 0
-		}
-	],
+	"history": {
+		"categories": ["SSF HC", "Trade SC"],
+		"longestMs": 4300000,
+		"runs": [
+			{
+				"actsDone": 6,
+				"bestSegments": [
+					true,
+					false,
+					true,
+					false,
+					true,
+					false,
+					false,
+					false,
+					false,
+					false
+				],
+				"category": "SSF HC",
+				"character": "RipDuelist",
+				"class": "Slayer",
+				"deltas": [
+					-200000,
+					100000,
+					-200000,
+					500000,
+					200000,
+					300000,
+					null,
+					null,
+					null,
+					null
+				],
+				"finished": false,
+				"personalBest": false,
+				"segments": [
+					3700000,
+					2200000,
+					1600000,
+					4100000,
+					1600000,
+					2700000,
+					null,
+					null,
+					null,
+					null
+				],
+				"startedAt": 1794698076000,
+				"timeMs": 15900000
+			},
+			{
+				"actsDone": 10,
+				"bestSegments": [
+					true,
+					true,
+					true,
+					true,
+					true,
+					true,
+					true,
+					true,
+					true,
+					true
+				],
+				"category": "Trade SC",
+				"character": "QuickRanger",
+				"class": "Deadeye",
+				"deltas": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+				"finished": true,
+				"personalBest": true,
+				"segments": [
+					3100000, 1500000, 1600000, 2700000, 1500000, 2100000, 1300000,
+					1400000, 1800000, 2100000
+				],
+				"startedAt": 1794438876000,
+				"timeMs": 19100000
+			},
+			{
+				"actsDone": 10,
+				"bestSegments": [
+					false,
+					true,
+					false,
+					true,
+					false,
+					true,
+					true,
+					true,
+					true,
+					true
+				],
+				"category": "SSF HC",
+				"character": "PreviousWitch",
+				"class": "Necromancer",
+				"deltas": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+				"finished": true,
+				"personalBest": true,
+				"segments": [
+					3900000, 1900000, 1900000, 3400000, 1900000, 2600000, 1500000,
+					1700000, 2200000, 2400000
+				],
+				"startedAt": 1794179676000,
+				"timeMs": 23400000
+			},
+			{
+				"actsDone": 10,
+				"bestSegments": [
+					false,
+					false,
+					false,
+					false,
+					false,
+					false,
+					false,
+					false,
+					false,
+					false
+				],
+				"category": "SSF HC",
+				"character": "FirstTry",
+				"class": "Juggernaut",
+				"deltas": [
+					400000, 700000, 900000, 1300000, 1500000, 1700000, 1900000, 2100000,
+					2300000, 2700000
+				],
+				"finished": true,
+				"personalBest": false,
+				"segments": [
+					4300000, 2200000, 2100000, 3800000, 2100000, 2800000, 1700000,
+					1900000, 2400000, 2800000
+				],
+				"startedAt": 1793142876000,
+				"timeMs": 26100000
+			}
+		]
+	},
 	"lab": {
 		"current": 1,
 		"darkshrineDetour": false,
@@ -1587,8 +1699,8 @@
 		"wrongDifficulty": false
 	},
 	"timer": {
-		"bestPossibleLoadRemovedMs": 23400000,
-		"bestPossibleRealMs": 23400000,
+		"bestPossibleLoadRemovedMs": 22600000,
+		"bestPossibleRealMs": 22600000,
 		"category": "SSF HC",
 		"character": "TestExile",
 		"class": "Witch",

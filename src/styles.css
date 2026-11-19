@@ -1299,3 +1299,136 @@ html[data-window]:not([data-window="main"]) {
 	display: inline-block;
 	width: 168px;
 }
+
+/* -------------------------------------------------------------- history */
+
+.history > * {
+	max-width: none;
+}
+
+.history .lede {
+	max-width: 64ch;
+}
+
+.segmented {
+	display: inline-flex;
+	gap: 2px;
+	margin-bottom: 14px;
+	padding: 2px;
+	border-radius: 6px;
+	background: var(--slate);
+}
+
+.segmented button {
+	background: transparent;
+	border-color: transparent;
+	color: var(--ash);
+}
+
+.segmented button[aria-selected="true"] {
+	background: var(--slate-2);
+	color: var(--bone);
+}
+
+.runs {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	max-width: 900px;
+}
+
+.runs > li {
+	border-bottom: 1px solid var(--rule);
+}
+
+.runs > li.pb {
+	box-shadow: var(--marker);
+}
+
+.run-row {
+	display: grid;
+	grid-template-columns: 170px 1fr 120px;
+	align-items: center;
+	gap: 16px;
+	width: 100%;
+	padding: 10px 12px;
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	text-align: left;
+	font-weight: 400;
+}
+
+.run-row:hover {
+	background: rgb(255 255 255 / 0.03);
+}
+
+.runs > li.open .run-row {
+	background: var(--slate);
+}
+
+.run-who,
+.run-time {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.run-who strong,
+.run-time strong {
+	font-weight: 600;
+}
+
+.run-who span,
+.run-time span {
+	font-size: 13px;
+	color: var(--ash);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.run-time {
+	text-align: right;
+}
+
+.runs > li.pb .run-time span {
+	color: var(--brass);
+}
+
+/* One bar per run: acts as segments with a 2px gap, on a shared scale. */
+.run-bar {
+	display: flex;
+	gap: 2px;
+	height: 14px;
+}
+
+.seg {
+	min-width: 2px;
+	background: #5d6a70;
+}
+
+.seg:first-child {
+	border-radius: 3px 0 0 3px;
+}
+
+.seg:last-child {
+	border-radius: 0 3px 3px 0;
+}
+
+.seg.best {
+	background: var(--gold);
+}
+
+.run-detail {
+	padding: 4px 12px 16px;
+	background: var(--slate);
+}
+
+.run-detail table {
+	max-width: 520px;
+}
+
+.best-text {
+	color: var(--gold);
+}

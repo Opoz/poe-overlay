@@ -420,6 +420,15 @@ impl Tracker {
         &self.history
     }
 
+    /// Forget a past Run (by when it started).
+    pub fn delete_run(&mut self, started_at: i64) {
+        let before = self.history.len();
+        self.history.retain(|r| r.started_at != started_at);
+        if self.history.len() != before {
+            self.storage.save_history(&self.history);
+        }
+    }
+
     fn handle(&mut self, events: Vec<TimerEvent>) {
         let mut changed = false;
         for event in events {

@@ -9,6 +9,7 @@ use std::{collections::BTreeMap, io::BufReader};
 use poe_core::{
     gems::{GemData, GemsView, decorate_view},
     guide::{GuideBook, GuideView},
+    history::HistoryView,
     lab::{LabLayout, LabState, LabView},
     log::{LogEvent, replay},
     pob::{Build, BuildGem, LevelRange, SkillGroup, TreeStage, level_range},
@@ -163,22 +164,63 @@ fn main() {
     let allocated = tree.allocated_nodes(&profile.passives);
     profile.build = Some(build(&tree, &allocated));
 
-    // A finished past run in the same category, for PB deltas and history.
-    let mut pb = RunTimer::new(TimerSettings::default());
-    pb.category = Some("SSF HC".into());
-    pb.command(Command::Start, 0);
-    let pb_splits = [
-        3_900, 5_800, 7_700, 11_100, 13_000, 15_600, 17_100, 18_800, 21_000, 23_400,
+    // Past runs: a Personal Best, a slower finish, an abandoned one, and
+    // one in another category.
+    let day = 86_400_000;
+    let past = |category: &str, who: &str, class: &str, days_ago: i64, splits_s: &[i64]| {
+        let mut t = RunTimer::new(TimerSettings::default());
+        t.category = Some(category.into());
+        let start = now - days_ago * day;
+        t.command(Command::Start, start);
+        for s in splits_s {
+            t.command(Command::Split, start + s * 1000);
+        }
+        let mut run = t.run().unwrap().clone();
+        run.character = Some(who.into());
+        run.class = Some(class.into());
+        run
+    };
+    let history = vec![
+        past(
+            "SSF HC",
+            "FirstTry",
+            "Juggernaut",
+            21,
+            &[
+                4_300, 6_500, 8_600, 12_400, 14_500, 17_300, 19_000, 20_900, 23_300, 26_100,
+            ],
+        ),
+        past(
+            "SSF HC",
+            "PreviousWitch",
+            "Necromancer",
+            9,
+            &[
+                3_900, 5_800, 7_700, 11_100, 13_000, 15_600, 17_100, 18_800, 21_000, 23_400,
+            ],
+        ),
+        past(
+            "Trade SC",
+            "QuickRanger",
+            "Deadeye",
+            6,
+            &[
+                3_100, 4_600, 6_200, 8_900, 10_400, 12_500, 13_800, 15_200, 17_000, 19_100,
+            ],
+        ),
+        past(
+            "SSF HC",
+            "RipDuelist",
+            "Slayer",
+            3,
+            &[3_700, 5_900, 7_500, 11_600, 13_200, 15_900],
+        ),
     ];
-    for s in pb_splits {
-        pb.command(Command::Split, s * 1000);
-    }
-    let mut pb_run = pb.run().unwrap().clone();
-    pb_run.character = Some("PreviousWitch".into());
-    pb_run.class = Some("Necromancer".into());
-    let history = vec![pb_run];
-
-    let timer_view = TimerView::build(timer.run(), &history, now);
+    let same: Vec<_> = history
+        .iter()
+        .filter(|r| r.category.as_deref() == Some("SSF HC"))
+        .collect();
+    let timer_view = TimerView::build(timer.run(), same, now);
 
     let guide = book.guide(profile.guide_options);
     let mut guide_view = GuideView::build(&book, Some(&profile), None);
@@ -236,7 +278,7 @@ fn main() {
             "active": profile.name,
             "profiles": [profile, other],
         },
-        "history": history,
+        "history": HistoryView::build(&history),
     });
     println!("{}", serde_json::to_string(&out).unwrap());
 }

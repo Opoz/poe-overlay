@@ -98,7 +98,7 @@ impl Comparison {
 }
 
 /// Per-act durations; an act's segment is only known if the previous Split is.
-fn segments(times: &Times) -> Times {
+pub(crate) fn segments(times: &Times) -> Times {
     let mut out = [None; ACTS as usize];
     let mut prev = Some(0);
     for (i, t) in times.iter().enumerate() {

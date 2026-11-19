@@ -16,8 +16,9 @@ use std::{
 use poe_core::{
     gems::GemsView,
     guide::{GuideCommand, GuideOptions, GuideView},
+    history::HistoryView,
     lab::LabView,
-    run::{Command, Run},
+    run::Command,
     tree::{TreeNode, TreeView},
     view::TimerView,
 };
@@ -688,8 +689,19 @@ fn set_hotkey(
 }
 
 #[tauri::command]
-fn get_history(state: tauri::State<AppState>) -> Vec<Run> {
-    state.tracker.lock().unwrap().history().to_vec()
+fn get_history(state: tauri::State<AppState>) -> HistoryView {
+    HistoryView::build(state.tracker.lock().unwrap().history())
+}
+
+#[tauri::command]
+fn delete_run(app: AppHandle, state: tauri::State<AppState>, started_at: i64) -> HistoryView {
+    let mut tracker = state.tracker.lock().unwrap();
+    tracker.delete_run(started_at);
+    let view = HistoryView::build(tracker.history());
+    drop(tracker);
+    // Personal Best and best segments may have changed.
+    emit_view(&app);
+    view
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -1086,6 +1098,7 @@ pub fn run() {
             set_overlay_look,
             reset_overlay_positions,
             get_overlays_shown,
+            delete_run,
         ])
         .on_window_event(|window, event| {
             // Closing the main window sends it to the tray.

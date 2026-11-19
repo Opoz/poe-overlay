@@ -10,16 +10,11 @@ import {
 	Switch,
 } from "solid-js";
 import { onEvent } from "../events";
-import {
-	formatDelta,
-	formatDuration,
-	formatLocalDate,
-	formatShortcut,
-} from "../format";
+import { formatDelta, formatDuration, formatShortcut } from "../format";
 import Key from "../Key";
 import {
+	type HistoryView,
 	PAUSE_LABEL,
-	type Run,
 	type Settings,
 	type Status,
 	type TimerCommand,
@@ -27,6 +22,7 @@ import {
 import { useTimerView } from "../useTimerView";
 import BuildCard from "./BuildCard";
 import CharactersCard from "./CharactersCard";
+import HistoryPage from "./HistoryPage";
 import Mark from "./Mark";
 import OverlaysPage from "./OverlaysPage";
 import ShortcutsPage from "./ShortcutsPage";
@@ -74,9 +70,8 @@ export default function MainWindow() {
 	const [settings, { mutate: setSettingsLocal }] = createResource(() =>
 		invoke<Settings>("get_settings"),
 	);
-	const [history, { refetch: refetchHistory }] = createResource(() =>
-		invoke<Run[]>("get_history"),
-	);
+	const [history, { refetch: refetchHistory, mutate: setHistory }] =
+		createResource(() => invoke<HistoryView>("get_history"));
 
 	onEvent<Status>("status", setStatus);
 	const [hotkeyFailures, setHotkeyFailures] = createSignal<string[]>([]);
@@ -186,7 +181,11 @@ export default function MainWindow() {
 							</Show>
 						</Match>
 						<Match when={page() === "history"}>
-							<HistoryPage runs={history() ?? []} />
+							<HistoryPage
+								view={history()}
+								currentCategory={settings()?.category ?? ""}
+								onChange={setHistory}
+							/>
 						</Match>
 						<Match when={page() === "settings"}>
 							<Show when={settings()}>
@@ -294,63 +293,6 @@ function RunPage(props: { live: ReturnType<typeof useTimerView> }) {
 						</p>
 					)}
 				</Show>
-			</Show>
-		</section>
-	);
-}
-
-function HistoryPage(props: { runs: Run[] }) {
-	const last = (run: Run) => {
-		const idx = run.splits.findLastIndex((s) => s !== null);
-		const time = idx < 0 ? null : run.splits[idx];
-		return time ? { act: idx + 1, time } : null;
-	};
-	const reached = (run: Run) => {
-		if (run.phase.phase === "finished") return "Finished";
-		const l = last(run);
-		return l ? `Act ${l.act + 1}` : "Act 1";
-	};
-	return (
-		<section>
-			<h2>History</h2>
-			<p class="lede">Every run, newest first.</p>
-			<Show
-				when={props.runs.length > 0}
-				fallback={
-					<p class="empty">Runs land here when they finish or are abandoned.</p>
-				}
-			>
-				<table>
-					<thead>
-						<tr>
-							<th>Started</th>
-							<th>Character</th>
-							<th>Category</th>
-							<th>Reached</th>
-							<th class="num">Time</th>
-						</tr>
-					</thead>
-					<tbody>
-						<For each={[...props.runs].reverse()}>
-							{(run) => (
-								<tr>
-									<td>{formatLocalDate(run.startedAt)}</td>
-									<td>
-										{run.character ?? "?"}{" "}
-										<span class="muted">{run.class ?? ""}</span>
-									</td>
-									<td>{run.category ?? ""}</td>
-									<td>{reached(run)}</td>
-									<td class="num">
-										{last(run)
-											? formatDuration(last(run)?.time.realMs ?? 0)
-											: "—"}
-									</td>
-								</tr>
-							)}
-						</For>
-					</tbody>
-				</table>
 			</Show>
 		</section>
 	);
