@@ -236,6 +236,32 @@ fn get_interact(state: tauri::State<AppState>) -> bool {
     state.interact.load(Ordering::SeqCst)
 }
 
+/// A middle-click anywhere. Aligns the tree Overlay when it is showing, the
+/// game is focused and the click landed inside the game window.
+fn on_middle_click(app: &AppHandle, x: i32, y: i32) {
+    let Some(game) = platform::find_game_window() else {
+        return;
+    };
+    if platform::foreground_window() != game {
+        return;
+    }
+    let Some(r) = platform::game_rect(game) else {
+        return;
+    };
+    let (gx, gy) = (x - r.x, y - r.y);
+    if gx < 0 || gy < 0 || gx >= r.width || gy >= r.height {
+        return;
+    }
+    let aligned = app.state::<AppState>().tracker.lock().unwrap().align_tree(
+        f64::from(gx),
+        f64::from(gy),
+        f64::from(r.height),
+    );
+    if aligned {
+        emit_tree(app);
+    }
+}
+
 /// Background loop: find the game, follow its log, keep Overlays in place.
 fn spawn_tracking_loop(app: AppHandle) {
     std::thread::spawn(move || {
@@ -404,6 +430,8 @@ pub fn run() {
                 .overlay_opacity;
             overlay::create_overlays(app.handle(), opacity)?;
             spawn_tracking_loop(app.handle().clone());
+            let handle = app.handle().clone();
+            platform::watch_middle_clicks(move |x, y| on_middle_click(&handle, x, y));
             Ok(())
         })
         .run(tauri::generate_context!())

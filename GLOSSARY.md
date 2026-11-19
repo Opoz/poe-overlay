@@ -126,7 +126,7 @@ _Avoid_: spec (Path of Building's word), tree version
 The ordered list of passive nodes the Character should allocate next toward the current Tree Stage.
 
 **Calibration**:
-The two-click alignment that maps overlay coordinates onto the in-game passive tree.
+Aligning the tree Overlay onto the in-game passive tree: a middle-click on the class start with the tree fully zoomed out (scale follows from the game window height).
 
 ## Labyrinth
 

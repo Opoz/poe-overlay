@@ -83,7 +83,8 @@ export default function TreeOverlay() {
 			</Show>
 			<Show when={view() && !view()?.calibrating && !view()?.transform}>
 				<div class="tree-prompt">
-					Tree overlay is not calibrated yet: press Alt+Shift+T.
+					Zoom the passive tree all the way out and middle-click your class
+					start to align.
 				</div>
 			</Show>
 		</div>

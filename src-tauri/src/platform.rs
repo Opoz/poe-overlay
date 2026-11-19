@@ -153,3 +153,60 @@ pub fn set_visible(window: RawHwnd, visible: bool) {
         let _ = ShowWindow(hwnd(window), cmd);
     }
 }
+
+/// Watch for middle-clicks anywhere on screen and report their screen
+/// position (physical pixels). Read-only: every click still reaches whatever
+/// is under the cursor, the game included. Runs a low-level mouse hook on its
+/// own thread, which needs a message loop.
+pub fn watch_middle_clicks(on_click: impl Fn(i32, i32) + Send + 'static) {
+    use std::sync::OnceLock;
+
+    use windows::Win32::{
+        Foundation::{LPARAM, LRESULT, WPARAM},
+        System::LibraryLoader::GetModuleHandleW,
+        UI::WindowsAndMessaging::{
+            CallNextHookEx, GetMessageW, HC_ACTION, MSG, MSLLHOOKSTRUCT, SetWindowsHookExW,
+            WH_MOUSE_LL, WM_MBUTTONDOWN,
+        },
+    };
+
+    type Callback = Box<dyn Fn(i32, i32) + Send + Sync>;
+    static CALLBACK: OnceLock<Callback> = OnceLock::new();
+
+    unsafe extern "system" fn hook(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+        if code == HC_ACTION as i32 && wparam.0 == WM_MBUTTONDOWN as usize {
+            // SAFETY: for WH_MOUSE_LL, lparam points to an MSLLHOOKSTRUCT.
+            let info = unsafe { &*(lparam.0 as *const MSLLHOOKSTRUCT) };
+            if let Some(cb) = CALLBACK.get() {
+                cb(info.pt.x, info.pt.y);
+            }
+        }
+        unsafe { CallNextHookEx(None, code, wparam, lparam) }
+    }
+
+    // The callback only queues work; it must return quickly or Windows drops the hook.
+    let (tx, rx) = std::sync::mpsc::channel::<(i32, i32)>();
+    let tx = std::sync::Mutex::new(tx);
+    if CALLBACK
+        .set(Box::new(move |x, y| {
+            let _ = tx.lock().map(|t| t.send((x, y)));
+        }))
+        .is_err()
+    {
+        return;
+    }
+    std::thread::spawn(move || {
+        for (x, y) in rx {
+            on_click(x, y);
+        }
+    });
+    std::thread::spawn(|| unsafe {
+        let module = GetModuleHandleW(None).ok();
+        let Ok(_hook) = SetWindowsHookExW(WH_MOUSE_LL, Some(hook), module.map(Into::into), 0)
+        else {
+            return;
+        };
+        let mut msg = MSG::default();
+        while GetMessageW(&mut msg, None, 0, 0).as_bool() {}
+    });
+}

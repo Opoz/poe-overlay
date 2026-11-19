@@ -106,11 +106,11 @@ export default function MainWindow() {
 			<section class="card">
 				<h2>Passive tree overlay (preview)</h2>
 				<p class="muted">
-					Zoom the in-game passive tree all the way out and calibrate: click
-					your class start, then the Scion start in the middle (the Witch start
-					for a Scion). After the first time, one click on your class start is
-					enough. Your allocated passives are ringed on top; recalibrate after
-					panning or zooming.
+					With the overlay showing (Alt+T), zoom the in-game passive tree all
+					the way out and middle-click your class start: your allocated passives
+					are ringed on top. Middle-click again after panning. Alt+Shift+T is a
+					fallback: left-click the class start, or press it twice for a
+					two-click calibration that also measures the zoom.
 				</p>
 				<div class="buttons">
 					<button

@@ -169,6 +169,21 @@ impl Tracker {
         }
     }
 
+    /// Middle-click on the class start with the tree fully zoomed out.
+    /// Only while the tree Overlay is showing. Returns whether it aligned.
+    pub fn align_tree(&mut self, x: f64, y: f64, game_height: f64) -> bool {
+        if !self.tree_overlay.visible {
+            return false;
+        }
+        let Some(start) = self.tree_view().class_start else {
+            return false;
+        };
+        self.tree_overlay
+            .align_on_class_start(&self.tree, start.id, (x, y), game_height);
+        self.save_session();
+        true
+    }
+
     pub fn set_passives(&mut self, name: &str, passives: std::collections::BTreeSet<String>) {
         self.timer.set_passives(name, passives);
         self.save_session();

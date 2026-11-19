@@ -51,7 +51,7 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
 
 - Rendered from GGG's skill-tree export on a pan/zoom canvas.
 - Picks the Tree Stage for current level; highlights diff from previous stage; numbered Next Points via shortest path.
-- Aligned mode: two-click Calibration (class start + one named node) over the in-game tree, arrow-key nudge, +/- scale. Panel mode as fallback.
+- Aligned mode: with the in-game tree fully zoomed out, middle-click the class start; scale follows from game height (height / 10 000), position from the click. Alt+Shift+T fallback: one left-click, or two clicks (class start + Scion start) to measure the scale. Panel mode as fallback.
 
 ### Lab
 
@@ -83,8 +83,9 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
 - [ ] **M1.5**: passive tree POC: render export, Calibration over the in-game tree.
   - [x] Tree data generated from GGG export + RePoE log-id map; geometry verified
   - [x] Allocated passives tracked per Profile from the Client Log (+ rebuild from whole log)
-  - [x] Two-click Calibration, tree Overlay ringing allocated nodes
-  - [ ] Verify alignment in-game; decide nudge/zoom controls
+  - [x] Tree Overlay ringing allocated nodes; alignment verified in-game (two-click)
+  - [x] Middle-click Calibration: fully zoomed out, scale = game height / 10 000; click gives position
+  - [ ] Verify middle-click Calibration in-game
 - [ ] **M2**: Guide Overlay, auto-advance, Bandit Choice, Direction Hints.
 - [ ] **M3**: PoB import, gem links panel, Quest/Vendor Rewards in Guide, Vendor Regex, full tree Overlay.
 - [ ] **M4**: Lab Overlay, Trial tracking.
