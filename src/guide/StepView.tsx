@@ -70,7 +70,30 @@ function Part(props: { part: Fragment }) {
 		case "portalUse":
 			return <span class="t-waypoint">the portal</span>;
 		case "quest":
-			return <span class="t-quest">{p.name}</span>;
+			return (
+				<>
+					<span class="t-quest">{p.name}</span>
+					{p.npc && (
+						<>
+							{" "}
+							to <span class="t-npc">{p.npc}</span>
+						</>
+					)}
+					{p.book === "skill" && (
+						<span class="t-book" title="Book of Skill">
+							+1 passive
+						</span>
+					)}
+					{p.book === "regrets" && (
+						<span
+							class="t-book regrets"
+							title="Book of Regrets: passive refund points"
+						>
+							respec
+						</span>
+					)}
+				</>
+			);
 		case "questItem":
 			return <span class="t-item">{p.text}</span>;
 		case "kill":

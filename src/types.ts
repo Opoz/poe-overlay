@@ -148,7 +148,12 @@ export type Fragment =
 	| { kind: "logout" }
 	| { kind: "portalSet" }
 	| { kind: "portalUse" }
-	| { kind: "quest"; name: string }
+	| {
+			kind: "quest";
+			name: string;
+			npc: string | null;
+			book: "skill" | "regrets" | null;
+	  }
 	| { kind: "questItem"; text: string }
 	| { kind: "kill"; name: string }
 	| { kind: "arena"; name: string }
