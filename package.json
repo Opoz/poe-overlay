@@ -15,7 +15,8 @@
 		"gate": "node scripts/gate.mjs",
 		"preview:shots": "node scripts/preview.mjs",
 		"build:signed": "node scripts/build-signed.mjs",
-		"icon": "node scripts/icon.mjs"
+		"icon": "node scripts/icon.mjs",
+		"prepare": "git config core.hooksPath .githooks"
 	},
 	"license": "MIT",
 	"dependencies": {

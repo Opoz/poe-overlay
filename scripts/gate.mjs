@@ -1,10 +1,13 @@
 #!/usr/bin/env node
-// Every check CI runs, in order, stopping at the first failure. Run before
-// each commit: pnpm gate (add --fix to format and apply safe lint fixes first).
+// Every check CI runs, in order, stopping at the first failure: pnpm gate
+// (--fix formats and applies safe lint fixes first; --quick stops after
+// formatting, lint and types). The git hooks in .githooks/ run it.
 
 import { spawnSync } from "node:child_process";
 
 const fix = process.argv.includes("--fix");
+// --quick: formatting, lint and types only (seconds; the pre-commit hook).
+const quick = process.argv.includes("--quick");
 
 const steps = [
 	...(fix
@@ -14,10 +17,17 @@ const steps = [
 			]
 		: []),
 	["cargo", ["fmt", "--all", "--check"]],
-	["cargo", ["clippy", "--workspace", "--all-targets", "--", "-D", "warnings"]],
-	["cargo", ["test", "--workspace", "-q"]],
 	["pnpm", ["-s", "check"]],
-	["pnpm", ["-s", "test"]],
+	...(quick
+		? []
+		: [
+				[
+					"cargo",
+					["clippy", "--workspace", "--all-targets", "--", "-D", "warnings"],
+				],
+				["cargo", ["test", "--workspace", "-q"]],
+				["pnpm", ["-s", "test"]],
+			]),
 ];
 
 for (const [cmd, args] of steps) {

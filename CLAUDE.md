@@ -16,7 +16,7 @@ Path of Exile 1 levelling companion: Tauri v2 + SolidJS. See `docs/PLAN.md` for 
 - `pnpm test`: frontend tests
 - `pnpm check`: Biome lint/format + `tsc`
 - `cargo clippy --workspace -- -D warnings` / `cargo fmt --all`
-- `pnpm gate` (`--fix` to format first): every CI check in order; run before each commit
+- `pnpm gate` (`--fix` to format first, `--quick` for format/lint/types only): every CI check in order. Git hooks in `.githooks/` (enabled by `pnpm install`) run `--quick` on commit and the full gate on push; don't bypass them with `--no-verify`
 - `pnpm preview:shots [dir] [filter]`: regenerate `src/preview/fixtures.json` from the core, then screenshot every window via `preview.html` (needs `pnpm dev`; `--no-fixtures` to skip)
 - `pnpm build:signed`: local release build signed with the updater key (`docs/RELEASING.md`)
 - `pnpm icon`: re-render `assets/icon.svg` and regenerate `src-tauri/icons/`

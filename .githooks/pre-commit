@@ -1,0 +1,4 @@
+#!/bin/sh
+# Fast checks on every commit (pnpm gate --quick). The full gate runs on push.
+# Skip once with: git commit --no-verify
+exec node scripts/gate.mjs --quick

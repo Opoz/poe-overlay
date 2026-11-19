@@ -1,0 +1,4 @@
+#!/bin/sh
+# Every CI check before anything leaves the machine (pnpm gate).
+# Skip once with: git push --no-verify
+exec node scripts/gate.mjs
