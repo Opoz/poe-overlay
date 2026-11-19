@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatDelta, formatDuration, formatLocalDate } from "./format";
+import {
+	formatDelta,
+	formatDuration,
+	formatLocalDate,
+	titleCase,
+} from "./format";
 
 describe("formatDuration", () => {
 	it("formats under an hour as m:ss", () => {
@@ -26,5 +31,12 @@ describe("formatLocalDate", () => {
 		expect(formatLocalDate(Date.UTC(2026, 10, 18, 1, 36))).toBe(
 			"2026-11-18 01:36",
 		);
+	});
+});
+
+describe("titleCase", () => {
+	it("capitalises words but not after an apostrophe", () => {
+		expect(titleCase("aspirant's trial")).toBe("Aspirant's Trial");
+		expect(titleCase("estate path")).toBe("Estate Path");
 	});
 });

@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { createSignal, For, onCleanup, Show } from "solid-js";
 import { onEvent } from "../events";
+import { titleCase } from "../format";
 import type { LabImportStatus, LabPayload, LabRoom } from "../types";
 
 const DOORS: Record<string, { words: string; angle: number }> = {
@@ -284,9 +285,4 @@ export default function LabOverlay() {
 			</Show>
 		</div>
 	);
-}
-
-/** poelab writes room names in lowercase ("estate path"). */
-function titleCase(s: string): string {
-	return s.replace(/\b\w/g, (c) => c.toUpperCase());
 }

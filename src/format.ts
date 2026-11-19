@@ -21,3 +21,14 @@ export function formatLocalDate(localMs: number): string {
 	const pad = (n: number) => String(n).padStart(2, "0");
 	return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
 }
+
+/**
+ * Capitalise each word ("estate path" -> "Estate Path"), but not after an
+ * apostrophe ("Aspirant's Trial").
+ */
+export function titleCase(s: string): string {
+	return s.replace(
+		/(^|[\s-])(\p{L})/gu,
+		(_, gap: string, c: string) => gap + c.toUpperCase(),
+	);
+}
