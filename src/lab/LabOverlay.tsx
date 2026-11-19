@@ -142,6 +142,40 @@ export default function LabOverlay() {
 					</div>
 				)}
 			</Show>
+			<Show when={!nextDoor() && (view()?.routeDoors.length ?? 0) > 0}>
+				<div class="lab-doors">
+					<span class="muted">
+						{view()?.current == null
+							? "Doors from the entrance:"
+							: "Doors on the way:"}
+					</span>
+					<For each={view()?.routeDoors ?? []}>
+						{(d) => {
+							const info = d.door ? DOORS[d.door] : undefined;
+							const to = () =>
+								titleCase(view()?.layout?.rooms[d.to]?.name ?? "");
+							return (
+								<span class="lab-door-chip" title={`to ${to()}`}>
+									<Show when={info} fallback="?">
+										{(i) => (
+											<>
+												<svg
+													viewBox="0 0 24 24"
+													aria-hidden="true"
+													style={{ transform: `rotate(${i().angle}deg)` }}
+												>
+													<path d="M12 2 L20 12 H15 V22 H9 V12 H4 Z" />
+												</svg>
+												{i().words}
+											</>
+										)}
+									</Show>
+								</span>
+							);
+						}}
+					</For>
+				</div>
+			</Show>
 			<Show when={view()?.outdated}>
 				<div class="toast warn">
 					This layout is for {view()?.layout?.date}, not today. Load today's.

@@ -313,6 +313,9 @@ pub struct LabView {
     /// Compass direction of the door from the current room to the next room
     /// on the route ("NE"), when known.
     pub next_door: Option<String>,
+    /// Every door along the route, in order: from the current room (or from
+    /// the entrance, before entering) to the next Izaro fight.
+    pub route_doors: Vec<RouteDoor>,
     pub darkshrine_detour: bool,
     pub in_lab: bool,
     pub running: Option<Difficulty>,
@@ -338,6 +341,21 @@ impl LabView {
             layout: state.layout.clone(),
             current: state.current,
             visited: state.visited.iter().copied().collect(),
+            route_doors: layout
+                .map(|l| {
+                    // Before entering, the route starts with the entrance itself.
+                    let mut rooms: Vec<usize> = state.current.into_iter().collect();
+                    rooms.extend(&route);
+                    rooms
+                        .windows(2)
+                        .map(|w| RouteDoor {
+                            from: w[0],
+                            to: w[1],
+                            door: door_between(l, w[0], w[1]),
+                        })
+                        .collect()
+                })
+                .unwrap_or_default(),
             next_door: match (layout, state.current, route.first()) {
                 (Some(l), Some(from), Some(&to)) => door_between(l, from, to),
                 _ => None,
@@ -348,6 +366,16 @@ impl LabView {
             running: state.running,
         }
     }
+}
+
+/// One door on the route: from room `from` into room `to`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RouteDoor {
+    pub from: usize,
+    pub to: usize,
+    /// Compass direction of the door in `from` ("NE"), when known.
+    pub door: Option<String>,
 }
 
 /// The direction of the door in room `from` that leads to room `to`. Doors are
@@ -611,6 +639,18 @@ mod tests {
             "back to the entrance"
         );
         assert_eq!(opposite("NE"), "SW");
+
+        // Before entering: the whole route's doors from the entrance.
+        let mut fresh = LabState::default();
+        fresh.load(LabLayout::parse(REAL).unwrap());
+        let v = LabView::build(&fresh, "2026-11-19");
+        assert_eq!(v.next_door, None);
+        assert_eq!(v.route_doors.len(), 1);
+        assert_eq!(
+            v.route_doors[0].door.as_deref(),
+            Some("NE"),
+            "entrance -> first trial"
+        );
     }
 
     #[test]

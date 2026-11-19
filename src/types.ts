@@ -320,6 +320,7 @@ export interface LabPayload {
 	visited: number[];
 	route: number[];
 	nextDoor: string | null;
+	routeDoors: { from: number; to: number; door: string | null }[];
 	darkshrineDetour: boolean;
 	inLab: boolean;
 	running: LabDifficulty | null;
