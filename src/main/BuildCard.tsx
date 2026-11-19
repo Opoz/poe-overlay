@@ -61,12 +61,17 @@ export default function BuildCard() {
 	};
 
 	return (
-		<section class="card">
-			<h2>Build (Path of Building)</h2>
+		<section>
+			<h2>Build</h2>
+			<p class="lede">
+				Import a Path of Building build. The gems overlay (<kbd>Alt+L</kbd>)
+				shows its links for your level, the guide's hand-in steps show which
+				gems to take and buy, and the tree overlay numbers your next passives.
+			</p>
 			<Show
 				when={active()}
 				fallback={
-					<p class="muted">
+					<p class="empty">
 						Level up once so the app knows your character, then import here.
 					</p>
 				}
@@ -74,15 +79,21 @@ export default function BuildCard() {
 				{(p) => (
 					<>
 						<p>
-							For <strong>{p().name}</strong>
-							<Show when={p().build}>
+							<Show
+								when={p().build}
+								fallback={
+									<>
+										<strong>{p().name}</strong> has no build yet.
+									</>
+								}
+							>
 								{(b) => (
-									<span class="muted">
-										{" "}
-										· current build: {b().ascendancy ?? b().class},{" "}
-										{b().skillGroups.length} skill groups,{" "}
-										{b().treeStages.length} passive trees
-									</span>
+									<>
+										<strong>{p().name}</strong> follows a{" "}
+										{b().ascendancy ?? b().class} build with{" "}
+										{b().skillGroups.length} skill groups and{" "}
+										{b().treeStages.length} passive trees.
+									</>
 								)}
 							</Show>
 						</p>
@@ -95,10 +106,11 @@ export default function BuildCard() {
 							/>
 							<button
 								type="button"
+								class="primary"
 								disabled={busy() || !input().trim()}
 								onClick={doImport}
 							>
-								{busy() ? "Importing…" : "Import"}
+								{busy() ? "Importing…" : p().build ? "Replace build" : "Import"}
 							</button>
 						</div>
 						<Show when={p().build}>
@@ -147,18 +159,17 @@ export default function BuildCard() {
 							<p class="muted">{message()}</p>
 						</Show>
 						<Show when={(guide()?.unobtainable.length ?? 0) > 0}>
+							<h3>Find or trade for these</h3>
 							<p class="muted">
-								Not available from quests or vendors for this class (find or
-								trade for these):{" "}
+								No quest or vendor gives these to your class:{" "}
 								<For each={guide()?.unobtainable ?? []}>
 									{(g) => <span class={`gem gem-${g.colour}`}>{g.name}</span>}
 								</For>
 							</p>
 						</Show>
 						<p class="muted">
-							Gem rewards and purchases appear on the guide's hand-in steps.
-							Alt+L shows the gem links for your level; Alt+V copies the vendor
-							search for the current step.
+							At a vendor, <kbd>Alt+V</kbd> copies a search for the gems to buy
+							there.
 						</p>
 					</>
 				)}

@@ -4,7 +4,9 @@
  *
  *   /preview.html?w=guide&bg=bright&act=1
  *
- * `w` is the window label, `bg` the backdrop (dark | bright | tree).
+ * `w` is the window label, `bg` the backdrop (dark | bright | tree). An
+ * Overlay renders inside a frame the size of its real window (dashed outline),
+ * which follows the window's own auto-sizing, over the backdrop.
  * Fixtures come from `cargo run -p poe-core --example preview_fixtures`.
  */
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
@@ -13,50 +15,98 @@ import "./preview.css";
 
 const params = new URLSearchParams(location.search);
 const label = params.get("w") ?? "main";
-document.documentElement.dataset.backdrop = params.get("bg") ?? "dark";
+const inner = params.has("inner");
 
-const settings = {
-	logPath: null,
-	category: "SSF HC",
-	pauseInHideout: true,
-	timerOverlay: { x: 0.01, y: 0.25 },
-	treeKey: "P",
-	overlayOpacity: 1,
+/** Logical window sizes, as created by `src-tauri/src/overlay.rs`. */
+const SIZES: Record<string, [number, number]> = {
+	timer: [280, 340],
+	guide: [380, 420],
+	act: [520, 720],
+	gems: [320, 420],
+	lab: [780, 560],
+	treebar: [860, 52],
+	xp: [380, 110],
 };
 
-const responses: Record<string, unknown> = {
-	get_timer_view: fixtures.timer,
-	get_guide_view: { ...fixtures.guide, actView: params.has("act") },
-	get_gems_view: { ...fixtures.gems, visible: true },
-	get_tree: fixtures.treeNodes,
-	get_tree_view: {
-		...fixtures.tree,
-		editing: params.has("fix"),
-		visible: !params.has("hidden"),
-	},
-	get_lab_view: { ...fixtures.lab, visible: true },
-	get_characters: fixtures.characters,
-	get_settings: settings,
-	get_status: {
-		logPath: "E:SteamLibrarysteamappscommonPath of ExilelogsClient.txt",
-		gameRunning: true,
-	},
-	get_history: fixtures.history,
-	get_interact: params.has("interact"),
-	hotkey_failures: params.has("conflict") ? ["alt+KeyR"] : [],
-};
+if (!inner && label in SIZES) {
+	// The page is the game behind; the Overlay window is an iframe on top.
+	document.documentElement.dataset.backdrop = params.get("bg") ?? "dark";
+	const [w, h] = SIZES[label];
+	const frame = document.createElement("iframe");
+	frame.className = "preview-frame";
+	frame.width = String(w);
+	frame.height = String(h);
+	frame.src = `${location.pathname}${location.search}&inner`;
+	document.body.append(frame);
+	window.addEventListener("message", (e) => {
+		if (e.data?.kind !== "resize") return;
+		frame.width = String(e.data.width);
+		frame.height = String(e.data.height);
+	});
+} else {
+	await boot();
+}
 
-mockWindows(label);
-mockIPC(
-	(cmd) => {
-		if (cmd in responses) return responses[cmd];
-		if (cmd === "plugin:window|outer_position") return { x: 0, y: 0 };
-		if (cmd === "plugin:window|outer_size")
-			return { width: window.innerWidth, height: window.innerHeight };
-		if (cmd === "plugin:window|scale_factor") return 1;
-		return null;
-	},
-	{ shouldMockEvents: true },
-);
+async function boot() {
+	// The main window paints its own background.
+	if (label !== "main")
+		document.documentElement.dataset.backdrop = inner
+			? "none"
+			: (params.get("bg") ?? "dark");
 
-await import("../index");
+	const settings = {
+		logPath: null,
+		category: "SSF HC",
+		pauseInHideout: true,
+		timerOverlay: { x: 0.01, y: 0.25 },
+		treeKey: "P",
+		panelOpacity: Number(params.get("opacity") ?? 0.85),
+	};
+
+	const responses: Record<string, unknown> = {
+		get_timer_view: fixtures.timer,
+		get_guide_view: { ...fixtures.guide, actView: params.has("act") },
+		get_gems_view: { ...fixtures.gems, visible: true },
+		get_tree: fixtures.treeNodes,
+		get_tree_view: {
+			...fixtures.tree,
+			editing: params.has("fix"),
+			visible: !params.has("hidden"),
+		},
+		get_lab_view: { ...fixtures.lab, visible: true },
+		get_characters: fixtures.characters,
+		get_settings: settings,
+		get_status: {
+			logPath: String.raw`E:\SteamLibrary\steamapps\common\Path of Exile\logs\Client.txt`,
+			gameRunning: true,
+		},
+		get_history: fixtures.history,
+		get_interact: params.has("interact"),
+		hotkey_failures: params.has("conflict") ? ["alt+KeyR"] : [],
+	};
+
+	mockWindows(label);
+	mockIPC(
+		(cmd, args) => {
+			if (cmd in responses) return responses[cmd];
+			if (cmd === "plugin:window|outer_position") return { x: 0, y: 0 };
+			if (cmd === "plugin:window|outer_size")
+				return { width: window.innerWidth, height: window.innerHeight };
+			if (cmd === "plugin:window|scale_factor") return 1;
+			if (cmd === "plugin:window|set_size" && inner) {
+				// biome-ignore lint/suspicious/noExplicitAny: Tauri's Size wire format
+				const v = (args as any)?.value;
+				const s = v?.size ?? v?.Logical ?? v?.Physical ?? v;
+				if (s?.width)
+					parent.postMessage(
+						{ kind: "resize", width: s.width, height: s.height },
+						"*",
+					);
+			}
+			return null;
+		},
+		{ shouldMockEvents: true },
+	);
+
+	await import("../index");
+}

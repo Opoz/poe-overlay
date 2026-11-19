@@ -1,18 +1,23 @@
 /* Backdrops standing in for the game behind the transparent overlays. */
 html.preview,
 html.preview body {
+	min-height: 100vh;
+	margin: 0;
+}
+
+html.preview[data-backdrop="dark"],
+html.preview[data-backdrop="dark"] body {
 	background:
 		radial-gradient(ellipse at 30% 20%, #2b3a2f 0%, transparent 55%),
 		radial-gradient(ellipse at 75% 70%, #3a2c22 0%, transparent 50%), #15171a !important;
-	min-height: 100vh;
 }
 
 html.preview[data-backdrop="bright"],
 html.preview[data-backdrop="bright"] body {
 	background:
-		radial-gradient(ellipse at 20% 30%, #e8dcc0 0%, transparent 45%),
-		radial-gradient(ellipse at 70% 60%, #c9a86a 0%, transparent 50%),
-		radial-gradient(ellipse at 50% 100%, #6b8f9c 0%, transparent 60%), #9a8f7c !important;
+		radial-gradient(ellipse at 20% 30%, #f1e7cf 0%, transparent 45%),
+		radial-gradient(ellipse at 70% 60%, #d4b479 0%, transparent 50%),
+		radial-gradient(ellipse at 50% 100%, #7ea3b0 0%, transparent 60%), #a89c86 !important;
 }
 
 html.preview[data-backdrop="tree"],
@@ -20,4 +25,20 @@ html.preview[data-backdrop="tree"] body {
 	background:
 		url("/image.png") center / cover,
 		#0b0d10 !important;
+}
+
+html.preview[data-backdrop="none"],
+html.preview[data-backdrop="none"] body {
+	background: transparent !important;
+}
+
+/* The Overlay window's real bounds. */
+.preview-frame {
+	position: absolute;
+	top: 20px;
+	left: 20px;
+	border: 0;
+	outline: 1px dashed rgb(255 255 255 / 0.35);
+	background: transparent;
+	color-scheme: dark;
 }

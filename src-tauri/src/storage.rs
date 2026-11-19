@@ -46,7 +46,9 @@ pub struct Settings {
     /// The game's passive tree key: pressing it toggles the tree Overlay too
     /// (Escape hides it). `None` turns this off.
     pub tree_key: Option<String>,
-    pub overlay_opacity: f64,
+    /// How solid the Overlay panels' backgrounds are (0.2-1). Text stays
+    /// fully opaque either way.
+    pub panel_opacity: f64,
 }
 
 impl Default for Settings {
@@ -63,7 +65,7 @@ impl Default for Settings {
             treebar_right: OverlayPlacement { x: 0.66, y: 0.01 },
             xp_overlay: OverlayPlacement { x: 0.56, y: 0.86 },
             tree_key: Some("P".into()),
-            overlay_opacity: 1.0,
+            panel_opacity: 0.85,
         }
     }
 }

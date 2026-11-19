@@ -8,6 +8,7 @@ import {
 	onCleanup,
 } from "solid-js";
 import { onEvent } from "../events";
+import { CloseIcon } from "../icons";
 import StepView from "./StepView";
 import { guideCommand, toggleActView, useGuide } from "./useGuide";
 
@@ -70,8 +71,14 @@ export default function ActOverlay() {
 						)}
 					</For>
 				</span>
-				<button type="button" title="Close (Alt+G)" onClick={toggleActView}>
-					✕
+				<button
+					type="button"
+					class="icon-button"
+					title="Close (Alt+G)"
+					aria-label="Close"
+					onClick={toggleActView}
+				>
+					<CloseIcon />
 				</button>
 			</header>
 			<div class="muted act-hint">

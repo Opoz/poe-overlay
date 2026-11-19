@@ -38,7 +38,7 @@ export default function TimerOverlay() {
 			<header>
 				<span class="status">{statusLabel()}</span>
 				<Show when={interact()}>
-					<span class="hint">drag · Alt+E to lock</span>
+					<span class="interact-hint">Drag. Alt+E locks.</span>
 				</Show>
 			</header>
 			<div class="clock">{formatDuration(realMs())}</div>

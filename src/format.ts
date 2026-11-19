@@ -32,3 +32,30 @@ export function titleCase(s: string): string {
 		(_, gap: string, c: string) => gap + c.toUpperCase(),
 	);
 }
+
+const KEY_NAMES: Record<string, string> = {
+	BracketLeft: "[",
+	BracketRight: "]",
+	Backquote: "`",
+	Minus: "-",
+	Equal: "=",
+	Semicolon: ";",
+	Quote: "'",
+	Comma: ",",
+	Period: ".",
+	Slash: "/",
+	Backslash: "\\",
+};
+
+/** A shortcut as the backend names it (`alt+shift+KeyS`) for people: `Alt+Shift+S`. */
+export function formatShortcut(s: string): string {
+	return s
+		.split("+")
+		.map((part) => {
+			if (/^Key[A-Z]$/.test(part)) return part.slice(3);
+			if (/^Digit\d$/.test(part)) return part.slice(5);
+			if (part in KEY_NAMES) return KEY_NAMES[part];
+			return part.charAt(0).toUpperCase() + part.slice(1);
+		})
+		.join("+");
+}

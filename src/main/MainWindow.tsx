@@ -1,16 +1,71 @@
 import { invoke } from "@tauri-apps/api/core";
-import { createResource, createSignal, For, onCleanup, Show } from "solid-js";
+import {
+	createResource,
+	createSignal,
+	For,
+	type JSX,
+	Match,
+	onCleanup,
+	Show,
+	Switch,
+} from "solid-js";
 import { onEvent } from "../events";
-import { formatDuration, formatLocalDate } from "../format";
-import type { Run, Settings, Status, TimerCommand } from "../types";
+import {
+	formatDelta,
+	formatDuration,
+	formatLocalDate,
+	formatShortcut,
+} from "../format";
+import {
+	PAUSE_LABEL,
+	type Run,
+	type Settings,
+	type Status,
+	type TimerCommand,
+} from "../types";
 import { useTimerView } from "../useTimerView";
 import BuildCard from "./BuildCard";
 import CharactersCard from "./CharactersCard";
+import Mark from "./Mark";
 
 const command = (c: TimerCommand) => invoke("timer_command", { command: c });
 
+const PAGES = [
+	["run", "Run"],
+	["characters", "Characters"],
+	["build", "Build"],
+	["overlays", "Overlays"],
+	["history", "History"],
+	["settings", "Settings"],
+] as const;
+type Page = (typeof PAGES)[number][0];
+
+function initialPage(): Page {
+	const fromUrl = new URLSearchParams(location.search).get("page");
+	let saved: string | null = fromUrl;
+	if (!saved) {
+		try {
+			saved = localStorage.getItem("page");
+		} catch {
+			saved = null;
+		}
+	}
+	return PAGES.some(([id]) => id === saved) ? (saved as Page) : "run";
+}
+
 export default function MainWindow() {
-	const { view, realMs } = useTimerView();
+	const live = useTimerView();
+	const { view, realMs, loadRemovedMs } = live;
+	const [page, setPage] = createSignal<Page>(initialPage());
+	const go = (p: Page) => {
+		setPage(p);
+		try {
+			localStorage.setItem("page", p);
+		} catch {
+			// Remembering the page is a convenience only.
+		}
+	};
+
 	const [status, setStatus] = createSignal<Status | null>(null);
 	const [settings, { mutate: setSettingsLocal }] = createResource(() =>
 		invoke<Settings>("get_settings"),
@@ -44,6 +99,98 @@ export default function MainWindow() {
 		await invoke("set_settings", { settings: next });
 	};
 
+	const runLine = () => {
+		const v = view();
+		if (!v?.phase) return "No run yet: a new character's first area starts one";
+		const parts = [v.class, v.currentAct ? `Act ${v.currentAct}` : null];
+		if (v.phase.phase === "paused") parts.push(PAUSE_LABEL[v.phase.reason]);
+		if (v.phase.phase === "finished") parts.push("finished");
+		return parts.filter(Boolean).join(", ");
+	};
+
+	return (
+		<div class="app">
+			<nav class="nav" aria-label="Sections">
+				<div class="brand">
+					<Mark />
+					poe-overlay
+				</div>
+				<For each={PAGES}>
+					{([id, title]) => (
+						<a
+							href={`#${id}`}
+							aria-current={page() === id ? "page" : undefined}
+							onClick={(e) => {
+								e.preventDefault();
+								go(id);
+							}}
+						>
+							{title}
+						</a>
+					)}
+				</For>
+				<div class="game-state">
+					<span class="dot" classList={{ on: status()?.gameRunning }} />
+					{status()?.gameRunning ? "Game running" : "Game not running"}
+				</div>
+			</nav>
+
+			<div class="content">
+				<header class="runstrip">
+					<div class="who">
+						<strong>{view()?.character ?? "No character yet"}</strong>
+						<span>{runLine()}</span>
+					</div>
+					<div class="clock" data-phase={view()?.phase?.phase ?? "idle"}>
+						{formatDuration(realMs())}
+						<small>{formatDuration(loadRemovedMs())} without loads</small>
+					</div>
+				</header>
+
+				<main class="page">
+					<Show when={hotkeyFailures().length > 0}>
+						<div class="callout">
+							Another app has these shortcuts, so they won't work here:{" "}
+							<strong>{hotkeyFailures().map(formatShortcut).join(", ")}</strong>
+							. Free them in that app (the NVIDIA App takes Alt+R, for example).
+						</div>
+					</Show>
+					<Switch>
+						<Match when={page() === "run"}>
+							<RunPage live={live} />
+						</Match>
+						<Match when={page() === "characters"}>
+							<CharactersCard />
+						</Match>
+						<Match when={page() === "build"}>
+							<BuildCard />
+						</Match>
+						<Match when={page() === "overlays"}>
+							<OverlaysPage />
+						</Match>
+						<Match when={page() === "history"}>
+							<HistoryPage runs={history() ?? []} />
+						</Match>
+						<Match when={page() === "settings"}>
+							<Show when={settings()}>
+								{(s) => (
+									<SettingsPage
+										settings={s()}
+										save={save}
+										logPath={status()?.logPath ?? null}
+									/>
+								)}
+							</Show>
+						</Match>
+					</Switch>
+				</main>
+			</div>
+		</div>
+	);
+}
+
+function RunPage(props: { live: ReturnType<typeof useTimerView> }) {
+	const view = () => props.live.view();
 	const reset = async () => {
 		if (
 			confirm(
@@ -51,207 +198,279 @@ export default function MainWindow() {
 			)
 		) {
 			await command("reset");
-			refetchHistory();
 		}
 	};
-
 	return (
-		<main class="main">
-			<h1>poe-overlay</h1>
-
-			<section class="card">
-				<h2>Game</h2>
-				<p>
-					<span class="dot" classList={{ on: status()?.gameRunning }} />
-					{status()?.gameRunning
-						? "Path of Exile is running"
-						: "Path of Exile not detected"}
-				</p>
-				<p class="muted">
-					Client log: {status()?.logPath ?? "waiting for the game…"}
-				</p>
-				<Show when={hotkeyFailures().length > 0}>
-					<p class="warn-text">
-						These hotkeys are taken by another app (the NVIDIA App uses Alt+R,
-						for example), so they won't work: {hotkeyFailures().join(", ")}.
-						Change them in that app or wait for hotkey rebinding.
-					</p>
-				</Show>
-				<p class="muted">
-					Run the game in windowed fullscreen. Overlays show while the game is
-					focused; Alt+E unlocks them for moving.
-				</p>
-			</section>
-
-			<section class="card">
-				<h2>Current run</h2>
-				<Show
-					when={view()?.phase}
-					fallback={<p class="muted">No run in progress.</p>}
-				>
-					<p>
-						<strong>{view()?.character ?? "New character"}</strong>{" "}
-						{view()?.class ?? ""} · Act {view()?.currentAct ?? "—"} ·{" "}
-						{formatDuration(realMs())}
-					</p>
-				</Show>
-				<div class="buttons">
-					<button type="button" onClick={() => command("start")}>
-						Start
-					</button>
-					<button type="button" onClick={() => command("togglePause")}>
-						Pause / resume <kbd>Alt+P</kbd>
-					</button>
-					<button type="button" onClick={() => command("split")}>
-						Split <kbd>Alt+S</kbd>
-					</button>
-					<button type="button" onClick={() => command("undoSplit")}>
-						Undo split <kbd>Alt+Shift+S</kbd>
-					</button>
-					<button type="button" class="danger" onClick={reset}>
-						Reset
-					</button>
-				</div>
-			</section>
-
-			<section class="card">
-				<h2>Passive tree overlay (preview)</h2>
-				<p class="muted">
-					With the overlay showing (Alt+T), zoom the in-game passive tree all
-					the way out and middle-click your class start: your allocated passives
-					are ringed on top. Middle-click again after panning. Alt+Shift+T is a
-					fallback: left-click the class start, or press it twice for a
-					two-click calibration that also measures the zoom.
-				</p>
-				<div class="buttons">
-					<button
-						type="button"
-						onClick={() => invoke("toggle_tree", { calibrate: false })}
-					>
-						Show / hide <kbd>Alt+T</kbd>
-					</button>
-					<button
-						type="button"
-						onClick={() => invoke("toggle_tree", { calibrate: true })}
-					>
-						Calibrate <kbd>Alt+Shift+T</kbd>
-					</button>
-				</div>
-			</section>
-
-			<CharactersCard />
-
-			<BuildCard />
-
-			<section class="card">
-				<h2>Settings</h2>
-				<Show when={settings()}>
-					{(s) => (
-						<div class="form">
-							<label>
-								Run category
-								<input
-									value={s().category}
-									onChange={(e) =>
-										save({
-											category: e.currentTarget.value.trim() || "Default",
-										})
-									}
-								/>
-							</label>
-							<label class="check">
-								<input
-									type="checkbox"
-									checked={s().pauseInHideout}
-									onChange={(e) =>
-										save({ pauseInHideout: e.currentTarget.checked })
-									}
-								/>
-								Pause the timer in hideouts
-							</label>
-							<label>
-								Client log path (leave empty to detect automatically)
-								<input
-									value={s().logPath ?? ""}
-									placeholder="…\Path of Exile\logs\Client.txt"
-									onChange={(e) =>
-										save({ logPath: e.currentTarget.value.trim() || null })
-									}
-								/>
-							</label>
-							<label>
-								Passive tree key (opening the game's tree also shows the
-								overlay; Escape hides it). Leave empty to turn off.
-								<input
-									class="level-input"
-									maxLength={1}
-									value={s().treeKey ?? ""}
-									onChange={(e) =>
-										save({
-											treeKey:
-												e.currentTarget.value.trim().toUpperCase() || null,
-										})
-									}
-								/>
-							</label>
-							<label class="check disabled" title="Coming later">
-								<input type="checkbox" disabled />
-								Path of Exile 2 (coming later)
-							</label>
-						</div>
+		<section>
+			<h2>Run</h2>
+			<p class="lede">
+				The timer starts in a new character's first area and splits as you enter
+				each act. It pauses at character select, and in hideouts if you choose.
+			</p>
+			<div class="buttons">
+				<button type="button" onClick={() => command("togglePause")}>
+					{view()?.phase?.phase === "paused" ? "Resume" : "Pause"}{" "}
+					<kbd>Alt+P</kbd>
+				</button>
+				<button type="button" onClick={() => command("split")}>
+					Split <kbd>Alt+S</kbd>
+				</button>
+				<button type="button" onClick={() => command("undoSplit")}>
+					Undo split <kbd>Alt+Shift+S</kbd>
+				</button>
+				<button type="button" onClick={() => command("start")}>
+					Start now
+				</button>
+				<button type="button" class="danger" onClick={reset}>
+					Abandon run
+				</button>
+			</div>
+			<Show when={(view()?.splits.length ?? 0) > 0}>
+				<h3>Splits</h3>
+				<table class="split-table">
+					<thead>
+						<tr>
+							<th>Act</th>
+							<th class="num">Versus best</th>
+							<th class="num">Time</th>
+						</tr>
+					</thead>
+					<tbody>
+						<For each={view()?.splits ?? []}>
+							{(row) => (
+								<tr
+									classList={{
+										here: view()?.currentAct === row.act,
+										pending: row.time === null,
+									}}
+								>
+									<td>Act {row.act}</td>
+									<td
+										class="num delta"
+										classList={{
+											ahead: (row.deltaRealMs ?? 0) < 0,
+											behind: (row.deltaRealMs ?? 0) > 0,
+											gold: row.bestSegment,
+										}}
+									>
+										{row.deltaRealMs !== null
+											? formatDelta(row.deltaRealMs)
+											: ""}
+									</td>
+									<td class="num">
+										{row.time
+											? formatDuration(row.time.realMs)
+											: row.pbRealMs !== null
+												? formatDuration(row.pbRealMs)
+												: "—"}
+									</td>
+								</tr>
+							)}
+						</For>
+					</tbody>
+				</table>
+				<Show when={view()?.bestPossibleRealMs}>
+					{(ms) => (
+						<p class="muted">
+							Best possible finish from here: {formatDuration(ms())}. Times in
+							grey are your best run's.
+						</p>
 					)}
 				</Show>
-			</section>
-
-			<section class="card">
-				<h2>Runs</h2>
-				<Show
-					when={(history() ?? []).length > 0}
-					fallback={<p class="muted">No saved runs yet.</p>}
-				>
-					<table>
-						<thead>
-							<tr>
-								<th>Started</th>
-								<th>Character</th>
-								<th>Category</th>
-								<th>Reached</th>
-								<th>Time</th>
-							</tr>
-						</thead>
-						<tbody>
-							<For each={[...(history() ?? [])].reverse()}>
-								{(run) => <RunRow run={run} />}
-							</For>
-						</tbody>
-					</table>
-				</Show>
-			</section>
-		</main>
+			</Show>
+		</section>
 	);
 }
 
-function RunRow(props: { run: Run }) {
-	const last = () => {
-		const idx = props.run.splits.findLastIndex((s) => s !== null);
-		const time = idx < 0 ? null : props.run.splits[idx];
+function OverlaysPage() {
+	return (
+		<section>
+			<h2>Overlays</h2>
+			<p class="lede">
+				Overlays show while the game is focused. Run the game in windowed
+				fullscreen. Press <kbd>Alt+E</kbd> to unlock them for dragging, and
+				again to lock.
+			</p>
+			<h3>Passive tree</h3>
+			<p class="muted">
+				Open the in-game tree, zoom all the way out and middle-click your class
+				start: allocated passives are ringed and the next points numbered.
+				Middle-click again after panning. If middle-click isn't available, use
+				Calibrate and left-click the class start.
+			</p>
+			<div class="buttons">
+				<button
+					type="button"
+					onClick={() => invoke("toggle_tree", { calibrate: false })}
+				>
+					Show or hide <kbd>Alt+T</kbd>
+				</button>
+				<button
+					type="button"
+					onClick={() => invoke("toggle_tree", { calibrate: true })}
+				>
+					Calibrate <kbd>Alt+Shift+T</kbd>
+				</button>
+			</div>
+		</section>
+	);
+}
+
+function HistoryPage(props: { runs: Run[] }) {
+	const last = (run: Run) => {
+		const idx = run.splits.findLastIndex((s) => s !== null);
+		const time = idx < 0 ? null : run.splits[idx];
 		return time ? { act: idx + 1, time } : null;
 	};
-	const reached = () => {
-		if (props.run.phase.phase === "finished") return "Finished";
-		const l = last();
+	const reached = (run: Run) => {
+		if (run.phase.phase === "finished") return "Finished";
+		const l = last(run);
 		return l ? `Act ${l.act + 1}` : "Act 1";
 	};
 	return (
-		<tr>
-			<td>{formatLocalDate(props.run.startedAt)}</td>
-			<td>
-				{props.run.character ?? "?"}{" "}
-				<span class="muted">{props.run.class ?? ""}</span>
-			</td>
-			<td>{props.run.category ?? ""}</td>
-			<td>{reached()}</td>
-			<td>{last() ? formatDuration(last()?.time.realMs ?? 0) : "—"}</td>
-		</tr>
+		<section>
+			<h2>History</h2>
+			<p class="lede">Every run, newest first.</p>
+			<Show
+				when={props.runs.length > 0}
+				fallback={
+					<p class="empty">Runs land here when they finish or are abandoned.</p>
+				}
+			>
+				<table>
+					<thead>
+						<tr>
+							<th>Started</th>
+							<th>Character</th>
+							<th>Category</th>
+							<th>Reached</th>
+							<th class="num">Time</th>
+						</tr>
+					</thead>
+					<tbody>
+						<For each={[...props.runs].reverse()}>
+							{(run) => (
+								<tr>
+									<td>{formatLocalDate(run.startedAt)}</td>
+									<td>
+										{run.character ?? "?"}{" "}
+										<span class="muted">{run.class ?? ""}</span>
+									</td>
+									<td>{run.category ?? ""}</td>
+									<td>{reached(run)}</td>
+									<td class="num">
+										{last(run)
+											? formatDuration(last(run)?.time.realMs ?? 0)
+											: "—"}
+									</td>
+								</tr>
+							)}
+						</For>
+					</tbody>
+				</table>
+			</Show>
+		</section>
+	);
+}
+
+function Field(props: { label: string; children: JSX.Element }) {
+	return (
+		<>
+			<div class="label">{props.label}</div>
+			<div>{props.children}</div>
+		</>
+	);
+}
+
+function SettingsPage(props: {
+	settings: Settings;
+	save: (patch: Partial<Settings>) => void;
+	logPath: string | null;
+}) {
+	const s = () => props.settings;
+	return (
+		<section>
+			<h2>Settings</h2>
+			<p class="lede">Changes save as you make them.</p>
+			<div class="fields">
+				<Field label="Run category">
+					<input
+						value={s().category}
+						onChange={(e) =>
+							props.save({
+								category: e.currentTarget.value.trim() || "Default",
+							})
+						}
+					/>
+					<div class="help">
+						New runs are filed under this, and only compared with runs in the
+						same category.
+					</div>
+				</Field>
+				<Field label="Hideouts">
+					<label class="check">
+						<input
+							type="checkbox"
+							checked={s().pauseInHideout}
+							onChange={(e) =>
+								props.save({ pauseInHideout: e.currentTarget.checked })
+							}
+						/>
+						Pause the timer in hideouts
+					</label>
+				</Field>
+				<Field label="Panel opacity">
+					<input
+						type="range"
+						min="0.2"
+						max="1"
+						step="0.05"
+						value={s().panelOpacity}
+						onInput={(e) =>
+							props.save({ panelOpacity: Number(e.currentTarget.value) })
+						}
+					/>{" "}
+					{Math.round(s().panelOpacity * 100)}%
+					<div class="help">
+						How solid the overlay backgrounds are. Text stays fully opaque.
+					</div>
+				</Field>
+				<Field label="Passive tree key">
+					<input
+						class="level-input"
+						maxLength={1}
+						value={s().treeKey ?? ""}
+						onChange={(e) =>
+							props.save({
+								treeKey: e.currentTarget.value.trim().toUpperCase() || null,
+							})
+						}
+					/>
+					<div class="help">
+						Your in-game key for the passive tree. Pressing it shows the tree
+						overlay too, and Escape hides it. Leave empty to turn this off.
+					</div>
+				</Field>
+				<Field label="Client log">
+					<input
+						value={s().logPath ?? ""}
+						placeholder={props.logPath ?? "Found automatically"}
+						onChange={(e) =>
+							props.save({ logPath: e.currentTarget.value.trim() || null })
+						}
+					/>
+					<div class="help">
+						Leave empty to find it from the running game. Reading:{" "}
+						{props.logPath ?? "waiting for the game"}.
+					</div>
+				</Field>
+				<Field label="Game">
+					<label class="check disabled" title="Coming later">
+						<input type="checkbox" checked disabled />
+						Path of Exile 1 (Path of Exile 2 later)
+					</label>
+				</Field>
+			</div>
+		</section>
 	);
 }

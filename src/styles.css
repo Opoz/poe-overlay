@@ -1,17 +1,40 @@
+/*
+ * poe-overlay: one token system for the main window and every Overlay.
+ *
+ * - Basalt surfaces, bone text, one brass accent.
+ * - Brass marks "you are here" and nothing else: the current step, the
+ *   current act split, the active character, the open page. It is drawn
+ *   the same way everywhere, a 3px rule on the left edge.
+ * - Overlays: text is always fully opaque. The Panel opacity setting fades
+ *   only the panel background (--veil), and a dark halo keeps text
+ *   readable over bright scenes when the panel is faint.
+ */
+
 :root {
-	--bg: #121316;
-	--panel: #1b1d22;
-	--line: #2c2f36;
-	--text: #e6e3dc;
-	--muted: #8d8a83;
-	--accent: #c8a45a;
-	--ahead: #4cc38a;
-	--behind: #e5534b;
-	--gold: #f2c94c;
+	--basalt: 17 20 22; /* rgb triplet, for alpha */
+	--ink: #111416;
+	--slate: #1a1f22;
+	--slate-2: #232a2e;
+	--rule: #2d3539;
+	--bone: #ede6d6;
+	--ash: #9d978a;
+	--brass: #d9ae62;
+	--brass-dim: rgb(217 174 98 / 0.13);
+	--ahead: #62d49d;
+	--behind: #f07468;
+	--gold: #f5cf5a;
+	--veil: 0.85;
+
+	--halo: 0 1px 1px rgb(0 0 0 / 0.9), 0 0 4px rgb(0 0 0 / 0.75);
+	--marker: inset 3px 0 0 var(--brass);
+
 	color-scheme: dark;
-	font-family: "Segoe UI", system-ui, sans-serif;
-	font-size: 14px;
-	color: var(--text);
+	font-family: "Barlow Semi Condensed", "Segoe UI", system-ui, sans-serif;
+	font-size: 15px;
+	line-height: 1.4;
+	color: var(--bone);
+	font-variant-numeric: tabular-nums;
+	-webkit-font-smoothing: antialiased;
 }
 
 * {
@@ -20,66 +43,587 @@
 
 body {
 	margin: 0;
-	background: var(--bg);
+	background: var(--ink);
 }
 
-/* Overlay windows are transparent; only the panel is drawn. */
-html[data-window="timer"],
-html[data-window="timer"] body,
-html[data-window="tree"],
-html[data-window="tree"] body,
-html[data-window="guide"],
-html[data-window="guide"] body,
-html[data-window="act"],
-html[data-window="act"] body,
-html[data-window="gems"],
-html[data-window="gems"] body,
-html[data-window="lab"],
-html[data-window="lab"] body,
-html[data-window="treebar"],
-html[data-window="treebar"] body,
-html[data-window="xp"],
-html[data-window="xp"] body {
+/* ------------------------------------------------------------ controls */
+
+button {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: var(--slate-2);
+	color: var(--bone);
+	border: 1px solid var(--rule);
+	border-radius: 5px;
+	padding: 5px 11px;
+	font: inherit;
+	font-weight: 500;
+	line-height: 1.25;
+	cursor: pointer;
+}
+
+button:hover {
+	border-color: var(--brass);
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+	outline: 2px solid var(--brass);
+	outline-offset: 1px;
+}
+
+button:disabled {
+	opacity: 0.45;
+	cursor: default;
+	border-color: var(--rule);
+}
+
+button.primary {
+	background: var(--brass);
+	border-color: var(--brass);
+	color: #1b1408;
+	font-weight: 600;
+}
+
+button.primary:hover {
+	background: #e6bd74;
+}
+
+button.danger:hover {
+	border-color: var(--behind);
+	color: var(--behind);
+}
+
+button.small {
+	padding: 1px 6px;
+	font-size: 13px;
+}
+
+button.on {
+	border-color: var(--brass);
+	color: var(--brass);
+}
+
+.icon {
+	width: 16px;
+	height: 16px;
+	flex: none;
+}
+
+/* A shortcut, drawn as a keycap in the same face as the text. */
+kbd {
+	display: inline-block;
+	padding: 0 5px;
+	border: 1px solid var(--rule);
+	border-bottom-width: 2px;
+	border-radius: 4px;
+	font: inherit;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.45;
+	color: var(--ash);
+	white-space: nowrap;
+}
+
+input:not([type="checkbox"]):not([type="range"]),
+select {
+	background: var(--ink);
+	color: var(--bone);
+	border: 1px solid var(--rule);
+	border-radius: 5px;
+	padding: 6px 9px;
+	font: inherit;
+}
+
+input[type="checkbox"],
+input[type="range"] {
+	accent-color: var(--brass);
+}
+
+input[type="checkbox"] {
+	width: 15px;
+	height: 15px;
+	margin: 0;
+}
+
+.muted {
+	color: var(--ash);
+}
+
+.warn-text {
+	color: #ff9a8a;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+th,
+td {
+	text-align: left;
+	padding: 7px 10px;
+	border-bottom: 1px solid var(--rule);
+}
+
+th {
+	color: var(--ash);
+	font-weight: 500;
+	font-size: 13px;
+}
+
+td.num,
+th.num {
+	text-align: right;
+}
+
+tr.disabled td {
+	opacity: 0.5;
+}
+
+/* ---------------------------------------------------------- main window */
+
+.app {
+	display: grid;
+	grid-template-columns: 188px 1fr;
+	height: 100vh;
+}
+
+.nav {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	padding: 18px 0 14px;
+	background: var(--slate);
+	border-right: 1px solid var(--rule);
+}
+
+.brand {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 0 18px 18px;
+	font-size: 17px;
+	font-weight: 700;
+	letter-spacing: 0.01em;
+}
+
+.brand svg {
+	width: 22px;
+	height: 22px;
+	color: var(--brass);
+}
+
+.nav a {
+	padding: 7px 18px;
+	color: var(--ash);
+	text-decoration: none;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.nav a:hover {
+	color: var(--bone);
+}
+
+.nav a[aria-current="page"] {
+	color: var(--bone);
+	background: var(--brass-dim);
+	box-shadow: var(--marker);
+}
+
+.nav a:focus-visible {
+	outline: 2px solid var(--brass);
+	outline-offset: -2px;
+}
+
+.game-state {
+	margin-top: auto;
+	padding: 0 18px;
+	font-size: 13px;
+	color: var(--ash);
+}
+
+.dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--behind);
+	margin-right: 7px;
+	vertical-align: 1px;
+}
+
+.dot.on {
+	background: var(--ahead);
+}
+
+.content {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	overflow: hidden;
+}
+
+/* The live run, on every page. */
+.runstrip {
+	display: flex;
+	align-items: center;
+	gap: 18px;
+	padding: 14px 28px;
+	border-bottom: 1px solid var(--rule);
+}
+
+.runstrip .who {
+	min-width: 0;
+}
+
+.runstrip .who strong {
+	display: block;
+	font-size: 17px;
+	font-weight: 600;
+}
+
+.runstrip .who span {
+	color: var(--ash);
+	font-size: 14px;
+}
+
+.runstrip .clock {
+	margin-left: auto;
+	font-size: 30px;
+	font-weight: 600;
+	line-height: 1;
+	letter-spacing: 0.01em;
+}
+
+.runstrip .clock[data-phase="paused"] {
+	color: var(--ash);
+}
+
+.runstrip .clock[data-phase="finished"] {
+	color: var(--ahead);
+}
+
+.runstrip .clock small {
+	display: block;
+	margin-top: 3px;
+	font-size: 13px;
+	font-weight: 400;
+	color: var(--ash);
+	text-align: right;
+	letter-spacing: 0;
+}
+
+.page {
+	flex: 1;
+	overflow-y: auto;
+	padding: 22px 28px 40px;
+}
+
+.page > * {
+	max-width: 760px;
+}
+
+.page h2 {
+	margin: 0 0 4px;
+	font-size: 21px;
+	font-weight: 600;
+	line-height: 1.2;
+}
+
+.page h3 {
+	margin: 28px 0 8px;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.page p {
+	margin: 6px 0;
+}
+
+.lede {
+	color: var(--ash);
+	margin: 0 0 18px !important;
+	max-width: 64ch;
+}
+
+.buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+/* Settings: label on the left, control and help on the right. */
+.fields {
+	display: grid;
+	grid-template-columns: minmax(150px, 210px) 1fr;
+	gap: 16px 22px;
+	align-items: start;
+}
+
+.fields > .label {
+	padding-top: 6px;
+	font-weight: 500;
+}
+
+.fields .help {
+	margin-top: 5px;
+	font-size: 13px;
+	color: var(--ash);
+	max-width: 56ch;
+}
+
+.fields input:not([type="checkbox"]):not([type="range"]) {
+	width: 100%;
+	max-width: 420px;
+}
+
+.check {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding-top: 6px;
+	cursor: pointer;
+}
+
+.check.disabled {
+	color: var(--ash);
+	cursor: default;
+}
+
+.callout {
+	margin: 0 0 18px;
+	padding: 10px 14px;
+	border-radius: 5px;
+	background: rgb(240 116 104 / 0.12);
+	box-shadow: inset 3px 0 0 var(--behind);
+}
+
+.split-table {
+	max-width: 420px;
+}
+
+.split-table tr.here td {
+	background: var(--brass-dim);
+}
+
+.split-table tr.here td:first-child {
+	box-shadow: var(--marker);
+}
+
+.split-table tr.pending:not(.here) td {
+	color: var(--ash);
+}
+
+table.characters td {
+	vertical-align: middle;
+}
+
+table.characters tr.active td {
+	background: var(--brass-dim);
+}
+
+table.characters tr.active td:first-child {
+	box-shadow: var(--marker);
+}
+
+.char-name strong {
+	display: block;
+	font-weight: 600;
+}
+
+.char-name span {
+	color: var(--ash);
+	font-size: 13px;
+}
+
+.playing {
+	color: var(--brass);
+	font-weight: 600;
+}
+
+.guide-options {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 12px;
+	align-items: center;
+}
+
+.guide-options label {
+	display: inline-flex;
+	gap: 6px;
+	align-items: center;
+	white-space: nowrap;
+}
+
+.passives {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.import-row {
+	display: flex;
+	gap: 8px;
+	margin: 6px 0 4px;
+}
+
+.import-row input {
+	flex: 1;
+}
+
+.pickers {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 14px;
+	margin: 14px 0 6px;
+}
+
+.pickers label {
+	display: grid;
+	gap: 5px;
+	color: var(--ash);
+	font-size: 13px;
+}
+
+.group-levels {
+	margin: 12px 0;
+}
+
+.group-levels summary {
+	cursor: pointer;
+	color: var(--brass);
+	font-weight: 500;
+}
+
+.level-input {
+	width: 64px !important;
+}
+
+.empty {
+	padding: 22px 0;
+	color: var(--ash);
+}
+
+/* ------------------------------------------------------------- overlays */
+
+html[data-window]:not([data-window="main"]),
+html[data-window]:not([data-window="main"]) body {
 	background: transparent;
 	overflow: hidden;
 	user-select: none;
 }
 
+/* Overlays sit over the game: muted text needs more light than in a window. */
+html[data-window]:not([data-window="main"]) {
+	--ash: #bfb8a8;
+}
+
 .overlay {
 	margin: 4px;
-	padding: 8px 10px;
-	border-radius: 8px;
-	background: rgb(14 15 18 / 0.82);
-	border: 1px solid transparent;
-	font-variant-numeric: tabular-nums;
+	padding: 9px 12px 10px;
+	border-radius: 6px;
+	background: rgb(var(--basalt) / var(--veil));
+	border: 1px solid rgb(255 255 255 / 0.07);
+	box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
+	font-size: 15px;
+	text-shadow: var(--halo);
+}
+
+.overlay button,
+.overlay kbd,
+.overlay .gem,
+.overlay .t-book {
+	text-shadow: none;
+}
+
+/* Overlay buttons stay quiet until pointed at. */
+.overlay button {
+	background: rgb(255 255 255 / 0.06);
+	border-color: transparent;
+	padding: 3px 8px;
+	font-size: 14px;
+}
+
+.overlay button:hover {
+	background: rgb(255 255 255 / 0.12);
+	border-color: transparent;
+	color: var(--brass);
+}
+
+.overlay button.on {
+	color: var(--brass);
+	background: var(--brass-dim);
+}
+
+.overlay button.icon-button {
+	padding: 4px 5px;
 }
 
 .overlay.interact {
-	border: 1px dashed var(--accent);
+	outline: 1.5px dashed var(--brass);
+	outline-offset: -1px;
 	cursor: move;
 }
+
+.interact-hint {
+	margin: -2px 0 6px;
+	font-size: 13px;
+	color: var(--brass);
+}
+
+.toast {
+	margin: 2px 0 8px;
+	padding: 5px 9px;
+	border-radius: 5px;
+	background: var(--brass-dim);
+	font-size: 14px;
+}
+
+.toast.warn {
+	background: rgb(240 116 104 / 0.2);
+}
+
+/* Header row shared by the Guide, gems, act and lab Overlays. */
+.guide-bar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 7px;
+	font-size: 14px;
+	color: var(--ash);
+}
+
+.guide-buttons {
+	display: flex;
+	gap: 3px;
+}
+
+/* --------------------------------------------------------------- timer */
 
 .timer header {
 	display: flex;
 	justify-content: space-between;
 	gap: 8px;
-	font-size: 12px;
-	color: var(--muted);
-}
-
-.timer .hint {
-	color: var(--accent);
+	font-size: 14px;
+	color: var(--ash);
 }
 
 .timer .clock {
-	font-size: 30px;
+	font-size: 36px;
 	font-weight: 600;
-	line-height: 1.1;
-	margin-top: 2px;
+	line-height: 1.05;
+	letter-spacing: 0.01em;
 }
 
 .timer[data-phase="paused"] .clock {
-	color: var(--muted);
+	color: var(--ash);
 }
 
 .timer[data-phase="finished"] .clock {
@@ -87,33 +631,34 @@ html[data-window="xp"] body {
 }
 
 .timer .clock-sub {
-	font-size: 12px;
-	color: var(--muted);
-	margin-bottom: 6px;
+	font-size: 13px;
+	color: var(--ash);
+	margin-bottom: 8px;
 }
 
 .splits {
 	list-style: none;
-	margin: 0;
+	margin: 0 -12px;
 	padding: 0;
 }
 
 .splits li {
 	display: grid;
-	grid-template-columns: 1fr auto 64px;
-	gap: 8px;
-	padding: 1px 4px;
-	border-radius: 4px;
-	color: var(--muted);
+	grid-template-columns: 1fr auto 60px;
+	gap: 10px;
+	padding: 1px 12px;
+	color: var(--ash);
 }
 
 .splits li.done {
-	color: var(--text);
+	color: var(--bone);
 }
 
 .splits li.current {
-	background: rgb(200 164 90 / 0.15);
-	color: var(--text);
+	background: var(--brass-dim);
+	box-shadow: var(--marker);
+	color: var(--bone);
+	font-weight: 600;
 }
 
 .splits .time {
@@ -133,148 +678,484 @@ html[data-window="xp"] body {
 }
 
 .timer .footer {
-	margin-top: 6px;
-	font-size: 12px;
-	color: var(--muted);
-}
-
-/* Main window */
-.main {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: 20px 16px 40px;
-}
-
-.main h1 {
-	font-size: 20px;
-	color: var(--accent);
-	margin: 0 0 16px;
-}
-
-.card {
-	background: var(--panel);
-	border: 1px solid var(--line);
-	border-radius: 8px;
-	padding: 12px 16px;
-	margin-bottom: 12px;
-}
-
-.card h2 {
-	font-size: 13px;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	color: var(--muted);
-	margin: 0 0 8px;
-}
-
-.card p {
-	margin: 4px 0;
-}
-
-.muted {
-	color: var(--muted);
-}
-
-.dot {
-	display: inline-block;
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: var(--behind);
-	margin-right: 8px;
-}
-
-.dot.on {
-	background: var(--ahead);
-}
-
-.buttons {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
 	margin-top: 8px;
+	font-size: 13px;
+	color: var(--ash);
 }
 
-button {
-	background: #262931;
-	color: var(--text);
-	border: 1px solid var(--line);
-	border-radius: 6px;
-	padding: 6px 10px;
-	font: inherit;
-	cursor: pointer;
+/* --------------------------------------------------------------- guide */
+
+.guide,
+.gems {
+	max-height: calc(100vh - 8px);
+	overflow-y: auto;
 }
 
-button:hover {
-	border-color: var(--accent);
+.step-area {
+	font-weight: 600;
+	color: var(--bone);
 }
 
-button.danger:hover {
-	border-color: var(--behind);
+.step-act {
+	color: var(--ash);
+	font-weight: 500;
+	font-size: 13px;
+	margin-right: 2px;
 }
 
-kbd {
-	font-size: 11px;
-	color: var(--muted);
-	margin-left: 4px;
+.step-level {
+	margin-left: 7px;
+	font-size: 13px;
+	font-weight: 400;
+	color: var(--ash);
 }
 
-.form {
-	display: grid;
-	gap: 10px;
+.step-lines {
+	margin: 2px 0 0;
+	padding-left: 17px;
 }
 
-.form label {
-	display: grid;
-	gap: 4px;
-	color: var(--muted);
+.step-lines li::marker {
+	color: var(--ash);
 }
 
-.form label.check {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	color: var(--text);
+.step-notes {
+	padding-left: 14px;
+	color: var(--ash);
+	font-size: 14px;
 }
 
-.form label.disabled {
-	color: var(--muted);
+/* The current step carries the marker; what follows recedes. */
+.guide .step:not(.compact) {
+	margin: 0 -12px;
+	padding: 3px 12px 5px;
+	box-shadow: var(--marker);
 }
 
-input:not([type="checkbox"]) {
-	background: #101115;
-	color: var(--text);
-	border: 1px solid var(--line);
-	border-radius: 6px;
-	padding: 6px 8px;
-	font: inherit;
+.step.compact {
+	margin-top: 7px;
+	font-size: 14px;
+	color: var(--ash);
 }
 
-table {
-	width: 100%;
-	border-collapse: collapse;
-	font-variant-numeric: tabular-nums;
-}
-
-th,
-td {
-	text-align: left;
-	padding: 4px 8px;
-	border-bottom: 1px solid var(--line);
-}
-
-th {
-	color: var(--muted);
+.step.compact .step-area {
+	color: var(--ash);
 	font-weight: 500;
 }
 
-tr.active td {
-	background: rgb(200 164 90 / 0.08);
+.step .more {
+	list-style: none;
+	color: var(--ash);
 }
 
-.playing {
-	color: var(--accent);
+.upcoming {
+	margin-top: 4px;
 }
+
+/* Instruction tokens: what kind of thing each word is. */
+.t-area {
+	color: #ecc66c;
+}
+
+.t-kill {
+	color: #ff8070;
+	font-weight: 600;
+}
+
+.t-quest {
+	color: #a9d1ff;
+}
+
+.t-item {
+	color: #78e0a2;
+}
+
+.t-waypoint {
+	color: #8ad8ff;
+}
+
+.t-logout {
+	color: #cfaaff;
+}
+
+.t-trial {
+	color: #f5a055;
+}
+
+.t-generic {
+	font-style: italic;
+}
+
+.t-npc {
+	color: #f5ecd8;
+	font-weight: 600;
+}
+
+.t-dir {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	margin: 0 3px;
+	border-radius: 50%;
+	background: var(--brass-dim);
+	vertical-align: middle;
+}
+
+.t-dir svg {
+	width: 16px;
+	height: 16px;
+	fill: var(--brass);
+}
+
+.t-book {
+	display: inline-block;
+	margin-left: 6px;
+	padding: 0 6px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #0f1a13;
+	background: #78e0a2;
+	vertical-align: 1px;
+}
+
+.t-book.regrets {
+	background: #cfaaff;
+}
+
+/* -------------------------------------------------------- full act view */
+
+.act {
+	max-height: calc(100vh - 8px);
+	display: flex;
+	flex-direction: column;
+	font-size: 14px;
+}
+
+.act-tabs {
+	display: flex;
+	gap: 2px;
+}
+
+.overlay .act-tabs button {
+	min-width: 26px;
+	justify-content: center;
+	padding: 2px 6px;
+}
+
+.act-tabs button.here {
+	font-weight: 700;
+	color: var(--bone);
+}
+
+.act-hint {
+	font-size: 13px;
+	margin-bottom: 6px;
+}
+
+.act-steps {
+	overflow-y: auto;
+	margin: 0 -12px;
+}
+
+.overlay button.act-step {
+	display: block;
+	width: 100%;
+	padding: 5px 12px;
+	text-align: left;
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	font: inherit;
+	color: inherit;
+	text-shadow: var(--halo);
+}
+
+.overlay button.act-step:hover {
+	background: rgb(255 255 255 / 0.05);
+	color: inherit;
+}
+
+.overlay button.act-step.current {
+	background: var(--brass-dim);
+	box-shadow: var(--marker);
+}
+
+/* ---------------------------------------------------------------- gems */
+
+.gem {
+	display: inline-block;
+	margin: 1px 3px 2px 0;
+	padding: 0 7px;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 500;
+	border: 1px solid transparent;
+}
+
+.gem-r {
+	color: #ffb0a3;
+	background: rgb(190 55 45 / 0.42);
+}
+
+.gem-g {
+	color: #a4f0b9;
+	background: rgb(45 150 80 / 0.4);
+}
+
+.gem-b {
+	color: #b5d3ff;
+	background: rgb(60 105 210 / 0.42);
+}
+
+.gem-w {
+	color: var(--bone);
+	background: rgb(200 200 200 / 0.2);
+}
+
+/* Supports: outlined, so the skill gem stands out at a glance. */
+.gem.support {
+	border-color: currentcolor;
+	border-style: solid;
+	background: rgb(0 0 0 / 0.25);
+}
+
+.gem.too-high {
+	opacity: 0.45;
+}
+
+.gem-line {
+	display: block;
+	margin: 2px 0 0 2px;
+	font-size: 14px;
+	color: var(--ash);
+}
+
+.gem-group + .gem-group {
+	margin-top: 7px;
+}
+
+.gem-group-title {
+	font-weight: 600;
+	margin-bottom: 2px;
+}
+
+.gem-group-title .muted {
+	font-weight: 400;
+	font-size: 13px;
+}
+
+/* ---------------------------------------------------------------- xp */
+
+.xp {
+	padding: 2px 2px 0;
+}
+
+.xp-overlay {
+	font-size: 14px;
+}
+
+.xp-head {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	font-size: 13px;
+	margin-bottom: 15px;
+}
+
+.xp-ruler {
+	display: flex;
+	align-items: flex-end;
+	gap: 1px;
+	height: 16px;
+}
+
+.xp-cell {
+	position: relative;
+	flex: 1;
+	height: 9px;
+	border-radius: 1px;
+}
+
+.xp-cell.you {
+	height: 16px;
+	outline: 2px solid var(--bone);
+	z-index: 1;
+}
+
+.xp-you {
+	position: absolute;
+	bottom: calc(100% + 2px);
+	left: 50%;
+	transform: translateX(-50%);
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--bone);
+}
+
+.xp-text {
+	margin-top: 5px;
+	font-size: 13px;
+	color: var(--ash);
+}
+
+.xp-off {
+	color: #f0b45a;
+}
+
+/* ---------------------------------------------------------------- lab */
+
+.lab {
+	font-size: 15px;
+}
+
+.lab-map {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.lab-edge {
+	stroke: #3d464b;
+	stroke-width: 2;
+}
+
+.lab-edge.route {
+	stroke: var(--gold);
+	stroke-width: 3;
+}
+
+.lab-room rect {
+	fill: #232a2e;
+	stroke: #56616a;
+	stroke-width: 1.5;
+}
+
+.lab-room.visited rect {
+	fill: rgb(98 212 157 / 0.32);
+}
+
+.lab-room.route rect {
+	stroke: var(--gold);
+	stroke-width: 2;
+}
+
+.lab-room.izaro rect {
+	stroke: #ff8070;
+}
+
+.lab-room.current rect {
+	fill: var(--brass);
+	stroke: #f8e3b6;
+}
+
+.lab-room.current .lab-name {
+	fill: var(--brass);
+	font-weight: 700;
+}
+
+.lab-name {
+	fill: var(--ash);
+	font-size: 14px;
+	text-anchor: middle;
+}
+
+.lab-room.route .lab-name {
+	fill: var(--bone);
+}
+
+.lab-marks {
+	fill: var(--gold);
+	font-size: 14px;
+	font-weight: 700;
+	text-anchor: middle;
+}
+
+.lab-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 4px;
+	font-size: 13px;
+}
+
+.lab-footer label {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+
+.lab-door {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 2px -12px 8px;
+	padding: 7px 12px;
+	background: var(--brass-dim);
+	box-shadow: var(--marker);
+	font-size: 16px;
+}
+
+.lab-door svg {
+	width: 28px;
+	height: 28px;
+	fill: var(--gold);
+	flex: none;
+}
+
+.lab-door strong {
+	color: var(--gold);
+}
+
+.lab-doors {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin: 2px 0 8px;
+}
+
+.lab-door-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 8px 2px 4px;
+	border-radius: 999px;
+	background: var(--brass-dim);
+	color: var(--gold);
+}
+
+.lab-door-chip svg {
+	width: 16px;
+	height: 16px;
+	fill: var(--gold);
+}
+
+/* ------------------------------------------------------------ tree bar */
+
+.treebar {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	white-space: nowrap;
+	padding: 6px 8px;
+}
+
+.treebar-name {
+	font-weight: 600;
+	color: var(--gold);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 300px;
+}
+
+.treebar-hide {
+	margin-left: 4px;
+}
+
+/* ---------------------------------------------------------- tree overlay */
 
 .tree-overlay {
 	position: fixed;
@@ -297,295 +1178,12 @@ tr.active td {
 	left: 50%;
 	transform: translateX(-50%);
 	max-width: 70%;
-	padding: 10px 14px;
-	border-radius: 8px;
-	background: rgb(14 15 18 / 0.9);
-	border: 1px solid var(--accent);
-	font-size: 15px;
+	padding: 10px 16px;
+	border-radius: 6px;
+	background: rgb(var(--basalt) / 0.92);
+	box-shadow: var(--marker);
+	font-size: 16px;
 	text-align: center;
-}
-
-/* Guide */
-.guide,
-.act {
-	font-size: 13px;
-	line-height: 1.35;
-}
-
-/* Never taller than the window; scroll instead of being cut off. */
-.guide,
-.gems {
-	max-height: calc(100vh - 8px);
-	overflow-y: auto;
-}
-
-.act {
-	max-height: calc(100vh - 8px);
-	display: flex;
-	flex-direction: column;
-}
-
-.guide-bar {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	gap: 8px;
-	margin-bottom: 6px;
-}
-
-.guide-buttons {
-	display: flex;
-	gap: 4px;
-}
-
-.guide-bar button {
-	padding: 2px 8px;
-	font-size: 13px;
-	line-height: 1.2;
-}
-
-.guide-bar button.on {
-	border-color: var(--accent);
-	color: var(--accent);
-}
-
-.guide .hint {
-	color: var(--accent);
-	font-size: 12px;
-	margin-bottom: 4px;
-}
-
-.step-area {
-	font-weight: 600;
-	color: var(--accent);
-}
-
-.step-act {
-	color: var(--muted);
-	font-weight: 400;
-	font-size: 11px;
-}
-
-.step-lines {
-	margin: 2px 0 0;
-	padding-left: 16px;
-}
-
-.step-notes {
-	padding-left: 14px;
-	color: var(--muted);
-	font-size: 12px;
-}
-
-.step.compact {
-	opacity: 0.55;
-	font-size: 12px;
-	margin-top: 6px;
-}
-
-.step .more {
-	list-style: none;
-	color: var(--muted);
-}
-
-.upcoming {
-	border-top: 1px solid var(--line);
-	margin-top: 6px;
-}
-
-.act-steps {
-	overflow-y: auto;
-	padding-right: 4px;
-}
-
-.act-step {
-	padding: 4px 6px;
-	border-radius: 6px;
-	opacity: 0.7;
-}
-
-.act-step.current {
-	background: rgb(200 164 90 / 0.15);
-	opacity: 1;
-}
-
-.t-area {
-	color: #e8c060;
-}
-
-.t-kill {
-	color: #ff7a6b;
-	font-weight: 600;
-}
-
-.t-quest {
-	color: #9ecbff;
-}
-
-.t-item {
-	color: #6fdc9a;
-}
-
-.t-waypoint {
-	color: #8fd3ff;
-}
-
-.t-logout {
-	color: #c9a2ff;
-}
-
-.t-trial {
-	color: #f2994a;
-}
-
-.t-generic {
-	color: #d8d4cc;
-	font-style: italic;
-}
-
-.t-dir {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 22px;
-	height: 22px;
-	margin: 0 3px;
-	border-radius: 50%;
-	background: rgb(200 164 90 / 0.18);
-	vertical-align: middle;
-}
-
-.t-dir svg {
-	width: 16px;
-	height: 16px;
-	fill: var(--accent);
-}
-
-.guide-options {
-	display: flex;
-	gap: 8px;
-	align-items: center;
-	white-space: nowrap;
-}
-
-.guide-options label {
-	display: flex;
-	gap: 4px;
-	align-items: center;
-}
-
-select {
-	background: #101115;
-	color: var(--text);
-	border: 1px solid var(--line);
-	border-radius: 6px;
-	padding: 4px 6px;
-	font: inherit;
-}
-
-.t-npc {
-	color: #f0e6d2;
-	font-weight: 600;
-}
-
-.t-book {
-	display: inline-block;
-	margin-left: 6px;
-	padding: 0 6px;
-	border-radius: 999px;
-	font-size: 11px;
-	font-weight: 700;
-	color: #121316;
-	background: #6fdc9a;
-	vertical-align: 1px;
-}
-
-.t-book.regrets {
-	background: #c9a2ff;
-}
-
-/* Gems */
-.gem {
-	display: inline-block;
-	margin: 1px 3px 1px 0;
-	padding: 0 6px;
-	border-radius: 4px;
-	font-size: 12px;
-	border: 1px solid transparent;
-}
-
-.gem-r {
-	color: #ff9a8a;
-	background: rgb(200 60 50 / 0.18);
-}
-
-.gem-g {
-	color: #8fe3a5;
-	background: rgb(60 170 90 / 0.18);
-}
-
-.gem-b {
-	color: #9ec5ff;
-	background: rgb(70 120 220 / 0.2);
-}
-
-.gem-w {
-	color: #e6e3dc;
-	background: rgb(200 200 200 / 0.12);
-}
-
-.gem.support {
-	border-style: dashed;
-	border-color: currentcolor;
-}
-
-.gem.too-high {
-	opacity: 0.45;
-}
-
-.gem-line {
-	display: block;
-	margin-left: 4px;
-	font-size: 12px;
-	color: var(--muted);
-}
-
-.gems {
-	font-size: 13px;
-}
-
-.gem-group {
-	margin-top: 6px;
-}
-
-.gem-group-title {
-	font-weight: 600;
-	color: var(--accent);
-	margin-bottom: 2px;
-}
-
-.toast {
-	margin: 4px 0;
-	padding: 4px 8px;
-	border-radius: 6px;
-	background: rgb(200 164 90 / 0.18);
-	color: var(--text);
-	font-size: 12px;
-}
-
-.import-row {
-	display: flex;
-	gap: 8px;
-	margin: 6px 0;
-}
-
-.import-row input {
-	flex: 1;
-}
-
-button:disabled {
-	opacity: 0.5;
-	cursor: default;
 }
 
 .tree-stage {
@@ -594,329 +1192,12 @@ button:disabled {
 	left: 12px;
 	padding: 4px 10px;
 	border-radius: 6px;
-	background: rgb(14 15 18 / 0.85);
-	font-size: 13px;
-}
-
-.group-levels {
-	margin: 8px 0;
-}
-
-.group-levels summary {
-	cursor: pointer;
-	color: var(--accent);
-}
-
-.level-input {
-	width: 64px;
-}
-
-tr.disabled td {
-	opacity: 0.5;
-}
-
-/* Lab */
-.lab {
+	background: rgb(var(--basalt) / 0.88);
 	font-size: 14px;
 }
 
-.toast.warn {
-	background: rgb(229 83 75 / 0.22);
-}
-
-.lab-map {
-	display: block;
-	width: 100%;
-	height: auto;
-}
-
-.lab-edge {
-	stroke: #3a3d45;
-	stroke-width: 2;
-}
-
-.lab-edge.route {
-	stroke: var(--gold);
-	stroke-width: 3;
-}
-
-.lab-room rect {
-	fill: #22252c;
-	stroke: #555a66;
-	stroke-width: 1.5;
-}
-
-.lab-room.visited rect {
-	fill: rgb(76 195 138 / 0.35);
-}
-
-.lab-room.route rect {
-	stroke: var(--gold);
-	stroke-width: 2;
-}
-
-.lab-room.izaro rect {
-	stroke: #ff7a6b;
-}
-
-.lab-room.current rect {
-	fill: #b48cff;
-	stroke: #e2d4ff;
-}
-
-.lab-name {
-	fill: var(--muted);
-	font-size: 14px;
-	text-anchor: middle;
-}
-
-.lab-room.route .lab-name,
-.lab-room.current .lab-name {
-	fill: var(--text);
-}
-
-.lab-marks {
-	fill: var(--gold);
-	font-size: 14px;
-	font-weight: 700;
-	text-anchor: middle;
-}
-
-.lab-footer {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-top: 4px;
-}
-
-.lab-footer label {
-	display: flex;
-	gap: 6px;
-	align-items: center;
-}
-
-/* Tree bar */
-.treebar {
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	font-size: 14px;
-	white-space: nowrap;
-}
-
-.treebar button {
-	padding: 2px 8px;
-}
-
-.treebar-name {
-	font-weight: 600;
-	color: var(--gold);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	max-width: 300px;
-}
-
-.treebar-hide {
-	margin-left: auto;
-}
-
-/* Full-act view */
-.act-tabs {
-	display: flex;
-	gap: 2px;
-}
-
-.act-tabs button {
-	padding: 1px 7px;
-}
-
-.act-tabs button.on {
-	border-color: var(--accent);
-	color: var(--accent);
-}
-
-.act-tabs button.here {
-	font-weight: 700;
-}
-
-.act-hint {
-	font-size: 11px;
-	margin-bottom: 4px;
-}
-
-button.act-step {
-	display: block;
-	width: 100%;
-	text-align: left;
-	background: transparent;
-	border: 1px solid transparent;
-	font: inherit;
-	color: inherit;
-	cursor: pointer;
-}
-
-button.act-step:hover {
-	border-color: var(--line);
-}
-
-.pickers {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12px;
-	margin: 6px 0;
-}
-
-.pickers label {
-	display: grid;
-	gap: 4px;
-	color: var(--muted);
-}
-
-table.characters td {
-	vertical-align: middle;
-}
-
-/* The guide options can wrap onto two lines instead of widening the table. */
-table.characters .guide-options {
-	flex-wrap: wrap;
-	white-space: normal;
-}
-
-.main {
-	max-width: 1000px;
-}
-
-.passives {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-}
-
-button.small {
-	padding: 0 6px;
-	font-size: 12px;
-	line-height: 1.5;
-}
-
-.warn-text {
-	color: #ff9a8a;
-}
-
-.treebar button.on {
-	border-color: var(--accent);
-	color: var(--accent);
-}
-
-/* XP level ruler */
-.xp {
-	padding: 2px 2px 0;
-}
-
-.xp-overlay {
-	font-size: 13px;
-}
-
-.xp-head {
-	display: flex;
-	justify-content: space-between;
-	gap: 8px;
-	font-size: 12px;
-	margin-bottom: 14px;
-}
-
-.xp-ruler {
-	display: flex;
-	align-items: flex-end;
-	gap: 1px;
-	height: 16px;
-}
-
-.xp-cell {
-	position: relative;
-	flex: 1;
-	height: 9px;
-	border-radius: 1px;
-}
-
-.xp-cell.you {
-	height: 16px;
-	outline: 2px solid var(--text);
-	outline-offset: 0;
-	z-index: 1;
-}
-
-.xp-you {
-	position: absolute;
-	bottom: calc(100% + 2px);
-	left: 50%;
-	transform: translateX(-50%);
-	font-size: 11px;
-	font-weight: 700;
-	color: var(--text);
-	font-variant-numeric: tabular-nums;
-}
-
-.xp-text {
-	margin-top: 5px;
-	font-size: 12px;
-	color: var(--muted);
-}
-
-.xp-off {
-	color: #e0a84b;
-}
-
-.step-level {
-	margin-left: 6px;
-	font-size: 11px;
-	font-weight: 400;
-	color: var(--muted);
-	font-variant-numeric: tabular-nums;
-}
-
-/* Lab: next door */
-.lab-door {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	margin: 2px 0 6px;
-	padding: 6px 10px;
-	border-radius: 6px;
-	background: rgb(200 164 90 / 0.14);
-	font-size: 15px;
-}
-
-.lab-door svg {
-	width: 28px;
-	height: 28px;
-	fill: var(--gold);
-	flex: none;
-}
-
-.lab-door strong {
-	color: var(--gold);
-}
-
-.lab-doors {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 6px;
-	margin: 2px 0 6px;
-}
-
-.lab-door-chip {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	padding: 2px 8px 2px 4px;
-	border-radius: 999px;
-	background: rgb(200 164 90 / 0.14);
-	color: var(--gold);
-}
-
-.lab-door-chip svg {
-	width: 16px;
-	height: 16px;
-	fill: var(--gold);
+@media (prefers-reduced-motion: reduce) {
+	* {
+		scroll-behavior: auto !important;
+	}
 }

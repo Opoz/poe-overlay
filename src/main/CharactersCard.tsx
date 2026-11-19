@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { createResource, For, onCleanup, Show } from "solid-js";
 import { formatLocalDate } from "../format";
+import { RefreshIcon } from "../icons";
 import type { BanditChoice, Characters, GuideOptions, Profile } from "../types";
 
 /** Profiles seen in the Client Log, and which one is assumed to be played. */
@@ -35,17 +36,18 @@ export default function CharactersCard() {
 		[...(characters()?.profiles ?? [])].sort((a, b) => b.lastSeen - a.lastSeen);
 
 	return (
-		<section class="card">
+		<section>
 			<h2>Characters</h2>
-			<p class="muted">
-				The log only names a character when it levels up, so after character
-				select the last one is assumed. Pick the right one here if needed.
+			<p class="lede">
+				The game log only names a character when it levels up, so after
+				character select the last one seen is assumed. If that's wrong, pick the
+				one you're playing here.
 			</p>
 			<Show
 				when={sorted().length > 0}
 				fallback={
-					<p class="muted">
-						No characters seen yet. Level up once to appear here.
+					<p class="empty">
+						No characters yet. Level up once and yours appears here.
 					</p>
 				}
 			>
@@ -102,9 +104,11 @@ function ProfileRow(props: {
 						: ""
 				}
 			>
-				<strong>{props.profile.name}</strong>
-				<div class="muted">
-					{props.profile.class ?? "?"} · level {props.profile.level}
+				<div class="char-name">
+					<strong>{props.profile.name}</strong>
+					<span>
+						Level {props.profile.level} {props.profile.class ?? ""}
+					</span>
 				</div>
 			</td>
 			<td>{runLabel()}</td>
@@ -115,9 +119,10 @@ function ProfileRow(props: {
 						type="button"
 						class="small"
 						title="Rebuild this character's passives and masteries from the whole Client Log"
+						aria-label="Rebuild passives from the log"
 						onClick={props.onRebuild}
 					>
-						↻
+						<RefreshIcon />
 					</button>
 				</span>
 			</td>
@@ -159,7 +164,7 @@ function ProfileRow(props: {
 					fallback={<span class="playing">Playing</span>}
 				>
 					<button type="button" onClick={props.onSelect}>
-						Playing this
+						Play this one
 					</button>
 				</Show>
 			</td>

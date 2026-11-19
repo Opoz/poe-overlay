@@ -17,6 +17,10 @@ Campaign route files and area data in `crates/poe-core/data/exile-leveling/` com
 
 Lab layouts come from [poelab.com](https://www.poelab.com/): the player opens the site in their own browser and copies the day's compass file. Nothing is downloaded from poelab automatically. Please support poelab by allowing its ads.
 
+## Fonts
+
+[Barlow Semi Condensed](https://github.com/jpt/barlow) by Jeremy Tribby, bundled through `@fontsource/barlow-semi-condensed`, under the SIL Open Font License 1.1.
+
 ## Path of Exile
 
 Path of Exile is a trademark of Grinding Gear Games. This project is not affiliated with or endorsed by Grinding Gear Games.

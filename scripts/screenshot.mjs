@@ -10,26 +10,35 @@ import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 
 const run = promisify(execFile);
-const EDGE =
-	"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+const EDGE = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
 const BASE = "http://localhost:1420/preview.html";
 
-/** [name, query, width, height] */
+/**
+ * [name, query, width, height]: the canvas, which holds the Overlay window
+ * (its real size, outlined) 20px in from the top left, over a backdrop.
+ * Headless Edge won't go narrower than about 500px.
+ */
 const SHOTS = [
-	["main", "w=main", 1000, 2200],
-	["guide-dark", "w=guide", 400, 560],
-	["guide-bright", "w=guide&bg=bright", 400, 560],
-	["guide-interact", "w=guide&interact", 400, 560],
-	["act", "w=act&act=1", 540, 740],
-	["timer-dark", "w=timer", 300, 360],
-	["timer-bright", "w=timer&bg=bright", 300, 360],
-	["gems-dark", "w=gems", 340, 420],
-	["gems-bright", "w=gems&bg=bright", 340, 420],
-	["xp-dark", "w=xp", 400, 130],
-	["xp-bright", "w=xp&bg=bright", 400, 130],
-	["lab", "w=lab", 800, 620],
-	["treebar", "w=treebar", 880, 70],
-	["treebar-hidden", "w=treebar&hidden", 880, 70],
+	["main", "w=main", 960, 680],
+	["main-characters", "w=main&page=characters", 960, 680],
+	["main-build", "w=main&page=build", 960, 680],
+	["main-overlays", "w=main&page=overlays", 960, 680],
+	["main-history", "w=main&page=history", 960, 680],
+	["main-settings", "w=main&page=settings&conflict", 960, 680],
+	["guide-dark", "w=guide", 520, 480],
+	["guide-bright", "w=guide&bg=bright", 520, 480],
+	["guide-faint", "w=guide&bg=bright&opacity=0.4", 520, 480],
+	["guide-interact", "w=guide&interact", 520, 480],
+	["act", "w=act&act=1", 560, 760],
+	["timer-dark", "w=timer", 520, 380],
+	["timer-bright", "w=timer&bg=bright", 520, 380],
+	["gems-dark", "w=gems", 520, 460],
+	["gems-bright", "w=gems&bg=bright", 520, 460],
+	["xp-dark", "w=xp", 520, 150],
+	["xp-bright", "w=xp&bg=bright", 520, 150],
+	["lab", "w=lab", 820, 600],
+	["treebar", "w=treebar", 900, 90],
+	["treebar-hidden", "w=treebar&hidden", 900, 90],
 	["tree", "w=tree", 1600, 900],
 	["tree-fix", "w=tree&fix", 1600, 900],
 ];
@@ -38,18 +47,22 @@ const [outArg, filter] = process.argv.slice(2);
 const out = resolve(outArg ?? "shots");
 await mkdir(out, { recursive: true });
 
-for (const [name, query, w, h] of SHOTS) {
-	if (filter && !name.includes(filter)) continue;
-	const file = join(out, `${name}.png`);
-	await run(EDGE, [
-		"--headless=new",
-		"--disable-gpu",
-		"--hide-scrollbars",
-		"--force-device-scale-factor=1",
-		`--window-size=${w},${h}`,
-		"--virtual-time-budget=4000",
-		`--screenshot=${file}`,
-		`${BASE}?${query}`,
-	]);
-	console.log(file);
-}
+await Promise.all(
+	SHOTS.filter(([name]) => !filter || name.includes(filter)).map(
+		async ([name, query, w, h]) => {
+			const file = join(out, `${name}.png`);
+			await run(EDGE, [
+				"--headless=new",
+				"--disable-gpu",
+				"--hide-scrollbars",
+				"--force-device-scale-factor=1",
+				`--user-data-dir=${join(out, ".edge", name)}`,
+				`--window-size=${w},${h}`,
+				"--virtual-time-budget=5000",
+				`--screenshot=${file}`,
+				`${BASE}?${query}`,
+			]);
+			console.log(file);
+		},
+	),
+);

@@ -3,6 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { createSignal, onCleanup, onMount, Show } from "solid-js";
 import { autoSizeWindow } from "../autoSize";
 import { onEvent } from "../events";
+import { NextIcon, PrevIcon } from "../icons";
 import type { TreeView } from "../types";
 
 /**
@@ -42,7 +43,7 @@ export default function TreeBar() {
 				when={view()?.visible}
 				fallback={
 					<button type="button" onClick={toggle}>
-						Show tree (Alt+T)
+						Show tree <kbd>Alt+T</kbd>
 					</button>
 				}
 			>
@@ -52,16 +53,28 @@ export default function TreeBar() {
 						<span class="muted">Import a PoB build for next points</span>
 					}
 				>
-					<button type="button" onClick={() => cycle(-1)}>
-						◀ (Alt+Shift+[)
+					<button
+						type="button"
+						class="icon-button"
+						title="Previous tree (Alt+Shift+[)"
+						aria-label="Previous tree"
+						onClick={() => cycle(-1)}
+					>
+						<PrevIcon />
 					</button>
 					<span class="treebar-name" title={view()?.stage ?? ""}>
 						{view()?.stage}
 					</span>
-					<button type="button" onClick={() => cycle(1)}>
-						(Alt+Shift+]) ▶
+					<button
+						type="button"
+						class="icon-button"
+						title="Next tree (Alt+Shift+])"
+						aria-label="Next tree"
+						onClick={() => cycle(1)}
+					>
+						<NextIcon />
 					</button>
-					<span class="muted">{view()?.planned.length ?? 0} to go</span>
+					<span class="muted">{view()?.planned.length ?? 0} points to go</span>
 					<Show when={view()?.stageByHand}>
 						<button
 							type="button"
@@ -81,7 +94,7 @@ export default function TreeBar() {
 					{view()?.editing ? "Done fixing" : "Fix points"}
 				</button>
 				<button type="button" class="treebar-hide" onClick={toggle}>
-					Hide (Alt+T)
+					Hide <kbd>Alt+T</kbd>
 				</button>
 			</Show>
 		</div>

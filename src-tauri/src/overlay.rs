@@ -29,20 +29,20 @@ pub const TREEBAR: &str = "treebar";
 /// The experience level ruler for the current zone.
 pub const XP: &str = "xp";
 
-/// (label, logical width, logical height, opacity)
-const WINDOWS: [(&str, f64, f64, f64); 8] = [
-    (TIMER, 280.0, 340.0, 1.0),
-    (TREE, 800.0, 600.0, 1.0),
-    (GUIDE, 380.0, 420.0, 1.0),
-    (ACT, 520.0, 720.0, 1.0),
-    (GEMS, 320.0, 420.0, 1.0),
-    (LAB, 780.0, 560.0, 1.0),
-    (TREEBAR, 860.0, 52.0, 1.0),
-    (XP, 380.0, 110.0, 1.0),
+/// (label, logical width, logical height)
+const WINDOWS: [(&str, f64, f64); 8] = [
+    (TIMER, 280.0, 340.0),
+    (TREE, 800.0, 600.0),
+    (GUIDE, 380.0, 420.0),
+    (ACT, 520.0, 720.0),
+    (GEMS, 320.0, 420.0),
+    (LAB, 780.0, 560.0),
+    (TREEBAR, 860.0, 52.0),
+    (XP, 380.0, 110.0),
 ];
 
-pub fn create_overlays(app: &AppHandle, opacity: f64) -> tauri::Result<()> {
-    for (label, w, h, own_opacity) in WINDOWS {
+pub fn create_overlays(app: &AppHandle) -> tauri::Result<()> {
+    for (label, w, h) in WINDOWS {
         let window = WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
             .title(format!("poe-overlay {label}"))
             .inner_size(w, h)
@@ -56,8 +56,7 @@ pub fn create_overlays(app: &AppHandle, opacity: f64) -> tauri::Result<()> {
             .visible(false)
             .build()?;
         if let Some(h) = raw(&window) {
-            let o = if label == TREE { own_opacity } else { opacity };
-            platform::make_overlay(h, o);
+            platform::make_overlay(h);
         }
     }
     Ok(())

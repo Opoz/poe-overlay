@@ -3,6 +3,7 @@ import {
 	formatDelta,
 	formatDuration,
 	formatLocalDate,
+	formatShortcut,
 	titleCase,
 } from "./format";
 
@@ -38,5 +39,14 @@ describe("titleCase", () => {
 	it("capitalises words but not after an apostrophe", () => {
 		expect(titleCase("aspirant's trial")).toBe("Aspirant's Trial");
 		expect(titleCase("estate path")).toBe("Estate Path");
+	});
+});
+
+describe("formatShortcut", () => {
+	it("names keys the way players read them", () => {
+		expect(formatShortcut("alt+KeyR")).toBe("Alt+R");
+		expect(formatShortcut("alt+shift+BracketLeft")).toBe("Alt+Shift+[");
+		expect(formatShortcut("control+Digit1")).toBe("Control+1");
+		expect(formatShortcut("F5")).toBe("F5");
 	});
 });

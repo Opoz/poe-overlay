@@ -642,6 +642,7 @@ fn get_settings(state: tauri::State<AppState>) -> Settings {
 fn set_settings(app: AppHandle, state: tauri::State<AppState>, settings: Settings) {
     state.tracker.lock().unwrap().apply_settings(&settings);
     Storage::new(data_dir()).save_settings(&settings);
+    let _ = app.emit("settings", &settings);
     *state.settings.lock().unwrap() = settings;
     emit_view(&app);
 }
@@ -1024,13 +1025,7 @@ pub fn run() {
         })
         .setup(|app| {
             setup_tray(app)?;
-            let opacity = app
-                .state::<AppState>()
-                .settings
-                .lock()
-                .unwrap()
-                .overlay_opacity;
-            overlay::create_overlays(app.handle(), opacity)?;
+            overlay::create_overlays(app.handle())?;
             spawn_tracking_loop(app.handle().clone());
             let handle = app.handle().clone();
             platform::watch_middle_clicks(move |x, y| on_middle_click(&handle, x, y));

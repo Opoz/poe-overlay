@@ -158,7 +158,8 @@ export interface Settings {
 	pauseInHideout: boolean;
 	timerOverlay: OverlayPlacement;
 	treeKey: string | null;
-	overlayOpacity: number;
+	/** Overlay panel background strength, 0.2-1 (text stays opaque). */
+	panelOpacity: number;
 }
 
 export interface Status {

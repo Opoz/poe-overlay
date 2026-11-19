@@ -3,6 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { autoSizeWindow } from "../autoSize";
 import { onEvent } from "../events";
+import { FindIcon, ListIcon, NextIcon, PrevIcon, SearchIcon } from "../icons";
 import type { RegexCopied } from "../types";
 import StepView from "./StepView";
 import { guideCommand, toggleActView, useGuide } from "./useGuide";
@@ -44,53 +45,63 @@ export default function GuideOverlay() {
 			ref={(el) => onMount(() => autoSizeWindow(el))}
 		>
 			<header class="guide-bar">
-				<span class="muted">
+				<span>
 					<Show when={guide()} fallback="Guide">
 						{(g) =>
 							g().complete
 								? "Campaign complete"
-								: `Step ${g().position + 1}/${g().total}`
+								: `Step ${g().position + 1} of ${g().total}`
 						}
 					</Show>
 				</span>
 				<span class="guide-buttons">
 					<button
 						type="button"
+						class="icon-button"
 						title="Previous step (Alt+[)"
+						aria-label="Previous step"
 						onClick={() => guideCommand({ kind: "previous" })}
 					>
-						◀
+						<PrevIcon />
 					</button>
 					<button
 						type="button"
+						class="icon-button"
 						title="Next step (Alt+])"
+						aria-label="Next step"
 						onClick={() => guideCommand({ kind: "next" })}
 					>
-						▶
+						<NextIcon />
 					</button>
 					<button
 						type="button"
+						class="icon-button"
 						title="Find me: jump to the area you're in (Alt+J)"
+						aria-label="Find me"
 						onClick={() => guideCommand({ kind: "findMe" })}
 					>
-						⌖
+						<FindIcon />
 					</button>
 					<Show when={(guide()?.vendorRegex.length ?? 0) > 0}>
 						<button
 							type="button"
+							class="icon-button"
 							title="Copy the vendor search for the gems to buy here (Alt+V)"
+							aria-label="Copy vendor search"
 							onClick={() => invoke("copy_regex")}
 						>
-							🔍
+							<SearchIcon />
 						</button>
 					</Show>
 					<button
 						type="button"
+						class="icon-button"
 						title="Full act (Alt+G)"
+						aria-label="Full act"
 						classList={{ on: guide()?.actView }}
 						onClick={toggleActView}
 					>
-						☰
+						<ListIcon />
 					</button>
 				</span>
 			</header>
@@ -107,7 +118,7 @@ export default function GuideOverlay() {
 				)}
 			</Show>
 			<Show when={interact()}>
-				<div class="hint">drag · Alt+E to lock</div>
+				<div class="interact-hint">Drag to move. Alt+E locks.</div>
 			</Show>
 			<Show
 				when={guide()?.current}

@@ -101,7 +101,7 @@ pub fn client_log_path(game: RawHwnd) -> Option<PathBuf> {
 /// Done directly rather than through Tauri: Tauri re-applies its own idea of
 /// the window's state (including "hidden", since we show it without
 /// activating) whenever it changes these styles itself.
-pub fn make_overlay(window: RawHwnd, opacity: f64) {
+pub fn make_overlay(window: RawHwnd) {
     use windows::Win32::UI::WindowsAndMessaging::{
         WS_EX_LAYERED, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT,
     };
@@ -110,7 +110,8 @@ pub fn make_overlay(window: RawHwnd, opacity: f64) {
         WS_EX_LAYERED.0 | WS_EX_NOACTIVATE.0 | WS_EX_TOOLWINDOW.0 | WS_EX_TRANSPARENT.0,
         0,
     );
-    set_opacity(window, opacity);
+    // Fully opaque: panels fade their own backgrounds, so text stays crisp.
+    set_opacity(window, 1.0);
 }
 
 /// Click-through on: the mouse goes to the game underneath.

@@ -3,6 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { autoSizeWindow } from "../autoSize";
 import { onEvent } from "../events";
+import { NextIcon, PrevIcon } from "../icons";
 import type { GemsPayload } from "../types";
 
 /** The Build's Skill Groups for the Character's current level. */
@@ -41,17 +42,21 @@ export default function GemsOverlay() {
 					<span class="guide-buttons">
 						<button
 							type="button"
+							class="icon-button"
 							title="Previous skill set"
+							aria-label="Previous skill set"
 							onClick={() => invoke("cycle_skill_set", { delta: -1 })}
 						>
-							◀
+							<PrevIcon />
 						</button>
 						<button
 							type="button"
+							class="icon-button"
 							title="Next skill set"
+							aria-label="Next skill set"
 							onClick={() => invoke("cycle_skill_set", { delta: 1 })}
 						>
-							▶
+							<NextIcon />
 						</button>
 						<Show when={view()?.skillSetByHand}>
 							<button
