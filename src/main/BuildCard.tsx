@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { createResource, createSignal, For, onCleanup, Show } from "solid-js";
 import { onEvent } from "../events";
 import type { BuildSummary, Characters, GuidePayload } from "../types";
+import GroupLevels from "./GroupLevels";
 
 /** Import a Path of Building build for the Active Character. */
 export default function BuildCard() {
@@ -87,6 +88,9 @@ export default function BuildCard() {
 								{busy() ? "Importing…" : "Import"}
 							</button>
 						</div>
+						<Show when={p().build}>
+							<GroupLevels profile={p()} onChange={refetch} />
+						</Show>
 						<Show when={message()}>
 							<p class="muted">{message()}</p>
 						</Show>

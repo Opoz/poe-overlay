@@ -65,11 +65,21 @@ export interface Profile {
 	build: {
 		class: string;
 		ascendancy: string | null;
-		skillGroups: unknown[];
+		skillGroups: SkillGroupData[];
 		treeStages: unknown[];
 	} | null;
 	buildSource: string | null;
 	banditSetByHand: boolean;
+	groupLevels: Record<string, LevelRange | null>;
+}
+
+export interface SkillGroupData {
+	label: string | null;
+	skillSet: string | null;
+	slot: string | null;
+	enabled: boolean;
+	gems: { name: string }[];
+	levels: LevelRange | null;
 }
 
 export interface TreeNode {

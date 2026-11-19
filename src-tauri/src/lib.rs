@@ -231,6 +231,23 @@ fn toggle_gems(app: AppHandle, state: tauri::State<AppState>) {
 }
 
 #[tauri::command]
+fn set_group_levels(
+    app: AppHandle,
+    state: tauri::State<AppState>,
+    name: String,
+    index: usize,
+    levels: Option<poe_core::pob::LevelRange>,
+    reset: bool,
+) {
+    state
+        .tracker
+        .lock()
+        .unwrap()
+        .set_group_levels(&name, index, levels, reset);
+    emit_gems(&app);
+}
+
+#[tauri::command]
 fn copy_regex(app: AppHandle) {
     copy_vendor_regex(&app);
 }
@@ -706,6 +723,7 @@ pub fn run() {
             toggle_gems,
             copy_regex,
             import_build,
+            set_group_levels,
             rebuild_passives,
         ])
         .on_window_event(|window, event| {

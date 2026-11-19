@@ -223,6 +223,24 @@ impl Tracker {
         GemsView::build(&self.gem_data, profile)
     }
 
+    /// Set (or with `reset`, clear) a hand-picked level range for a Skill Group.
+    pub fn set_group_levels(
+        &mut self,
+        name: &str,
+        index: usize,
+        levels: Option<poe_core::pob::LevelRange>,
+        reset: bool,
+    ) {
+        if let Some(profile) = self.timer.profile_mut(name) {
+            if reset {
+                profile.group_levels.remove(&index);
+            } else {
+                profile.group_levels.insert(index, levels);
+            }
+            self.save_session();
+        }
+    }
+
     /// Attach an imported Build to a Character.
     pub fn set_build(&mut self, name: &str, build: Build, source: String) -> bool {
         let Some(profile) = self.timer.profile_mut(name) else {

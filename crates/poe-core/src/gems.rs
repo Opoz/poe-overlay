@@ -286,15 +286,24 @@ impl GemsView {
     pub fn build(data: &GemData, profile: Option<&crate::profile::Profile>) -> Self {
         let level = profile.map_or(1, |p| p.level);
         let build = profile.and_then(|p| p.build.as_ref());
+        let overrides = profile.map(|p| &p.group_levels);
         let groups = build
             .map(|b| {
-                groups_for_level(b, level)
-                    .into_iter()
-                    .map(|g| GroupView {
+                b.skill_groups
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(i, g)| {
+                        let levels = overrides
+                            .and_then(|o| o.get(&i).copied())
+                            .unwrap_or(g.levels);
+                        (g.enabled && levels.is_none_or(|r| r.contains(level)))
+                            .then_some((g, levels))
+                    })
+                    .map(|(g, levels)| GroupView {
                         label: g.label.clone(),
                         skill_set: g.skill_set.clone(),
                         slot: g.slot.clone(),
-                        levels: g.levels,
+                        levels,
                         gems: g
                             .gems
                             .iter()
@@ -446,6 +455,32 @@ mod tests {
         assert!(regexes.iter().all(|r| r.len() <= SEARCH_LIMIT));
         let total: usize = regexes.iter().map(|r| r.matches('|').count() + 1).sum();
         assert_eq!(total, 40);
+    }
+
+    #[test]
+    fn hand_set_ranges_override_labels() {
+        let data = GemData::bundled();
+        let mut p = crate::profile::Profile::new("A");
+        p.level = 20;
+        p.apply_build(witch_build(), "code".into());
+        let names = |p: &crate::profile::Profile| {
+            GemsView::build(&data, Some(p))
+                .groups
+                .iter()
+                .map(|g| g.gems[0].name.clone())
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(names(&p), ["Frostblink"]);
+        // Limit the unlabelled Frostblink group to levels 1-10, and widen zombies.
+        p.group_levels.insert(
+            1,
+            Some(LevelRange {
+                from: 1,
+                to: Some(10),
+            }),
+        );
+        p.group_levels.insert(0, None);
+        assert_eq!(names(&p), ["Raise Zombie"]);
     }
 
     #[test]

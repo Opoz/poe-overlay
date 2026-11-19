@@ -97,7 +97,7 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
   - [x] Gem plan along the Guide (reward to take, gems to buy, from whom); unobtainable gems listed
   - [x] Gem links Overlay (Alt+L), Vendor Regex (Alt+R / 🔍, cycles parts over the length limit)
   - [x] Next Points on the tree Overlay towards the Tree Stage for the current level; planned mastery options
-  - [ ] Manual level-range assignment for unlabelled Skill Groups
+  - [x] Manual level-range assignment for Skill Groups (Build section)
   - [ ] Verify in-game with a real PoB build
 - [ ] **M4**: Lab Overlay, Trial tracking.
 - [ ] **M5**: hotkey rebinding, layout persistence, Runs tab polish, signed releases + updater.

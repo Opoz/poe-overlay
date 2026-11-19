@@ -584,3 +584,20 @@ button:disabled {
 	background: rgb(14 15 18 / 0.85);
 	font-size: 13px;
 }
+
+.group-levels {
+	margin: 8px 0;
+}
+
+.group-levels summary {
+	cursor: pointer;
+	color: var(--accent);
+}
+
+.level-input {
+	width: 64px;
+}
+
+tr.disabled td {
+	opacity: 0.5;
+}

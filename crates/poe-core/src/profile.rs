@@ -4,7 +4,12 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{clock::Millis, guide::GuideOptions, pob::Build, run::Run};
+use crate::{
+    clock::Millis,
+    guide::GuideOptions,
+    pob::{Build, LevelRange},
+    run::Run,
+};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -41,6 +46,10 @@ pub struct Profile {
     /// The player picked the Bandit Choice by hand, so imports don't change it.
     #[serde(default)]
     pub bandit_set_by_hand: bool,
+    /// Level ranges set by hand for Skill Groups (by index in the Build),
+    /// overriding what the labels say. `None` = always shown.
+    #[serde(default)]
+    pub group_levels: BTreeMap<usize, Option<LevelRange>>,
 }
 
 impl Profile {
@@ -59,6 +68,7 @@ impl Profile {
             build: None,
             build_source: None,
             bandit_set_by_hand: false,
+            group_levels: BTreeMap::new(),
         }
     }
 
@@ -70,6 +80,8 @@ impl Profile {
         {
             self.guide_options.bandit = bandit;
         }
+        // Group indexes refer to the old Build.
+        self.group_levels.clear();
         self.build = Some(build);
         self.build_source = Some(source);
     }
