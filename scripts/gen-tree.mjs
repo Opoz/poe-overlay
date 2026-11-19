@@ -94,7 +94,6 @@ const classes = ggg.classes.map((c, i) => ({
 
 const tree = {
 	source: "grindinggear/skilltree-export + repoe-fork",
-	generated: new Date().toISOString().slice(0, 10),
 	classes,
 	nodes,
 	logIds,

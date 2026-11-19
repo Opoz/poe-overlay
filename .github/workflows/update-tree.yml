@@ -1,0 +1,60 @@
+name: Update passive tree
+
+# GGG updates the skill tree export around league launches and patches.
+# Every Thursday, regenerate tree.json; if it changed and the tests still
+# pass, open a PR into dev.
+on:
+  schedule:
+    - cron: "0 12 * * 4"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/gen-tree.mjs
+
+      - name: Check for changes
+        id: diff
+        shell: bash
+        run: |
+          if git diff --quiet -- crates/poe-core/data/tree.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # PRs opened with GITHUB_TOKEN don't trigger CI, so test here first.
+      - if: steps.diff.outputs.changed == 'true'
+        uses: dtolnay/rust-toolchain@stable
+      - if: steps.diff.outputs.changed == 'true'
+        uses: Swatinem/rust-cache@v2
+      - if: steps.diff.outputs.changed == 'true'
+        run: cargo test -p poe-core
+
+      - if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          base: dev
+          branch: bot/update-tree
+          add-paths: crates/poe-core/data/tree.json
+          commit-message: Update passive tree data from GGG export
+          title: Update passive tree data
+          body: |
+            GGG's skill tree export (or RePoE's passive id map) changed, so
+            `crates/poe-core/data/tree.json` was regenerated with
+            `scripts/gen-tree.mjs`. `cargo test -p poe-core` passed.
+
+            Check the tree overlay in-game after merging if a new league
+            moved nodes around.
+          delete-branch: true
