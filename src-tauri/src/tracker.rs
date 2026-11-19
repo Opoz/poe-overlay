@@ -179,13 +179,36 @@ impl Tracker {
     }
 
     /// A Calibration click at game-window pixels, in a window `game_height` tall.
+    /// A click on the tree Overlay: a Calibration point, or in "Fix points"
+    /// mode, adding/removing the node under the cursor.
     pub fn tree_click(&mut self, x: f64, y: f64, game_height: f64) {
+        if self.tree_overlay.calibrating.is_none() && self.tree_overlay.editing {
+            let Some(transform) = self.tree_overlay.transform else {
+                return;
+            };
+            if let Some(p) = self.timer.active_profile_mut() {
+                poe_core::tree::toggle_allocation(
+                    &self.tree,
+                    &transform,
+                    (x, y),
+                    &mut p.passives,
+                    &mut p.masteries,
+                );
+                self.save_session();
+            }
+            return;
+        }
         let view = self.tree_view();
         if let Some(start) = view.class_start {
             self.tree_overlay
                 .click(&self.tree, start.id, (x, y), game_height);
             self.save_session();
         }
+    }
+
+    pub fn toggle_tree_editing(&mut self) {
+        self.tree_overlay.toggle_editing();
+        self.save_session();
     }
 
     /// Middle-click on the class start with the tree fully zoomed out.
@@ -276,6 +299,26 @@ impl Tracker {
     pub fn set_tree_stage(&mut self, name: &str, stage: Option<usize>) {
         if let Some(p) = self.timer.profile_mut(name) {
             p.tree_stage = stage;
+            self.save_session();
+        }
+    }
+
+    /// Step the Active Character's skill set back or forward from the one shown.
+    pub fn cycle_skill_set(&mut self, delta: i32) {
+        let view = self.gems_view();
+        let count = view.skill_sets.len();
+        if count == 0 {
+            return;
+        }
+        let current = view
+            .skill_set
+            .as_ref()
+            .and_then(|s| view.skill_sets.iter().position(|t| t == s))
+            .unwrap_or(0);
+        let next = (current as i32 + delta).rem_euclid(count as i32) as usize;
+        let title = view.skill_sets[next].clone();
+        if let Some(p) = self.timer.active_profile_mut() {
+            p.skill_set = Some(title);
             self.save_session();
         }
     }

@@ -67,7 +67,7 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
 | Timer pause / split / undo split | `Alt+P` / `Alt+S` / `Alt+Shift+S` |
 | Gem links panel                  | `Alt+L`                           |
 | Tree overlay / calibrate         | `Alt+T` / `Alt+Shift+T`           |
-| Copy Vendor Regex                | `Alt+R`                           |
+| Copy Vendor Regex                | `Alt+V` (NVIDIA takes Alt+R)      |
 | Lab overlay / paste lab link     | `Alt+B` / `Alt+Shift+B`           |
 | Interact Mode                    | `Alt+E`                           |
 

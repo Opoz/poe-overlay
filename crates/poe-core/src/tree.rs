@@ -69,6 +69,8 @@ pub struct PassiveTree {
     log_ids: HashMap<String, u32>,
     /// Undirected connections between main-tree nodes.
     adjacent: HashMap<u32, Vec<u32>>,
+    /// Tree node id -> Client Log passive id.
+    log_id_of: HashMap<u32, String>,
 }
 
 impl PassiveTree {
@@ -88,17 +90,44 @@ impl PassiveTree {
                 adjacent.entry(o).or_default().push(n.id);
             }
         }
+        let log_id_of = file
+            .log_ids
+            .iter()
+            .map(|(log, node)| (*node, log.clone()))
+            .collect();
         Self {
             classes: file.classes,
             nodes: file.nodes,
             index,
             log_ids: file.log_ids,
             adjacent,
+            log_id_of,
         }
     }
 
     pub fn node(&self, id: u32) -> Option<&TreeNode> {
         self.index.get(&id).map(|&i| &self.nodes[i])
+    }
+
+    /// The Client Log passive id for a tree node.
+    pub fn log_id_for_node(&self, node: u32) -> Option<&str> {
+        self.log_id_of.get(&node).map(String::as_str)
+    }
+
+    /// The main-tree node drawn nearest `at` (game-window pixels), if one is
+    /// close enough to have been what the player clicked.
+    pub fn node_at(&self, transform: &Transform, at: (f64, f64)) -> Option<u32> {
+        let reach = (60.0 * transform.scale).max(10.0);
+        self.nodes
+            .iter()
+            .filter(|n| n.ascendancy.is_none() && n.kind != NodeKind::ClassStart)
+            .map(|n| {
+                let (x, y) = transform.apply(n.x, n.y);
+                (n.id, (x - at.0).hypot(y - at.1))
+            })
+            .filter(|(_, d)| *d <= reach)
+            .min_by(|a, b| a.1.total_cmp(&b.1))
+            .map(|(id, _)| id)
     }
 
     /// Tree node for a passive id as printed in the Client Log.
@@ -290,6 +319,9 @@ pub struct TreeOverlay {
     pub visible: bool,
     pub calibrating: Option<Calibrating>,
     pub transform: Option<Transform>,
+    /// "Fix points": clicks add or remove nodes, for when the log is wrong
+    /// (allocations cancelled in game aren't logged).
+    pub editing: bool,
     /// Fully zoomed out, the in-game tree's scale is proportional to the game
     /// window's height. Measured by a two-click Calibration; overrides
     /// [`ZOOMED_OUT_SCALE_PER_PX`].
@@ -300,6 +332,15 @@ impl TreeOverlay {
     pub fn toggle_visible(&mut self) {
         self.visible = !self.visible;
         if !self.visible {
+            self.calibrating = None;
+            self.editing = false;
+        }
+    }
+
+    pub fn toggle_editing(&mut self) {
+        self.editing = !self.editing && self.transform.is_some();
+        if self.editing {
+            self.visible = true;
             self.calibrating = None;
         }
     }
@@ -398,6 +439,7 @@ pub struct MasteryPick {
 #[serde(rename_all = "camelCase")]
 pub struct TreeView {
     pub visible: bool,
+    pub editing: bool,
     pub calibrating: Option<Calibrating>,
     pub transform: Option<Transform>,
     pub character: Option<String>,
@@ -519,6 +561,7 @@ impl TreeView {
             planned,
             planned_masteries,
             visible: overlay.visible,
+            editing: overlay.editing,
             calibrating: overlay.calibrating,
             transform: overlay.transform,
             character: character.map(str::to_owned),
@@ -528,6 +571,25 @@ impl TreeView {
             masteries: picks,
         }
     }
+}
+
+/// "Fix points": flip whether the node clicked at `at` is allocated.
+/// Returns the node's name when something changed.
+pub fn toggle_allocation(
+    tree: &PassiveTree,
+    transform: &Transform,
+    at: (f64, f64),
+    passives: &mut BTreeSet<String>,
+    masteries: &mut BTreeMap<String, u32>,
+) -> Option<String> {
+    let node = tree.node_at(transform, at)?;
+    let log_id = tree.log_id_for_node(node)?.to_owned();
+    if !passives.remove(&log_id) {
+        passives.insert(log_id);
+    } else {
+        masteries.remove(&log_id);
+    }
+    tree.node(node).map(|n| n.name.clone())
 }
 
 /// A Character's allocated passives and mastery picks, by Client Log id.
@@ -787,6 +849,39 @@ mod tests {
         assert!((t.scale - 0.144).abs() < 1e-9);
         let (x, y) = t.apply(s.x, s.y);
         assert!((x - 2121.0).abs() < 1e-6 && (y - 1083.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn fix_points_toggles_the_clicked_node() {
+        let tree = PassiveTree::bundled();
+        let id = tree.node_for_log_id("mana_spell_block2610").unwrap();
+        let n = tree.node(id).unwrap().clone();
+        let t = Transform {
+            scale: 0.144,
+            offset_x: 1720.0,
+            offset_y: 720.0,
+        };
+        let at = t.apply(n.x, n.y);
+        let mut passives: BTreeSet<String> = ["mana_spell_block2610".to_string()].into();
+        let mut masteries = BTreeMap::new();
+        // Cancelled in game: click it off.
+        let name = toggle_allocation(
+            &tree,
+            &t,
+            (at.0 + 2.0, at.1 - 1.0),
+            &mut passives,
+            &mut masteries,
+        );
+        assert_eq!(name.as_deref(), Some("Mana and Spell Block"));
+        assert!(passives.is_empty());
+        // And back on.
+        toggle_allocation(&tree, &t, at, &mut passives, &mut masteries);
+        assert!(passives.contains("mana_spell_block2610"));
+        // Empty space: nothing.
+        assert_eq!(
+            toggle_allocation(&tree, &t, (-5000.0, -5000.0), &mut passives, &mut masteries),
+            None
+        );
     }
 
     #[test]

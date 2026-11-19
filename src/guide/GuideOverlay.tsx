@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { createSignal, For, onCleanup, Show } from "solid-js";
+import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
+import { autoSizeWindow } from "../autoSize";
 import { onEvent } from "../events";
 import type { RegexCopied } from "../types";
 import StepView from "./StepView";
@@ -37,7 +38,11 @@ export default function GuideOverlay() {
 	onCleanup(() => document.removeEventListener("mousedown", startDrag));
 
 	return (
-		<div class="overlay guide" classList={{ interact: interact() }}>
+		<div
+			class="overlay guide"
+			classList={{ interact: interact() }}
+			ref={(el) => onMount(() => autoSizeWindow(el))}
+		>
 			<header class="guide-bar">
 				<span class="muted">
 					<Show when={guide()} fallback="Guide">
@@ -69,7 +74,7 @@ export default function GuideOverlay() {
 					<Show when={(guide()?.vendorRegex.length ?? 0) > 0}>
 						<button
 							type="button"
-							title="Copy the vendor search for the gems to buy here (Alt+R)"
+							title="Copy the vendor search for the gems to buy here (Alt+V)"
 							onClick={() => invoke("copy_regex")}
 						>
 							🔍

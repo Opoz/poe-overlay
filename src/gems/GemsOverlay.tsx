@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { createSignal, For, onCleanup, Show } from "solid-js";
+import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
+import { autoSizeWindow } from "../autoSize";
 import { onEvent } from "../events";
 import type { GemsPayload } from "../types";
 
@@ -27,13 +28,45 @@ export default function GemsOverlay() {
 	};
 
 	return (
-		<div class="overlay gems" classList={{ interact: interact() }}>
+		<div
+			class="overlay gems"
+			classList={{ interact: interact() }}
+			ref={(el) => onMount(() => autoSizeWindow(el))}
+		>
 			<header class="guide-bar">
 				<span class="muted">
 					{view()?.skillSet ?? "Gem links"} · level {view()?.level ?? "?"}
-					{view()?.skillSetByHand ? " (picked)" : ""}
 				</span>
-				<span class="muted">Alt+L</span>
+				<Show when={(view()?.skillSets.length ?? 0) > 1}>
+					<span class="guide-buttons">
+						<button
+							type="button"
+							title="Previous skill set"
+							onClick={() => invoke("cycle_skill_set", { delta: -1 })}
+						>
+							◀
+						</button>
+						<button
+							type="button"
+							title="Next skill set"
+							onClick={() => invoke("cycle_skill_set", { delta: 1 })}
+						>
+							▶
+						</button>
+						<Show when={view()?.skillSetByHand}>
+							<button
+								type="button"
+								title="Pick the skill set by level again"
+								onClick={() => {
+									const name = view()?.character;
+									if (name) invoke("set_skill_set", { name, set: null });
+								}}
+							>
+								Auto
+							</button>
+						</Show>
+					</span>
+				</Show>
 			</header>
 			<Show
 				when={view()?.hasBuild}

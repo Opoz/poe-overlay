@@ -39,11 +39,28 @@ export default function TreeOverlay() {
 	window.addEventListener("resize", onResize);
 	onCleanup(() => window.removeEventListener("resize", onResize));
 
-	createEffect(() => draw(canvas, size(), nodes(), view()));
+	// A slow "breathing" glow on Next Points: redraw ~30 times a second while
+	// there are any to show.
+	const [pulse, setPulse] = createSignal(0);
+	let frame = 0;
+	let last = 0;
+	const tick = (now: number) => {
+		const v = view();
+		if (v?.visible && v.transform && v.planned.length > 0 && now - last > 33) {
+			setPulse((Math.sin(now / 450) + 1) / 2);
+			last = now;
+		}
+		frame = requestAnimationFrame(tick);
+	};
+	frame = requestAnimationFrame(tick);
+	onCleanup(() => cancelAnimationFrame(frame));
 
-	// Clicks are only delivered while calibrating (otherwise click-through).
+	createEffect(() => draw(canvas, size(), nodes(), view(), pulse()));
+
+	// Clicks are only delivered while calibrating or fixing points
+	// (otherwise the overlay lets them through to the game).
 	const onClick = (e: MouseEvent) => {
-		if (!view()?.calibrating) return;
+		if (!view()?.calibrating && !view()?.editing) return;
 		const dpr = window.devicePixelRatio;
 		invoke("tree_click", { x: e.clientX * dpr, y: e.clientY * dpr });
 	};
@@ -68,9 +85,16 @@ export default function TreeOverlay() {
 	return (
 		<div
 			class="tree-overlay"
-			classList={{ calibrating: !!view()?.calibrating }}
+			classList={{ calibrating: !!view()?.calibrating || !!view()?.editing }}
 		>
 			<canvas ref={canvas} />
+			<Show when={view()?.editing && !view()?.calibrating}>
+				<div class="tree-prompt">
+					<strong>Fixing points</strong> Click a node to add or remove it (for
+					points you cancelled in game, which the log can't see). Press "Done
+					fixing" on the bar when finished.
+				</div>
+			</Show>
 			<Show when={prompt()}>
 				{(text) => (
 					<div class="tree-prompt">
@@ -104,6 +128,7 @@ function draw(
 	size: { w: number; h: number },
 	nodes: TreeNode[] | undefined,
 	view: TreeView | null,
+	pulse: number,
 ) {
 	if (!canvas) return;
 	const dpr = window.devicePixelRatio;
@@ -140,6 +165,24 @@ function draw(
 	}
 	ctx.stroke();
 
+	// Fixing points: show every node faintly so unallocated ones can be clicked.
+	if (view.editing) {
+		ctx.fillStyle = "rgba(230, 227, 220, 0.35)";
+		for (const n of nodes) {
+			if (allocated.has(n.id) || n.kind === "classStart") continue;
+			const [x, y] = at(n);
+			ctx.beginPath();
+			ctx.arc(
+				x,
+				y,
+				Math.max(2, RADIUS[n.kind] * t.scale * 0.5),
+				0,
+				Math.PI * 2,
+			);
+			ctx.fill();
+		}
+	}
+
 	// Rings on allocated nodes; the class start is marked as the anchor.
 	ctx.lineWidth = Math.max(2, 6 * t.scale);
 	for (const n of nodes) {
@@ -154,19 +197,23 @@ function draw(
 		ctx.stroke();
 	}
 
-	// Next Points from the Build: dashed rings, the next few numbered.
+	// Next Points from the Build: breathing gold rings, the next few numbered.
 	const NUMBERED = 10;
 	ctx.setLineDash([Math.max(3, 12 * t.scale), Math.max(2, 8 * t.scale)]);
-	ctx.strokeStyle = "rgba(242, 201, 76, 0.9)";
 	ctx.lineWidth = Math.max(2, 6 * t.scale);
-	view.planned.forEach((id) => {
+	view.planned.forEach((id, i) => {
 		const n = byId.get(id);
 		if (!n) return;
 		const [x, y] = at(n);
+		const next = i < NUMBERED;
+		ctx.shadowColor = "rgba(242, 201, 76, 0.9)";
+		ctx.shadowBlur = next ? 6 + pulse * 14 : 0;
+		ctx.strokeStyle = `rgba(242, 201, 76, ${next ? 0.65 + pulse * 0.35 : 0.5})`;
 		ctx.beginPath();
 		ctx.arc(x, y, Math.max(4, RADIUS[n.kind] * t.scale), 0, Math.PI * 2);
 		ctx.stroke();
 	});
+	ctx.shadowBlur = 0;
 	ctx.setLineDash([]);
 	const numPx = Math.max(17, 46 * t.scale);
 	ctx.font = `700 ${numPx}px "Segoe UI", sans-serif`;
@@ -179,11 +226,12 @@ function draw(
 		const r = Math.max(4, RADIUS[n.kind] * t.scale);
 		const bx = x + r * 0.9;
 		const by = y - r * 0.9;
-		ctx.fillStyle = "rgba(14, 15, 18, 0.9)";
+		// Solid gold badge, dark number: unlike the outlined mastery numbers.
+		ctx.fillStyle = "rgba(242, 201, 76, 1)";
 		ctx.beginPath();
 		ctx.arc(bx, by, numPx * 0.7, 0, Math.PI * 2);
 		ctx.fill();
-		ctx.fillStyle = "rgba(242, 201, 76, 1)";
+		ctx.fillStyle = "rgba(18, 19, 22, 1)";
 		ctx.fillText(String(i + 1), bx, by + numPx * 0.05);
 	});
 
@@ -224,10 +272,14 @@ function drawMasteryBadges(
 		const n = byId.get(pick.node);
 		if (!n) continue;
 		const [x, y] = at(n);
+		// Outlined (a mastery option), unlike the solid Next Point badges.
 		ctx.fillStyle = "rgba(14, 15, 18, 0.85)";
+		ctx.strokeStyle = colour;
+		ctx.lineWidth = 2;
 		ctx.beginPath();
 		ctx.arc(x, y, fontPx * 0.75, 0, Math.PI * 2);
 		ctx.fill();
+		ctx.stroke();
 		ctx.fillStyle = colour;
 		ctx.fillText(String(pick.option), x, y + fontPx * 0.05);
 	}

@@ -35,7 +35,7 @@ const WINDOWS: [(&str, f64, f64, f64); 7] = [
     (ACT, 520.0, 720.0, 1.0),
     (GEMS, 320.0, 420.0, 1.0),
     (LAB, 780.0, 560.0, 1.0),
-    (TREEBAR, 640.0, 52.0, 1.0),
+    (TREEBAR, 860.0, 52.0, 1.0),
 ];
 
 pub fn create_overlays(app: &AppHandle, opacity: f64) -> tauri::Result<()> {
@@ -169,12 +169,13 @@ impl Follower {
                 && movable
                 && let (Some(r), Ok(pos)) = (self.last_rect, window.outer_position())
             {
-                // Remember where the player put it, kept inside the game window.
+                // Remember where the player put it. Only pull it back if it
+                // was dropped (mostly) outside the game window: windows can
+                // be taller than what they show.
+                const KEEP: i32 = 80;
                 let size = window.outer_size().unwrap_or_default();
-                let max_x = (r.width - size.width as i32).max(0);
-                let max_y = (r.height - size.height as i32).max(0);
-                let x = (pos.x - r.x).clamp(0, max_x);
-                let y = (pos.y - r.y).clamp(0, max_y);
+                let x = (pos.x - r.x).clamp(KEEP - size.width as i32, r.width - KEEP);
+                let y = (pos.y - r.y).clamp(0, r.height - KEEP);
                 moved.push((
                     w.label,
                     OverlayPlacement {

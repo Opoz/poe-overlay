@@ -113,7 +113,8 @@ fn hotkeys() -> [(Shortcut, Hotkey); 16] {
         ),
         (Shortcut::new(alt, Code::KeyG), Hotkey::ActView),
         (Shortcut::new(alt, Code::KeyL), Hotkey::GemLinks),
-        (Shortcut::new(alt, Code::KeyR), Hotkey::VendorRegex),
+        // Not Alt+R: the NVIDIA App takes it for its performance overlay.
+        (Shortcut::new(alt, Code::KeyV), Hotkey::VendorRegex),
         (Shortcut::new(alt, Code::KeyB), Hotkey::LabOverlay),
         (Shortcut::new(alt_shift, Code::KeyB), Hotkey::LabImport),
         (
@@ -485,6 +486,19 @@ fn set_tree_stage(
     emit_tree(&app);
 }
 
+/// "Fix points" mode on the tree Overlay (the tree bar's button).
+#[tauri::command]
+fn toggle_tree_edit(app: AppHandle, state: tauri::State<AppState>) {
+    state.tracker.lock().unwrap().toggle_tree_editing();
+    emit_tree(&app);
+}
+
+#[tauri::command]
+fn cycle_skill_set(app: AppHandle, state: tauri::State<AppState>, delta: i32) {
+    state.tracker.lock().unwrap().cycle_skill_set(delta);
+    emit_gems(&app);
+}
+
 #[tauri::command]
 fn cycle_tree_stage(app: AppHandle, state: tauri::State<AppState>, delta: i32) {
     state.tracker.lock().unwrap().cycle_tree_stage(delta);
@@ -785,7 +799,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                         label: overlay::TREE,
                         anchor: overlay::Anchor::Cover,
                         visible: tree.visible,
-                        clickable: tree.calibrating.is_some(),
+                        clickable: tree.calibrating.is_some() || tree.editing,
                     },
                     // The Guide has buttons, so it takes clicks (never focus).
                     overlay::Wanted {
@@ -797,7 +811,10 @@ fn spawn_tracking_loop(app: AppHandle) {
                     overlay::Wanted {
                         label: overlay::TREEBAR,
                         anchor: overlay::Anchor::At(settings.treebar_overlay),
-                        visible: tree.visible && !tree.calibrating.is_some(),
+                        // Collapses to a "Show tree" button when the tree
+                        // Overlay is hidden, once it has been set up.
+                        visible: tree.calibrating.is_none()
+                            && (tree.visible || tree.transform.is_some()),
                         clickable: true,
                     },
                     overlay::Wanted {
@@ -806,11 +823,12 @@ fn spawn_tracking_loop(app: AppHandle) {
                         visible: lab_shown,
                         clickable: true,
                     },
+                    // Takes clicks for its skill set buttons (never focus).
                     overlay::Wanted {
                         label: overlay::GEMS,
                         anchor: overlay::Anchor::At(settings.gems_overlay),
                         visible: state.gems_visible.load(Ordering::SeqCst),
-                        clickable: false,
+                        clickable: true,
                     },
                     overlay::Wanted {
                         label: overlay::ACT,
@@ -956,6 +974,8 @@ pub fn run() {
             set_skill_set,
             set_tree_stage,
             cycle_tree_stage,
+            cycle_skill_set,
+            toggle_tree_edit,
             hotkey_failures,
             rebuild_passives,
         ])

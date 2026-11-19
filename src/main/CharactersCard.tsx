@@ -53,9 +53,7 @@ export default function CharactersCard() {
 					<thead>
 						<tr>
 							<th>Character</th>
-							<th>Level</th>
 							<th>Run</th>
-							<th>Last level up</th>
 							<th>Passives</th>
 							<th>Guide</th>
 							<th />
@@ -97,15 +95,19 @@ function ProfileRow(props: {
 	};
 	return (
 		<tr classList={{ active: props.active }}>
-			<td>
-				{props.profile.name}{" "}
-				<span class="muted">{props.profile.class ?? ""}</span>
+			<td
+				title={
+					props.profile.lastSeen
+						? `Last level up ${formatLocalDate(props.profile.lastSeen)}`
+						: ""
+				}
+			>
+				<strong>{props.profile.name}</strong>
+				<div class="muted">
+					{props.profile.class ?? "?"} · level {props.profile.level}
+				</div>
 			</td>
-			<td>{props.profile.level}</td>
 			<td>{runLabel()}</td>
-			<td>
-				{props.profile.lastSeen ? formatLocalDate(props.profile.lastSeen) : "—"}
-			</td>
 			<td>
 				<span class="passives">
 					{props.profile.passives.length}

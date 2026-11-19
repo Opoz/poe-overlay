@@ -114,6 +114,7 @@ export type Calibrating =
 
 export interface TreeView {
 	visible: boolean;
+	editing: boolean;
 	calibrating: Calibrating | null;
 	transform: Transform | null;
 	character: string | null;

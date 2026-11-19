@@ -157,7 +157,7 @@ export default function BuildCard() {
 						</Show>
 						<p class="muted">
 							Gem rewards and purchases appear on the guide's hand-in steps.
-							Alt+L shows the gem links for your level; Alt+R copies the vendor
+							Alt+L shows the gem links for your level; Alt+V copies the vendor
 							search for the current step.
 						</p>
 					</>

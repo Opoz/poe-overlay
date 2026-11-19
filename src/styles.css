@@ -695,7 +695,7 @@ tr.disabled td {
 
 /* Tree bar */
 .treebar {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
 	gap: 8px;
 	font-size: 14px;
@@ -770,9 +770,18 @@ button.act-step:hover {
 	color: var(--muted);
 }
 
-table.characters td,
-table.characters th {
-	white-space: nowrap;
+table.characters td {
+	vertical-align: middle;
+}
+
+/* The guide options can wrap onto two lines instead of widening the table. */
+table.characters .guide-options {
+	flex-wrap: wrap;
+	white-space: normal;
+}
+
+.main {
+	max-width: 1000px;
 }
 
 .passives {
@@ -789,4 +798,9 @@ button.small {
 
 .warn-text {
 	color: #ff9a8a;
+}
+
+.treebar button.on {
+	border-color: var(--accent);
+	color: var(--accent);
 }
