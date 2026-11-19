@@ -472,6 +472,7 @@ mod tests {
                 ),
             ],
             tree_stages: vec![],
+            notes: String::new(),
         }
     }
 

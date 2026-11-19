@@ -37,6 +37,8 @@ const SHOTS = [
 	["gems-bright", "w=gems&bg=bright", 520, 460],
 	["xp-dark", "w=xp", 520, 150],
 	["xp-bright", "w=xp&bg=bright", 520, 150],
+	["notes-dark", "w=notes", 520, 620],
+	["notes-bright", "w=notes&bg=bright", 520, 620],
 	["lab", "w=lab", 820, 600],
 	["treebar", "w=treebar", 900, 90],
 	["treebar-hidden", "w=treebar&hidden", 900, 90],

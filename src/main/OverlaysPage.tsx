@@ -9,6 +9,7 @@ const OVERLAYS: [string, string, string | null][] = [
 	["guide", "Guide", null],
 	["xp", "XP ruler", null],
 	["gems", "Gem links", null],
+	["notes", "Build notes", null],
 	["act", "Full act", "Opens from the guide"],
 	["lab", "Lab map", "Shows in the Labyrinth"],
 	["treebar", "Tree controls", "Shows with the tree overlay"],

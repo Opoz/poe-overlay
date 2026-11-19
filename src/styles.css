@@ -1526,3 +1526,21 @@ html[data-window]:not([data-window="main"]) {
 	height: 13px;
 	vertical-align: -2px;
 }
+
+/* ---------------------------------------------------------- build notes */
+
+.notes {
+	max-height: calc(100vh - 8px);
+	overflow-y: auto;
+	font-size: 14px;
+}
+
+.notes-body p {
+	margin: 0 0 3px;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+.notes-gap {
+	height: 9px;
+}

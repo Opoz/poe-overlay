@@ -22,6 +22,9 @@ pub struct Build {
     pub bandit: Option<BanditChoice>,
     pub skill_groups: Vec<SkillGroup>,
     pub tree_stages: Vec<TreeStage>,
+    /// The build's notes, as written in PoB (with its colour codes).
+    #[serde(default)]
+    pub notes: String,
 }
 
 /// A set of linked gems, with the character levels it's meant for.
@@ -238,7 +241,95 @@ pub fn parse(xml: &str) -> Result<Build, PobError> {
         bandit,
         skill_groups,
         tree_stages,
+        notes: child(root, "Notes")
+            .and_then(|n| n.text())
+            .unwrap_or_default()
+            .to_owned(),
     })
+}
+
+/// A run of note text in one colour (`None` = the default text colour).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NoteSpan {
+    pub text: String,
+    /// `#rrggbb`.
+    pub colour: Option<String>,
+}
+
+/// PoB's numbered colour codes (`^1`..`^9`). `^0` (black) and `^7` (white)
+/// read as the default text colour on a dark panel.
+fn numbered_colour(d: char) -> Option<&'static str> {
+    match d {
+        '1' => Some("#ff6b5e"),
+        '2' => Some("#7fe0a8"),
+        '3' => Some("#8ab4ff"),
+        '4' => Some("#f5cf5a"),
+        '5' => Some("#cfaaff"),
+        '6' => Some("#7fd8e8"),
+        '8' => Some("#a8a294"),
+        '9' => Some("#7d786d"),
+        _ => None,
+    }
+}
+
+/// Build notes as lines of coloured spans. A colour lasts until the next code
+/// or the end of the line; runs of blank lines collapse to one, and the
+/// indentation PoB's XML adds is dropped.
+pub fn note_lines(notes: &str) -> Vec<Vec<NoteSpan>> {
+    let mut out: Vec<Vec<NoteSpan>> = Vec::new();
+    for raw in notes.replace("\r\n", "\n").split('\n') {
+        let line = raw.trim_end();
+        let chars: Vec<char> = line.trim_start_matches(['\t']).chars().collect();
+        let mut spans: Vec<NoteSpan> = Vec::new();
+        let mut colour: Option<String> = None;
+        let mut text = String::new();
+        let mut i = 0;
+        let flush = |text: &mut String, colour: &Option<String>, spans: &mut Vec<NoteSpan>| {
+            if !text.is_empty() {
+                spans.push(NoteSpan {
+                    text: std::mem::take(text),
+                    colour: colour.clone(),
+                });
+            }
+        };
+        while i < chars.len() {
+            if chars[i] == '^' {
+                if let Some(d) = chars.get(i + 1).filter(|c| c.is_ascii_digit()) {
+                    flush(&mut text, &colour, &mut spans);
+                    colour = numbered_colour(*d).map(str::to_owned);
+                    i += 2;
+                    continue;
+                }
+                if chars.get(i + 1) == Some(&'x')
+                    && chars.len() >= i + 8
+                    && chars[i + 2..i + 8].iter().all(char::is_ascii_hexdigit)
+                {
+                    flush(&mut text, &colour, &mut spans);
+                    let hex: String = chars[i + 2..i + 8].iter().collect();
+                    colour = Some(format!("#{}", hex.to_lowercase()));
+                    i += 8;
+                    continue;
+                }
+            }
+            text.push(chars[i]);
+            i += 1;
+        }
+        flush(&mut text, &colour, &mut spans);
+        let blank = spans.iter().all(|s| s.text.trim().is_empty());
+        if blank {
+            if out.last().is_some_and(Vec::is_empty) || out.is_empty() {
+                continue;
+            }
+            out.push(Vec::new());
+        } else {
+            out.push(spans);
+        }
+    }
+    while out.last().is_some_and(Vec::is_empty) {
+        out.pop();
+    }
+    out
 }
 
 fn child<'a>(node: roxmltree::Node<'a, 'a>, name: &str) -> Option<roxmltree::Node<'a, 'a>> {
@@ -480,6 +571,20 @@ mod tests {
         let mut z = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
         z.write_all(xml.as_bytes()).unwrap();
         general_purpose::URL_SAFE.encode(z.finish().unwrap())
+    }
+
+    #[test]
+    fn notes_become_coloured_lines() {
+        let lines =
+            note_lines("\n\t\t\t^xE05030Leveling^7 notes\n\n\n\t\t\tSwap to ^2Cyclone^7 at 28\n\n");
+        assert_eq!(lines.len(), 3, "{lines:?}");
+        assert_eq!(lines[0][0].text, "Leveling");
+        assert_eq!(lines[0][0].colour.as_deref(), Some("#e05030"));
+        assert_eq!(lines[0][1].text, " notes");
+        assert_eq!(lines[0][1].colour, None);
+        assert!(lines[1].is_empty(), "blank lines collapse to one");
+        assert_eq!(lines[2][1].text, "Cyclone");
+        assert_eq!(lines[2][1].colour.as_deref(), Some("#7fe0a8"));
     }
 
     #[test]

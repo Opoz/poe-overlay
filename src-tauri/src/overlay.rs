@@ -28,9 +28,11 @@ pub const LAB: &str = "lab";
 pub const TREEBAR: &str = "treebar";
 /// The experience level ruler for the current zone.
 pub const XP: &str = "xp";
+/// The Build's notes from Path of Building.
+pub const NOTES: &str = "notes";
 
 /// (label, logical width, logical height)
-const WINDOWS: [(&str, f64, f64); 8] = [
+const WINDOWS: [(&str, f64, f64); 9] = [
     (TIMER, 280.0, 340.0),
     (TREE, 800.0, 600.0),
     (GUIDE, 380.0, 420.0),
@@ -39,6 +41,7 @@ const WINDOWS: [(&str, f64, f64); 8] = [
     (LAB, 780.0, 560.0),
     (TREEBAR, 860.0, 52.0),
     (XP, 380.0, 110.0),
+    (NOTES, 420.0, 560.0),
 ];
 
 /// The Overlay's size at 100%, in logical pixels.

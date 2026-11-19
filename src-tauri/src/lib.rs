@@ -65,6 +65,8 @@ pub struct AppState {
     /// The timer and Guide Overlays are showing (the player can turn them off).
     timer_visible: AtomicBool,
     guide_visible: AtomicBool,
+    /// The Build notes Overlay is showing.
+    notes_visible: AtomicBool,
     /// Bound hotkeys (from Settings), and whether they changed since the
     /// tracking loop last registered them.
     bindings: Mutex<Vec<(Shortcut, Hotkey)>>,
@@ -142,6 +144,10 @@ fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
         Hotkey::LabImport => lab_import::start(app),
         Hotkey::XpRuler => {
             state.xp_visible.fetch_xor(true, Ordering::SeqCst);
+        }
+        Hotkey::BuildNotes => {
+            state.notes_visible.fetch_xor(true, Ordering::SeqCst);
+            emit_notes(app);
         }
     }
 }
@@ -279,6 +285,52 @@ fn emit_gems(app: &AppHandle) {
         let _ = app.emit(GEMS_VIEW, payload);
         *last = json;
     }
+}
+
+/// Event carrying the Build notes (plus whether they're showing).
+const NOTES_VIEW: &str = "notes-view";
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct NotesPayload {
+    character: Option<String>,
+    lines: Vec<Vec<poe_core::pob::NoteSpan>>,
+    visible: bool,
+}
+
+fn notes_payload(app: &AppHandle) -> NotesPayload {
+    let state = app.state::<AppState>();
+    let (character, lines) = state.tracker.lock().unwrap().notes();
+    NotesPayload {
+        character,
+        lines,
+        visible: state.notes_visible.load(Ordering::SeqCst),
+    }
+}
+
+/// Sends the notes only when they changed.
+fn emit_notes(app: &AppHandle) {
+    static LAST: Mutex<String> = Mutex::new(String::new());
+    let payload = notes_payload(app);
+    let Ok(json) = serde_json::to_string(&payload) else {
+        return;
+    };
+    let mut last = LAST.lock().unwrap();
+    if *last != json {
+        let _ = app.emit(NOTES_VIEW, payload);
+        *last = json;
+    }
+}
+
+#[tauri::command]
+fn get_notes_view(app: AppHandle) -> NotesPayload {
+    notes_payload(&app)
+}
+
+#[tauri::command]
+fn toggle_notes(app: AppHandle, state: tauri::State<AppState>) {
+    state.notes_visible.fetch_xor(true, Ordering::SeqCst);
+    emit_notes(&app);
 }
 
 #[tauri::command]
@@ -621,6 +673,7 @@ fn set_overlay_look(
             overlay::GUIDE => Some(&state.guide_visible),
             overlay::GEMS => Some(&state.gems_visible),
             overlay::XP => Some(&state.xp_visible),
+            overlay::NOTES => Some(&state.notes_visible),
             _ => None,
         };
         if let Some(flag) = flag {
@@ -634,6 +687,7 @@ fn set_overlay_look(
     let out = settings.clone();
     drop(settings);
     emit_gems(&app);
+    emit_notes(&app);
     out
 }
 
@@ -656,6 +710,7 @@ fn get_overlays_shown(
         (overlay::GUIDE, &state.guide_visible),
         (overlay::GEMS, &state.gems_visible),
         (overlay::XP, &state.xp_visible),
+        (overlay::NOTES, &state.notes_visible),
     ]
     .into_iter()
     .map(|(l, f)| (l, f.load(Ordering::SeqCst)))
@@ -823,6 +878,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                 emit_tree(&app);
                 emit_guide(&app);
                 emit_gems(&app);
+                emit_notes(&app);
                 emit_lab(&app);
                 last_emit = Instant::now();
             }
@@ -919,6 +975,13 @@ fn spawn_tracking_loop(app: AppHandle) {
                         visible: state.gems_visible.load(Ordering::SeqCst),
                         clickable: true,
                     },
+                    // Takes clicks so the mouse wheel scrolls it (never focus).
+                    overlay::Wanted {
+                        label: overlay::NOTES,
+                        anchor: overlay::Anchor::At(settings.notes_overlay),
+                        visible: state.notes_visible.load(Ordering::SeqCst),
+                        clickable: true,
+                    },
                     overlay::Wanted {
                         label: overlay::ACT,
                         anchor: overlay::Anchor::At(settings.act_overlay),
@@ -950,6 +1013,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                         overlay::LAB => settings.lab_overlay = placement,
                         overlay::TREEBAR => settings.treebar_right = placement,
                         overlay::XP => settings.xp_overlay = placement,
+                        overlay::NOTES => settings.notes_overlay = placement,
                         _ => {}
                     }
                 }
@@ -1010,6 +1074,7 @@ pub fn run() {
     let tracker = Tracker::new(storage, &settings);
     let bindings = hotkeys::bindings(&settings.hotkeys);
     let shown = |label: &str, default: bool| settings.look(label).shown.unwrap_or(default);
+    let notes_shown = shown(overlay::NOTES, false);
     let (gems_shown, xp_shown, timer_shown, guide_shown) = (
         shown(overlay::GEMS, false),
         shown(overlay::XP, true),
@@ -1056,6 +1121,7 @@ pub fn run() {
             xp_visible: AtomicBool::new(xp_shown),
             timer_visible: AtomicBool::new(timer_shown),
             guide_visible: AtomicBool::new(guide_shown),
+            notes_visible: AtomicBool::new(notes_shown),
             bindings: Mutex::new(bindings),
             hotkeys_changed: AtomicBool::new(false),
         })
@@ -1100,6 +1166,8 @@ pub fn run() {
             set_overlay_look,
             reset_overlay_positions,
             get_overlays_shown,
+            get_notes_view,
+            toggle_notes,
             delete_run,
         ])
         .on_window_event(|window, event| {

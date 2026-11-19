@@ -297,6 +297,17 @@ impl Tracker {
         view
     }
 
+    /// The Active Character's Build notes, as coloured lines.
+    pub fn notes(&self) -> (Option<String>, Vec<Vec<poe_core::pob::NoteSpan>>) {
+        let active = self.timer.active();
+        let profile = active.and_then(|n| self.timer.profiles().find(|p| p.name == n));
+        let lines = profile
+            .and_then(|p| p.build.as_ref())
+            .map(|b| poe_core::pob::note_lines(&b.notes))
+            .unwrap_or_default();
+        (profile.map(|p| p.name.clone()), lines)
+    }
+
     pub fn gems_view(&self) -> GemsView {
         let active = self.timer.active();
         let profile = active.and_then(|n| self.timer.profiles().find(|p| p.name == n));

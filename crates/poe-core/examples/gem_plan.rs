@@ -20,6 +20,7 @@ fn main() {
         level: 90,
         bandit: None,
         tree_stages: vec![],
+        notes: String::new(),
         skill_groups: vec![SkillGroup {
             label: None,
             skill_set: None,

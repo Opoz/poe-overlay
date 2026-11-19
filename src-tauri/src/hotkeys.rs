@@ -20,6 +20,7 @@ pub enum Hotkey {
     LabOverlay,
     LabImport,
     XpRuler,
+    BuildNotes,
     /// Show the previous / next Tree Stage.
     TreeStage(i32),
 }
@@ -51,7 +52,7 @@ const fn action(
     }
 }
 
-pub const ACTIONS: [Action; 17] = [
+pub const ACTIONS: [Action; 18] = [
     action(
         "timer.pause",
         Hotkey::Timer(Command::TogglePause),
@@ -114,6 +115,13 @@ pub const ACTIONS: [Action; 17] = [
         Hotkey::VendorRegex,
         "alt+KeyV",
         "Copy the vendor search",
+        "Gems",
+    ),
+    action(
+        "notes.toggle",
+        Hotkey::BuildNotes,
+        "alt+KeyN",
+        "Show or hide the build's notes",
         "Gems",
     ),
     action(

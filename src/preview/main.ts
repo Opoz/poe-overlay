@@ -26,6 +26,7 @@ const SIZES: Record<string, [number, number]> = {
 	lab: [780, 560],
 	treebar: [860, 52],
 	xp: [380, 110],
+	notes: [420, 560],
 };
 
 if (!inner && label in SIZES) {
@@ -80,6 +81,7 @@ async function boot() {
 		["guide.act", "Show the full act", "Guide", "alt+KeyG"],
 		["gems.links", "Show gem links", "Gems", "alt+KeyL"],
 		["gems.vendorSearch", "Copy the vendor search", "Gems", "alt+KeyV"],
+		["notes.toggle", "Show or hide the build's notes", "Gems", "alt+KeyN"],
 		[
 			"tree.toggle",
 			"Show or hide the tree overlay",
@@ -127,6 +129,7 @@ async function boot() {
 			visible: !params.has("hidden"),
 		},
 		get_lab_view: { ...fixtures.lab, visible: true },
+		get_notes_view: { ...fixtures.notes, visible: true },
 		get_characters: fixtures.characters,
 		get_settings: settings,
 		get_status: {

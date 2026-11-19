@@ -11,7 +11,8 @@
 		"gems",
 		"lab",
 		"treebar",
-		"xp"
+		"xp",
+		"notes"
 	],
 	"permissions": [
 		"core:default",

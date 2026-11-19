@@ -51,6 +51,18 @@ export interface Run {
 	phase: Phase;
 }
 
+export interface NoteSpan {
+	text: string;
+	/** `#rrggbb`, or null for the default text colour. */
+	colour: string | null;
+}
+
+export interface NotesPayload {
+	character: string | null;
+	lines: NoteSpan[][];
+	visible: boolean;
+}
+
 export interface HistoryRun {
 	startedAt: number;
 	character: string | null;

@@ -8,6 +8,7 @@ import XpOverlay from "./guide/XpOverlay";
 import LabOverlay from "./lab/LabOverlay";
 import { followLook } from "./look";
 import MainWindow from "./main/MainWindow";
+import NotesOverlay from "./notes/NotesOverlay";
 import TimerOverlay from "./timer/TimerOverlay";
 import TreeBar from "./tree/TreeBar";
 import TreeOverlay from "./tree/TreeOverlay";
@@ -31,5 +32,6 @@ render(() => {
 	if (label === "lab") return <LabOverlay />;
 	if (label === "treebar") return <TreeBar />;
 	if (label === "xp") return <XpOverlay />;
+	if (label === "notes") return <NotesOverlay />;
 	return <MainWindow />;
 }, document.getElementById("root") as HTMLElement);

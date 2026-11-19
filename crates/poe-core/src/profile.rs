@@ -110,6 +110,7 @@ mod tests {
             bandit,
             skill_groups: vec![],
             tree_stages: vec![],
+            notes: String::new(),
         }
     }
 

@@ -65,10 +65,11 @@ export default function BuildCard() {
 		<section>
 			<h2>Build</h2>
 			<p class="lede">
-				Import a Path of Building build. The gems overlay (
-				<Key id="gems.links" />) shows its links for your level, the guide's
-				hand-in steps show which gems to take and buy, and the tree overlay
-				numbers your next passives.
+				Import a Path of Building build. The gems overlay{" "}
+				<Key id="gems.links" /> shows its links for your level, the guide's
+				hand-in steps show which gems to take and buy, the tree overlay numbers
+				your next passives, and <Key id="notes.toggle" /> shows the build's
+				notes.
 			</p>
 			<Show
 				when={active()}

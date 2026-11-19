@@ -116,6 +116,10 @@ A gem that becomes purchasable from a specific NPC after a quest, depending on c
 **Vendor Regex**:
 A search string for the in-game vendor search box that highlights the gems to buy at the Current Step.
 
+**Build Notes**:
+The free text a Build's author wrote in Path of Building, shown in its own Overlay with PoB's colours.
+_Avoid_: guide notes (the Guide is the route)
+
 ## Passive tree
 
 **Tree Stage**:

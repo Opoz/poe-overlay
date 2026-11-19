@@ -25,6 +25,22 @@ const LOG: &str = concat!(
 );
 const LAB: &str = include_str!("../tests/fixtures/poelab-normal-2026-11-19.json");
 
+/// Notes in the style build guides use, with PoB colour codes.
+const NOTES: &str = "
+			^xE0B050Leveling^7
+			Start with ^2Raise Zombie^7 + Minion Damage from the Tidal Island quest.
+			Pick up ^3Summon Raging Spirit^7 at 4 and run it with Arcane Surge.
+
+
+			^xE0B050Act 3^7
+			Buy ^3Raise Spectre^7 in town and grab two Undying Evangelists in The Lunaris Temple.
+			Take ^1Alira^7 for the mana and crit, or kill all bandits if you have enough mana.
+
+			^xE0B050Gear^7
+			Keep any +1 minion gem wands. Fix resistances before ^1Kitava^7 in Act 5.
+			^8Swap to the endgame tree around level 60.^7
+";
+
 fn gem(name: &str, id: &str) -> BuildGem {
     BuildGem {
         name: name.into(),
@@ -112,6 +128,7 @@ fn build(tree: &PassiveTree, allocated: &[u32]) -> Build {
                 ],
             ),
         ],
+        notes: NOTES.into(),
         tree_stages: vec![
             TreeStage {
                 title: Some("LvLing Tree lvl 36".into()),
@@ -285,6 +302,10 @@ fn main() {
         "tree": tree_view,
         "treeNodes": nodes,
         "lab": lab_view,
+        "notes": {
+            "character": profile.name,
+            "lines": poe_core::pob::note_lines(&profile.build.as_ref().unwrap().notes),
+        },
         "characters": {
             "active": profile.name,
             "profiles": [profile, other],

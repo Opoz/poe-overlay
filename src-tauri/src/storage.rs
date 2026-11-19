@@ -42,6 +42,7 @@ pub struct Settings {
     pub gems_overlay: OverlayPlacement,
     pub lab_overlay: OverlayPlacement,
     pub xp_overlay: OverlayPlacement,
+    pub notes_overlay: OverlayPlacement,
     /// Top-right corner of the tree bar (it collapses towards the right).
     pub treebar_right: OverlayPlacement,
     /// The game's passive tree key: pressing it toggles the tree Overlay too
@@ -94,6 +95,7 @@ impl Settings {
         self.gems_overlay = d.gems_overlay;
         self.lab_overlay = d.lab_overlay;
         self.xp_overlay = d.xp_overlay;
+        self.notes_overlay = d.notes_overlay;
         self.treebar_right = d.treebar_right;
     }
 }
@@ -111,6 +113,7 @@ impl Default for Settings {
             lab_overlay: OverlayPlacement { x: 0.55, y: 0.08 },
             treebar_right: OverlayPlacement { x: 0.66, y: 0.01 },
             xp_overlay: OverlayPlacement { x: 0.56, y: 0.86 },
+            notes_overlay: OverlayPlacement { x: 0.7, y: 0.12 },
             tree_key: Some("P".into()),
             panel_opacity: 0.85,
             hotkeys: BTreeMap::new(),
