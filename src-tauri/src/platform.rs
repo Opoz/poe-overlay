@@ -210,3 +210,66 @@ pub fn watch_middle_clicks(on_click: impl Fn(i32, i32) + Send + 'static) {
         while GetMessageW(&mut msg, None, 0, 0).as_bool() {}
     });
 }
+
+/// Watch key presses anywhere (virtual-key codes). Read-only, like
+/// [`watch_middle_clicks`]: every key still reaches the game.
+pub fn watch_keys(on_key: impl Fn(u32) + Send + 'static) {
+    use std::sync::OnceLock;
+
+    use windows::Win32::{
+        Foundation::{LPARAM, LRESULT, WPARAM},
+        System::LibraryLoader::GetModuleHandleW,
+        UI::WindowsAndMessaging::{
+            CallNextHookEx, GetMessageW, HC_ACTION, KBDLLHOOKSTRUCT, MSG, SetWindowsHookExW,
+            WH_KEYBOARD_LL, WM_KEYDOWN,
+        },
+    };
+
+    type Callback = Box<dyn Fn(u32) + Send + Sync>;
+    static CALLBACK: OnceLock<Callback> = OnceLock::new();
+
+    unsafe extern "system" fn hook(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+        if code == HC_ACTION as i32 && wparam.0 == WM_KEYDOWN as usize {
+            // SAFETY: for WH_KEYBOARD_LL, lparam points to a KBDLLHOOKSTRUCT.
+            let info = unsafe { &*(lparam.0 as *const KBDLLHOOKSTRUCT) };
+            if let Some(cb) = CALLBACK.get() {
+                cb(info.vkCode);
+            }
+        }
+        unsafe { CallNextHookEx(None, code, wparam, lparam) }
+    }
+
+    let (tx, rx) = std::sync::mpsc::channel::<u32>();
+    let tx = std::sync::Mutex::new(tx);
+    if CALLBACK
+        .set(Box::new(move |vk| {
+            let _ = tx.lock().map(|t| t.send(vk));
+        }))
+        .is_err()
+    {
+        return;
+    }
+    std::thread::spawn(move || {
+        for vk in rx {
+            on_key(vk);
+        }
+    });
+    std::thread::spawn(|| unsafe {
+        let module = GetModuleHandleW(None).ok();
+        let Ok(_hook) = SetWindowsHookExW(WH_KEYBOARD_LL, Some(hook), module.map(Into::into), 0)
+        else {
+            return;
+        };
+        let mut msg = MSG::default();
+        while GetMessageW(&mut msg, None, 0, 0).as_bool() {}
+    });
+}
+
+/// Virtual-key code for a single letter or digit ("P" -> 0x50).
+pub fn vk_for(key: &str) -> Option<u32> {
+    let mut chars = key.trim().chars();
+    let c = chars.next()?.to_ascii_uppercase();
+    (chars.next().is_none() && c.is_ascii_alphanumeric()).then_some(c as u32)
+}
+
+pub const VK_ESCAPE: u32 = 0x1B;

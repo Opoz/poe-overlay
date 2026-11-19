@@ -165,16 +165,7 @@ impl Tracker {
     pub fn tree_view(&self) -> TreeView {
         let active = self.timer.active();
         let profile = active.and_then(|n| self.timer.profiles().find(|p| p.name == n));
-        let (no_passives, no_masteries) = (Default::default(), Default::default());
-        TreeView::build(
-            &self.tree,
-            &self.tree_overlay,
-            active,
-            profile.and_then(|p| p.class.as_deref()),
-            profile.map_or(&no_passives, |p| &p.passives),
-            profile.map_or(&no_masteries, |p| &p.masteries),
-            profile.and_then(|p| p.build.as_ref().map(|b| (b, p.level))),
-        )
+        TreeView::build(&self.tree, &self.tree_overlay, profile)
     }
 
     pub fn toggle_tree(&mut self) {
@@ -217,10 +208,11 @@ impl Tracker {
         self.save_session();
     }
 
-    pub fn guide_view(&self) -> GuideView {
+    /// `browse_act` shows another act in the full-act view.
+    pub fn guide_view(&self, browse_act: Option<u8>) -> GuideView {
         let active = self.timer.active();
         let profile = active.and_then(|n| self.timer.profiles().find(|p| p.name == n));
-        let mut view = GuideView::build(&self.guides, profile);
+        let mut view = GuideView::build(&self.guides, profile, browse_act);
         if let Some(p) = profile
             && let Some(build) = &p.build
         {
@@ -264,9 +256,42 @@ impl Tracker {
         true
     }
 
-    pub fn guide_command(&mut self, command: GuideCommand) {
-        if let Some(profile) = self.timer.active_profile_mut() {
-            self.guides.command(profile, command);
+    /// Returns a message for the player when the command couldn't do anything.
+    pub fn guide_command(&mut self, command: GuideCommand) -> Option<String> {
+        let profile = self.timer.active_profile_mut()?;
+        let message = self.guides.command(profile, command);
+        self.save_session();
+        message
+    }
+
+    /// Pick the skill set by hand (`None` = by level).
+    pub fn set_skill_set(&mut self, name: &str, set: Option<String>) {
+        if let Some(p) = self.timer.profile_mut(name) {
+            p.skill_set = set;
+            self.save_session();
+        }
+    }
+
+    /// Pick the Tree Stage by hand (`None` = by level).
+    pub fn set_tree_stage(&mut self, name: &str, stage: Option<usize>) {
+        if let Some(p) = self.timer.profile_mut(name) {
+            p.tree_stage = stage;
+            self.save_session();
+        }
+    }
+
+    /// Step the Active Character's Tree Stage back or forward from the one shown.
+    pub fn cycle_tree_stage(&mut self, delta: i32) {
+        let view = self.tree_view();
+        let (Some(current), count) = (view.stage_index, view.stages.len()) else {
+            return;
+        };
+        if count == 0 {
+            return;
+        }
+        let next = (current as i32 + delta).rem_euclid(count as i32) as usize;
+        if let Some(p) = self.timer.active_profile_mut() {
+            p.tree_stage = Some(next);
             self.save_session();
         }
     }

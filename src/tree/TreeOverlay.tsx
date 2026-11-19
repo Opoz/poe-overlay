@@ -81,12 +81,6 @@ export default function TreeOverlay() {
 					</div>
 				)}
 			</Show>
-			<Show when={view()?.stage && view()?.transform && !view()?.calibrating}>
-				<div class="tree-stage">
-					Working towards <strong>{view()?.stage}</strong> ·{" "}
-					{view()?.planned.length ?? 0} points to go
-				</div>
-			</Show>
 			<Show when={view() && !view()?.calibrating && !view()?.transform}>
 				<div class="tree-prompt">
 					Zoom the passive tree all the way out and middle-click your class
@@ -174,7 +168,7 @@ function draw(
 		ctx.stroke();
 	});
 	ctx.setLineDash([]);
-	const numPx = Math.max(11, 46 * t.scale);
+	const numPx = Math.max(17, 46 * t.scale);
 	ctx.font = `700 ${numPx}px "Segoe UI", sans-serif`;
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
@@ -222,7 +216,7 @@ function drawMasteryBadges(
 	scale: number,
 	colour: string,
 ) {
-	const fontPx = Math.max(12, 70 * scale);
+	const fontPx = Math.max(18, 70 * scale);
 	ctx.font = `700 ${fontPx}px "Segoe UI", sans-serif`;
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";

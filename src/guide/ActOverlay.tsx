@@ -9,9 +9,11 @@ import {
 } from "solid-js";
 import { onEvent } from "../events";
 import StepView from "./StepView";
-import { toggleActView, useGuide } from "./useGuide";
+import { guideCommand, toggleActView, useGuide } from "./useGuide";
 
-/** Every Step of the current act, the current one highlighted. */
+const ACTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+/** Every Step of an act; click a Step to make it the current one. */
 export default function ActOverlay() {
 	const guide = useGuide();
 	const [interact, setInteract] = createSignal(false);
@@ -24,10 +26,17 @@ export default function ActOverlay() {
 	document.addEventListener("mousedown", startDrag);
 	onCleanup(() => document.removeEventListener("mousedown", startDrag));
 
-	// Keep the current Step in view.
+	const currentAct = () => guide()?.current?.act ?? 1;
+	const shownAct = () => guide()?.act ?? currentAct();
+	const browse = (act: number) =>
+		invoke("browse_act", { act: act === currentAct() ? null : act });
+
+	// Keep the current Step in view (when showing its act).
 	let list: HTMLDivElement | undefined;
 	const currentId = createMemo(() =>
-		guide()?.actView ? guide()?.current?.id : undefined,
+		guide()?.actView && shownAct() === currentAct()
+			? guide()?.current?.id
+			: undefined,
 	);
 	createEffect(() => {
 		const id = currentId();
@@ -39,26 +48,47 @@ export default function ActOverlay() {
 		);
 	});
 
-	const act = () => guide()?.current?.act ?? 1;
-
 	return (
 		<div class="overlay act" classList={{ interact: interact() }}>
 			<header class="guide-bar">
-				<strong>Act {act()}</strong>
+				<span class="act-tabs">
+					<For each={ACTS}>
+						{(act) => (
+							<button
+								type="button"
+								classList={{
+									on: act === shownAct(),
+									here: act === currentAct(),
+								}}
+								title={
+									act === currentAct() ? "Your current act" : `Show act ${act}`
+								}
+								onClick={() => browse(act)}
+							>
+								{act}
+							</button>
+						)}
+					</For>
+				</span>
 				<button type="button" title="Close (Alt+G)" onClick={toggleActView}>
 					✕
 				</button>
 			</header>
+			<div class="muted act-hint">
+				Click a step to make it your current step.
+			</div>
 			<div class="act-steps" ref={list}>
 				<For each={guide()?.actSteps ?? []}>
 					{(step) => (
-						<div
+						<button
+							type="button"
 							data-step={step.id}
 							class="act-step"
 							classList={{ current: step.id === guide()?.current?.id }}
+							onClick={() => guideCommand({ kind: "jump", step: step.id })}
 						>
 							<StepView step={step} />
-						</div>
+						</button>
 					)}
 				</For>
 			</div>

@@ -258,8 +258,50 @@ pub struct GemsView {
     pub character: Option<String>,
     pub level: u32,
     pub has_build: bool,
+    /// The PoB skill set shown (builds often have one per stage).
+    pub skill_set: Option<String>,
+    /// All skill set titles, in order, for picking one by hand.
+    pub skill_sets: Vec<String>,
+    /// The player picked the skill set (instead of by level).
+    pub skill_set_by_hand: bool,
     /// Skill Groups for the current level, gems coloured.
     pub groups: Vec<GroupView>,
+}
+
+/// Skill set titles in Build order, once each.
+pub fn skill_sets(build: &Build) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for g in &build.skill_groups {
+        if let Some(t) = &g.skill_set
+            && !out.contains(t)
+        {
+            out.push(t.clone());
+        }
+    }
+    out
+}
+
+/// The skill set for `level`: the one whose title's range includes it (the
+/// latest-starting if several), else the latest one already started.
+/// `None` when no set title says a level (then all groups are used).
+pub fn pick_skill_set(build: &Build, level: u32) -> Option<String> {
+    let ranged: Vec<(String, crate::pob::LevelRange)> = skill_sets(build)
+        .into_iter()
+        .filter_map(|t| crate::pob::level_range(&t).map(|r| (t, r)))
+        .collect();
+    let containing = ranged
+        .iter()
+        .filter(|(_, r)| r.contains(level))
+        .max_by_key(|(_, r)| r.from);
+    containing
+        .or_else(|| {
+            ranged
+                .iter()
+                .filter(|(_, r)| r.from <= level)
+                .max_by_key(|(_, r)| r.from)
+        })
+        .or_else(|| ranged.iter().min_by_key(|(_, r)| r.from))
+        .map(|(t, _)| t.clone())
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -287,17 +329,29 @@ impl GemsView {
         let level = profile.map_or(1, |p| p.level);
         let build = profile.and_then(|p| p.build.as_ref());
         let overrides = profile.map(|p| &p.group_levels);
+        let sets = build.map(skill_sets).unwrap_or_default();
+        let by_hand = profile
+            .and_then(|p| p.skill_set.clone())
+            .filter(|s| sets.contains(s));
+        let chosen = by_hand
+            .clone()
+            .or_else(|| build.and_then(|b| pick_skill_set(b, level)));
         let groups = build
             .map(|b| {
                 b.skill_groups
                     .iter()
                     .enumerate()
+                    .filter(|(_, g)| chosen.is_none() || g.skill_set == chosen)
+                    // Separators and headings ("==== Auras ====") have no gems.
+                    .filter(|(_, g)| g.gems.iter().any(|gem| gem.enabled))
                     .filter_map(|(i, g)| {
                         let levels = overrides
                             .and_then(|o| o.get(&i).copied())
                             .unwrap_or(g.levels);
-                        (g.enabled && levels.is_none_or(|r| r.contains(level)))
-                            .then_some((g, levels))
+                        // Within a set picked by hand, show all of it.
+                        let in_range =
+                            by_hand.is_some() || levels.is_none_or(|r| r.contains(level));
+                        (g.enabled && in_range).then_some((g, levels))
                     })
                     .map(|(g, levels)| GroupView {
                         label: g.label.clone(),
@@ -326,6 +380,9 @@ impl GemsView {
             character: profile.map(|p| p.name.clone()),
             level,
             has_build: build.is_some(),
+            skill_set: chosen,
+            skill_sets: sets,
+            skill_set_by_hand: by_hand.is_some(),
             groups,
         }
     }
@@ -481,6 +538,66 @@ mod tests {
         );
         p.group_levels.insert(0, None);
         assert_eq!(names(&p), ["Raise Zombie"]);
+    }
+
+    #[test]
+    fn one_skill_set_at_a_time() {
+        let data = GemData::bundled();
+        let set = |title: &str, label: &str, name: &str| SkillGroup {
+            label: Some(label.into()),
+            skill_set: Some(title.into()),
+            slot: None,
+            enabled: true,
+            gems: vec![gem(name, "SkillGemRaiseZombie")],
+            levels: crate::pob::level_range(label).or_else(|| crate::pob::level_range(title)),
+        };
+        let mut b = witch_build();
+        b.skill_groups = vec![
+            set("Act 1", "Zombies", "A1 zombies"),
+            set("Act 1", "Mobility lvl 8", "A1 dash"),
+            set("Act 4-10", "Main", "A4 main"),
+            set("Lvl70 after 3rd lab", "Main", "70 main"),
+            set("Early Covenant", "Main", "covenant"),
+        ];
+        // Separator group: ignored.
+        b.skill_groups.push(SkillGroup {
+            label: Some("-----".into()),
+            skill_set: Some("Act 1".into()),
+            slot: None,
+            enabled: true,
+            gems: vec![],
+            levels: None,
+        });
+        let mut p = crate::profile::Profile::new("A");
+        p.apply_build(b, "code".into());
+        let shown = |p: &crate::profile::Profile| {
+            let v = GemsView::build(&data, Some(p));
+            (
+                v.skill_set.clone(),
+                v.groups
+                    .iter()
+                    .map(|g| g.gems[0].name.clone())
+                    .collect::<Vec<_>>(),
+            )
+        };
+        p.level = 5;
+        assert_eq!(
+            shown(&p),
+            (Some("Act 1".into()), vec!["A1 zombies".to_string()])
+        );
+        p.level = 9;
+        assert_eq!(shown(&p).1, ["A1 zombies", "A1 dash"]);
+        p.level = 40;
+        assert_eq!(
+            shown(&p),
+            (Some("Act 4-10".into()), vec!["A4 main".to_string()])
+        );
+        p.level = 75;
+        assert_eq!(shown(&p).0.as_deref(), Some("Lvl70 after 3rd lab"));
+        // Picked by hand: the unranged Covenant set.
+        p.skill_set = Some("Early Covenant".into());
+        assert_eq!(shown(&p).1, ["covenant"]);
+        assert!(GemsView::build(&data, Some(&p)).skill_set_by_hand);
     }
 
     #[test]

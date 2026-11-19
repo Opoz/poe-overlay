@@ -75,6 +75,9 @@ pub struct TreeStage {
     pub mastery_effects: Vec<(u32, u32)>,
     /// Levels this stage targets, read from its title.
     pub levels: Option<LevelRange>,
+    /// The character level this tree is for ("LvLing Tree lvl 36" -> 36).
+    #[serde(default)]
+    pub target: Option<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -188,8 +191,11 @@ pub fn parse(xml: &str) -> Result<Build, PobError> {
             skill_groups.extend(groups_in(skills, None));
         } else {
             for set in sets {
-                let title = set.attribute("title").filter(|t| !t.is_empty());
-                skill_groups.extend(groups_in(set, title));
+                let title = set
+                    .attribute("title")
+                    .map(clean_text)
+                    .filter(|t| !t.is_empty());
+                skill_groups.extend(groups_in(set, title.as_deref()));
             }
         }
     }
@@ -201,10 +207,11 @@ pub fn parse(xml: &str) -> Result<Build, PobError> {
                 .map(|spec| {
                     let title = spec
                         .attribute("title")
-                        .filter(|t| !t.is_empty())
-                        .map(str::to_owned);
+                        .map(clean_text)
+                        .filter(|t| !t.is_empty());
                     TreeStage {
                         levels: title.as_deref().and_then(level_range),
+                        target: title.as_deref().and_then(target_level),
                         title,
                         nodes: spec
                             .attribute("nodes")
@@ -245,8 +252,8 @@ fn groups_in(parent: roxmltree::Node, set_title: Option<&str>) -> Vec<SkillGroup
         .map(|skill| {
             let label = skill
                 .attribute("label")
-                .filter(|l| !l.is_empty())
-                .map(str::to_owned);
+                .map(clean_text)
+                .filter(|l| !l.is_empty());
             let gems = skill
                 .children()
                 .filter(|n| n.has_tag_name("Gem"))
@@ -298,6 +305,73 @@ fn mastery_effects(raw: &str) -> Vec<(u32, u32)> {
         .collect()
 }
 
+/// Remove Path of Building formatting from a label or title: colour codes
+/// (`^6`, `^xRRGGBB`), skill set ids (`{9}`) and repeated spaces.
+pub fn clean_text(text: &str) -> String {
+    let chars: Vec<char> = text.chars().collect();
+    let mut out = String::new();
+    let mut i = 0;
+    while i < chars.len() {
+        match chars[i] {
+            '^' if chars.get(i + 1).is_some_and(char::is_ascii_digit) => i += 2,
+            '^' if chars.get(i + 1) == Some(&'x')
+                && chars.len() >= i + 8
+                && chars[i + 2..i + 8].iter().all(char::is_ascii_hexdigit) =>
+            {
+                i += 8;
+            }
+            '{' => {
+                let close = chars[i..].iter().position(|&c| c == '}');
+                match close {
+                    Some(n) if chars[i + 1..i + n].iter().all(char::is_ascii_digit) => i += n + 1,
+                    _ => {
+                        out.push('{');
+                        i += 1;
+                    }
+                }
+            }
+            c => {
+                out.push(c);
+                i += 1;
+            }
+        }
+    }
+    out.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
+/// Drop link-count tokens ("3L", "4-6L", "1S") so they aren't read as levels.
+fn without_link_counts(text: &str) -> String {
+    text.split_whitespace()
+        .filter(|w| {
+            let w = w.trim_matches(|c: char| !c.is_alphanumeric());
+            let Some(body) = w.strip_suffix(['L', 'l', 'S', 's']) else {
+                return true;
+            };
+            !(!body.is_empty() && body.chars().all(|c| c.is_ascii_digit() || c == '-'))
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// The level a Tree Stage is for: the first level mentioned in its title.
+pub fn target_level(title: &str) -> Option<u32> {
+    let text = without_link_counts(&clean_text(title).to_lowercase());
+    if !mentions_level(&text) || text.contains("act") {
+        return level_range(title).map(|r| r.to.unwrap_or(r.from));
+    }
+    numbers_with_plus(&text)
+        .first()
+        .map(|(n, _)| *n)
+        .filter(|n| (1..=100).contains(n))
+}
+
+fn mentions_level(lower: &str) -> bool {
+    lower.contains("lvl")
+        || lower.contains("level")
+        || lower.contains("lv ")
+        || lower.contains("lv.")
+}
+
 /// Approximate character level when each act starts (entering its first area).
 const ACT_START_LEVEL: [u32; 11] = [1, 1, 13, 23, 33, 40, 45, 50, 55, 61, 64];
 
@@ -305,23 +379,30 @@ const ACT_START_LEVEL: [u32; 11] = [1, 1, 13, 23, 33, 40, 45, 50, 55, 61, 64];
 /// "lvl 12+", "Level 1-12", "12 - 28", "(31)", "Act 2", "Acts 3-4", "Act 4+".
 /// Returns `None` when there are no numbers in a recognisable shape.
 pub fn level_range(text: &str) -> Option<LevelRange> {
-    let lower = text.to_lowercase();
-    let numbers = numbers_with_plus(&lower);
-    if numbers.is_empty() {
+    let lower = without_link_counts(&clean_text(text).to_lowercase());
+    // Only trust numbers in a label that talks about levels or acts, or
+    // that is nothing but a range ("12-28", "(31)").
+    let only_numbers = lower
+        .chars()
+        .all(|c| c.is_ascii_digit() || " -+()".contains(c));
+    let is_act = lower.contains("act");
+    if !(mentions_level(&lower) || is_act || only_numbers) {
         return None;
     }
+    let numbers = numbers_with_plus(&lower);
     let (a, b, plus) = match numbers.as_slice() {
         [(a, plus)] => (*a, None, *plus),
         [(a, _), (b, plus), ..] => (*a, Some(*b), *plus),
         [] => return None,
     };
-    if lower.contains("act") {
+    if is_act {
         let act_from = a.clamp(1, 10) as usize;
         let from = ACT_START_LEVEL[act_from];
-        let to = if plus {
+        let act_to = b.filter(|b| *b >= a).unwrap_or(a).clamp(1, 10) as usize;
+        // The last act runs until the campaign ends.
+        let to = if plus || act_to >= 10 {
             None
         } else {
-            let act_to = b.unwrap_or(a).clamp(1, 10) as usize;
             Some(ACT_START_LEVEL[act_to + 1].saturating_sub(1).max(from))
         };
         return Some(LevelRange { from, to });
@@ -470,6 +551,32 @@ mod tests {
     }
 
     #[test]
+    fn cleans_pob_formatting() {
+        assert_eq!(
+            clean_text("^6^4GEMS IN ^xFF0000WEAPON SWAP"),
+            "GEMS IN WEAPON SWAP"
+        );
+        assert_eq!(clean_text("^2Early Covenant {9}"), "Early Covenant");
+        assert_eq!(clean_text("Keep {braces} ^ alone"), "Keep {braces} ^ alone");
+    }
+
+    #[test]
+    fn tree_targets() {
+        assert_eq!(target_level("^2LvLing Tree lvl 36"), Some(36));
+        assert_eq!(
+            target_level("^2LvLing Tree lvl 80 (Respec 18 points)"),
+            Some(80)
+        );
+        assert_eq!(target_level("^1Mid lvl 96 {5}"), Some(96));
+        assert_eq!(target_level("Level 30"), Some(30));
+        assert_eq!(target_level("Act 3"), Some(32));
+        assert_eq!(
+            target_level("^2(Optional) ^5United In Dream Covenant {4}"),
+            None
+        );
+    }
+
+    #[test]
     fn rejects_garbage() {
         assert_eq!(import("not a code!"), Err(PobError::NotBase64));
         assert_eq!(import("aGVsbG8"), Err(PobError::NotZlib));
@@ -504,6 +611,21 @@ mod tests {
         assert_eq!(level_range("Act 4+"), r(33, None));
         assert_eq!(level_range("Main skill"), None);
         assert_eq!(level_range("Level 0"), None);
+        // PoB formatting and link counts are not levels.
+        assert_eq!(
+            level_range("^62L Before minions (Replace when you get srs)"),
+            None
+        );
+        assert_eq!(level_range("^6Act 4-10"), r(33, None));
+        assert_eq!(level_range("^6^5Lvl70 after 3rd lab"), r(70, None));
+        assert_eq!(
+            level_range("^2lvl 80-92 Early Rare 6 link {1}"),
+            r(80, Some(92))
+        );
+        assert_eq!(level_range("^2Early Covenant {9}"), None);
+        assert_eq!(level_range("3L ^2Spectres (1 forest warrior) & AG"), None);
+        assert_eq!(level_range("^61S Flesh offering at lvl 12"), r(12, None));
+        assert_eq!(level_range("Act 10"), r(64, None));
         assert!(r(1, Some(12)).unwrap().contains(12));
         assert!(!r(1, Some(12)).unwrap().contains(13));
     }

@@ -124,7 +124,12 @@ impl PassiveTree {
             .collect();
         let mut seen: HashSet<u32> = allocated.iter().copied().collect();
         seen.insert(start);
-        let mut queue: VecDeque<u32> = seen.iter().copied().collect();
+        // A fixed starting order, so the numbering doesn't change between
+        // updates: the class start first, then allocated nodes by id.
+        let mut from: Vec<u32> = allocated.iter().copied().filter(|&n| n != start).collect();
+        from.sort_unstable();
+        from.insert(0, start);
+        let mut queue: VecDeque<u32> = from.into();
         let mut order = Vec::new();
         while let Some(id) = queue.pop_front() {
             for &next in self.adjacent.get(&id).into_iter().flatten() {
@@ -404,29 +409,47 @@ pub struct TreeView {
     pub masteries: Vec<MasteryPick>,
     /// The Build's Tree Stage being worked towards, if a Build is imported.
     pub stage: Option<String>,
+    /// Index of that stage, all stage titles, and whether it was picked by hand.
+    pub stage_index: Option<usize>,
+    pub stages: Vec<String>,
+    pub stage_by_hand: bool,
     /// Next Points towards that stage, in allocation order.
     pub planned: Vec<u32>,
     /// The stage's mastery picks not yet made as planned.
     pub planned_masteries: Vec<MasteryPick>,
 }
 
-/// The Tree Stage to work towards at `level`: by the stages' level ranges if
-/// they have them, otherwise the first stage that isn't already complete.
+/// The Tree Stage to work towards at `level`, unless the player picked one
+/// (`chosen`). Stages with a target level ("LvLing Tree lvl 36"): the one with
+/// the lowest target at or above `level`, else the highest. Without targets:
+/// the first stage not yet complete.
 pub fn pick_stage<'a>(
     stages: &'a [TreeStage],
     level: u32,
     allocated: &HashSet<u32>,
+    chosen: Option<usize>,
 ) -> Option<(usize, &'a TreeStage)> {
-    let ranged: Vec<(usize, &TreeStage)> = stages
+    if let Some(i) = chosen
+        && let Some(stage) = stages.get(i)
+    {
+        return Some((i, stage));
+    }
+    let targeted: Vec<(usize, &TreeStage, u32)> = stages
         .iter()
         .enumerate()
-        .filter(|(_, s)| s.levels.is_some_and(|r| r.from <= level))
+        .filter_map(|(i, s)| s.target.map(|t| (i, s, t)))
         .collect();
-    if let Some(best) = ranged
-        .into_iter()
-        .max_by_key(|(_, s)| s.levels.map_or(0, |r| r.from))
-    {
-        return Some(best);
+    if !targeted.is_empty() {
+        let next = targeted
+            .iter()
+            .filter(|(_, _, t)| *t >= level)
+            .min_by_key(|(i, _, t)| (*t, *i));
+        let best = next.or_else(|| {
+            targeted
+                .iter()
+                .max_by_key(|(i, _, t)| (*t, usize::MAX - *i))
+        });
+        return best.map(|(i, s, _)| (*i, *s));
     }
     stages
         .iter()
@@ -436,15 +459,21 @@ pub fn pick_stage<'a>(
 }
 
 impl TreeView {
+    /// For the Active Character's Profile (`None` before one is known).
     pub fn build(
         tree: &PassiveTree,
         overlay: &TreeOverlay,
-        character: Option<&str>,
-        class: Option<&str>,
-        passives: &BTreeSet<String>,
-        masteries: &BTreeMap<String, u32>,
-        build: Option<(&Build, u32)>,
+        profile: Option<&crate::profile::Profile>,
     ) -> Self {
+        let empty_passives = BTreeSet::new();
+        let empty_masteries = BTreeMap::new();
+        let character = profile.map(|p| p.name.as_str());
+        let class = profile.and_then(|p| p.class.as_deref());
+        let passives = profile.map_or(&empty_passives, |p| &p.passives);
+        let masteries = profile.map_or(&empty_masteries, |p| &p.masteries);
+        let build: Option<(&Build, u32)> =
+            profile.and_then(|p| p.build.as_ref().map(|b| (b, p.level)));
+        let chosen_stage = profile.and_then(|p| p.tree_stage);
         let start = class
             .and_then(|c| tree.base_class(c))
             .and_then(|c| c.start_node)
@@ -452,27 +481,41 @@ impl TreeView {
         let allocated = tree.allocated_nodes(passives);
         let have: HashSet<u32> = allocated.iter().copied().collect();
         let picks = tree.mastery_picks(masteries);
-        let (stage, planned, planned_masteries) = match (build, start) {
-            (Some((b, level)), Some(s)) => match pick_stage(&b.tree_stages, level, &have) {
-                Some((i, stage)) => (
-                    Some(
-                        stage
-                            .title
-                            .clone()
-                            .unwrap_or_else(|| format!("Tree {}", i + 1)),
-                    ),
-                    tree.next_points(&have, s.id, &stage.nodes),
-                    tree.planned_mastery_picks(&stage.mastery_effects)
-                        .into_iter()
-                        .filter(|p| !picks.contains(p))
-                        .collect(),
-                ),
-                None => (None, Vec::new(), Vec::new()),
-            },
-            _ => (None, Vec::new(), Vec::new()),
+        let title_of = |i: usize, st: &TreeStage| {
+            st.title
+                .clone()
+                .unwrap_or_else(|| format!("Tree {}", i + 1))
+        };
+        let stages: Vec<String> = build
+            .map(|(b, _)| {
+                b.tree_stages
+                    .iter()
+                    .enumerate()
+                    .map(|(i, st)| title_of(i, st))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let picked = match (build, start) {
+            (Some((b, level)), Some(_)) => pick_stage(&b.tree_stages, level, &have, chosen_stage),
+            _ => None,
+        };
+        let stage_index = picked.map(|(i, _)| i);
+        let stage = picked.map(|(i, st)| title_of(i, st));
+        let (planned, planned_masteries) = match (picked, start) {
+            (Some((_, st)), Some(s)) => (
+                tree.next_points(&have, s.id, &st.nodes),
+                tree.planned_mastery_picks(&st.mastery_effects)
+                    .into_iter()
+                    .filter(|p| !picks.contains(p))
+                    .collect(),
+            ),
+            _ => (Vec::new(), Vec::new()),
         };
         Self {
             stage,
+            stage_index,
+            stage_by_hand: chosen_stage.is_some_and(|i| i < stages.len()),
+            stages,
             planned,
             planned_masteries,
             visible: overlay.visible,
@@ -623,24 +666,55 @@ mod tests {
 
     #[test]
     fn stage_choice_by_level_or_progress() {
-        use crate::pob::LevelRange;
-        let stage = |from: Option<u32>, nodes: Vec<u32>| TreeStage {
+        let stage = |target: Option<u32>, nodes: Vec<u32>| TreeStage {
             title: None,
             nodes,
             mastery_effects: vec![],
-            levels: from.map(|f| LevelRange { from: f, to: None }),
+            levels: None,
+            target,
         };
-        let ranged = [
-            stage(Some(1), vec![1]),
-            stage(Some(30), vec![1, 2]),
-            stage(Some(60), vec![1, 2, 3]),
+        let none = HashSet::new();
+        // "lvl 12", "lvl 24", "lvl 36", then two variants for 92.
+        let targeted = [
+            stage(Some(12), vec![1]),
+            stage(Some(24), vec![1, 2]),
+            stage(Some(36), vec![1, 2, 3]),
+            stage(Some(92), vec![1, 2, 3, 4]),
+            stage(Some(92), vec![1, 2, 3, 5]),
+            stage(None, vec![9]),
         ];
-        assert_eq!(pick_stage(&ranged, 45, &HashSet::new()).unwrap().0, 1);
-        assert_eq!(pick_stage(&ranged, 5, &HashSet::new()).unwrap().0, 0);
-        let unranged = [stage(None, vec![1]), stage(None, vec![1, 2])];
+        assert_eq!(pick_stage(&targeted, 5, &none, None).unwrap().0, 0);
+        assert_eq!(pick_stage(&targeted, 24, &none, None).unwrap().0, 1);
+        assert_eq!(
+            pick_stage(&targeted, 30, &none, None).unwrap().0,
+            2,
+            "working towards 36"
+        );
+        assert_eq!(
+            pick_stage(&targeted, 60, &none, None).unwrap().0,
+            3,
+            "first of the 92s"
+        );
+        assert_eq!(
+            pick_stage(&targeted, 99, &none, None).unwrap().0,
+            3,
+            "past them all"
+        );
+        assert_eq!(
+            pick_stage(&targeted, 30, &none, Some(5)).unwrap().0,
+            5,
+            "player's pick"
+        );
+        assert_eq!(
+            pick_stage(&targeted, 30, &none, Some(50)).unwrap().0,
+            2,
+            "bad pick ignored"
+        );
+
+        let untargeted = [stage(None, vec![1]), stage(None, vec![1, 2])];
         let have: HashSet<u32> = [1].into();
         assert_eq!(
-            pick_stage(&unranged, 50, &have).unwrap().0,
+            pick_stage(&untargeted, 50, &have, None).unwrap().0,
             1,
             "first incomplete"
         );

@@ -49,7 +49,7 @@ export default function CharactersCard() {
 					</p>
 				}
 			>
-				<table>
+				<table class="characters">
 					<thead>
 						<tr>
 							<th>Character</th>
@@ -107,14 +107,17 @@ function ProfileRow(props: {
 				{props.profile.lastSeen ? formatLocalDate(props.profile.lastSeen) : "—"}
 			</td>
 			<td>
-				{props.profile.passives.length}{" "}
-				<button
-					type="button"
-					title="Read the whole Client Log for this character's passive allocations"
-					onClick={props.onRebuild}
-				>
-					Rebuild from log
-				</button>
+				<span class="passives">
+					{props.profile.passives.length}
+					<button
+						type="button"
+						class="small"
+						title="Rebuild this character's passives and masteries from the whole Client Log"
+						onClick={props.onRebuild}
+					>
+						↻
+					</button>
+				</span>
 			</td>
 			<td class="guide-options">
 				<label title="Include league-start steps (early waypoints, side bosses, strongboxes)">

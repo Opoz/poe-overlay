@@ -29,7 +29,10 @@ export default function GemsOverlay() {
 	return (
 		<div class="overlay gems" classList={{ interact: interact() }}>
 			<header class="guide-bar">
-				<span class="muted">Gem links · level {view()?.level ?? "?"}</span>
+				<span class="muted">
+					{view()?.skillSet ?? "Gem links"} · level {view()?.level ?? "?"}
+					{view()?.skillSetByHand ? " (picked)" : ""}
+				</span>
 				<span class="muted">Alt+L</span>
 			</header>
 			<Show

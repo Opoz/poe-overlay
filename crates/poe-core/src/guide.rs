@@ -262,8 +262,12 @@ impl GuideBook {
 
     /// The active Character entered `area`: move their Guide progress forward.
     pub fn on_area(&self, profile: &mut Profile, area: &str) {
-        profile.last_area = Some(area.to_owned());
         let guide = self.guide(profile.guide_options);
+        // Remember the last campaign Area (not hideouts, maps or the lab):
+        // that's where "find me" looks.
+        if guide.steps.iter().any(|s| s.area == area) {
+            profile.last_area = Some(area.to_owned());
+        }
         let next = match profile.guide_step {
             // First time: place them wherever this Area is in the Guide.
             None => guide.find(0, area),
@@ -274,31 +278,49 @@ impl GuideBook {
         }
     }
 
-    pub fn command(&self, profile: &mut Profile, command: GuideCommand) {
+    /// Returns a message for the player when nothing could be done.
+    pub fn command(&self, profile: &mut Profile, command: GuideCommand) -> Option<String> {
         let guide = self.guide(profile.guide_options);
         if guide.steps.is_empty() {
-            return;
+            return None;
         }
         let current = profile.guide_step.map_or(0, |id| guide.index_of(id));
         let next = match command {
             GuideCommand::Next => (current + 1).min(guide.steps.len() - 1),
             GuideCommand::Previous => current.saturating_sub(1),
-            GuideCommand::FindMe => match &profile.last_area {
-                Some(area) => guide.find(current, area).unwrap_or(current),
-                None => current,
-            },
+            GuideCommand::Jump { step } => guide.index_of(step),
+            GuideCommand::FindMe => {
+                let Some(area) = &profile.last_area else {
+                    return Some("Enter a campaign area first, then find me can place you.".into());
+                };
+                let Some(i) = guide.nearest(current, area) else {
+                    return Some("Your last area isn't in the guide.".into());
+                };
+                if i == current {
+                    let name = &guide.steps[i].area_name;
+                    return Some(format!("You're already on the step for {name}."));
+                }
+                i
+            }
         };
         profile.guide_step = Some(guide.steps[next].id);
+        None
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[serde(tag = "kind")]
 pub enum GuideCommand {
     Next,
     Previous,
-    /// Jump to the next Step in the Area the Character is in.
+    /// Jump to the Step in the Area the Character was last in (the nearest
+    /// such Step to the Current Step).
     FindMe,
+    /// Make this Step (by id) the Current Step.
+    Jump {
+        step: u32,
+    },
 }
 
 impl Guide {
@@ -326,6 +348,13 @@ impl Guide {
         };
         let end = (current + lookahead + 1).min(self.steps.len());
         (current + 1..end).find(|&i| self.steps[i].area == area)
+    }
+
+    /// The Step in `area` closest to `from` (ahead wins a tie).
+    pub fn nearest(&self, from: usize, area: &str) -> Option<usize> {
+        (0..self.steps.len())
+            .filter(|&i| self.steps[i].area == area)
+            .min_by_key(|&i| (i.abs_diff(from), i < from))
     }
 
     /// The first Step in `area` at or after `from`, else the first anywhere.
@@ -607,6 +636,8 @@ fn tag_fragment(tag: &str, comment: Option<&str>, name_of: &impl Fn(&str) -> Str
 #[serde(rename_all = "camelCase")]
 pub struct GuideView {
     pub character: Option<String>,
+    /// The act shown in the full-act view.
+    pub act: u8,
     pub options: GuideOptions,
     /// 0-based index of the current Step, and how many there are.
     pub position: usize,
@@ -625,15 +656,17 @@ pub struct GuideView {
 }
 
 impl GuideView {
-    pub fn build(book: &GuideBook, profile: Option<&Profile>) -> Self {
+    /// `browse_act` shows another act in the full-act view.
+    pub fn build(book: &GuideBook, profile: Option<&Profile>, browse_act: Option<u8>) -> Self {
         let options = profile.map_or_else(GuideOptions::default, |p| p.guide_options);
         let guide = book.guide(options);
         let position = profile
             .and_then(|p| p.guide_step)
             .map_or(0, |id| guide.index_of(id));
         let current = guide.steps.get(position).cloned();
-        let act = current.as_ref().map_or(1, |s| s.act);
+        let act = browse_act.unwrap_or_else(|| current.as_ref().map_or(1, |s| s.act));
         Self {
+            act,
             character: profile.map(|p| p.name.clone()),
             options,
             position,
@@ -853,8 +886,35 @@ mod tests {
 
         // Lost: find me jumps to where they are.
         p.last_area = Some("1_2_town".into());
-        book.command(&mut p, GuideCommand::FindMe);
-        assert_eq!(g.steps[g.index_of(p.guide_step.unwrap())].area, "1_2_town");
+        assert_eq!(book.command(&mut p, GuideCommand::FindMe), None);
+        let at = g.index_of(p.guide_step.unwrap());
+        assert_eq!(g.steps[at].area, "1_2_town");
+        assert!(
+            book.command(&mut p, GuideCommand::FindMe).is_some(),
+            "already there"
+        );
+
+        // A hideout doesn't count as where they are.
+        book.on_area(&mut p, "HideoutCourts");
+        assert_eq!(p.last_area.as_deref(), Some("1_2_town"));
+
+        // Jump to a Step by id (the full-act view).
+        let target = g.steps[10].id;
+        book.command(&mut p, GuideCommand::Jump { step: target });
+        assert_eq!(p.guide_step, Some(target));
+    }
+
+    #[test]
+    fn find_me_prefers_the_nearest_matching_step() {
+        let book = book();
+        let g = book.guide(GuideOptions::default());
+        let towns: Vec<usize> = (0..g.steps.len())
+            .filter(|&i| g.steps[i].area == "1_1_town")
+            .collect();
+        assert!(towns.len() > 2);
+        // From just after the third visit to Lioneye's Watch, find me lands
+        // on that visit, not the first one in the guide.
+        assert_eq!(g.nearest(towns[2] + 1, "1_1_town"), Some(towns[2]));
     }
 
     #[test]

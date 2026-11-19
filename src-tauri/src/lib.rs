@@ -49,6 +49,10 @@ pub struct AppState {
     /// The player toggled the lab Overlay; `None` = automatic (shown in the
     /// lab). Reset on entering or leaving the lab.
     lab_manual: Mutex<Option<bool>>,
+    /// The act shown in the full-act view, when browsing another act.
+    act_browse: Mutex<Option<u8>>,
+    /// Hotkeys another app has taken.
+    hotkey_failures: Mutex<Vec<String>>,
 }
 
 /// Event carrying a fresh [`TimerView`] to every window.
@@ -66,6 +70,8 @@ const GEMS_VIEW: &str = "gems-view";
 const REGEX_COPIED: &str = "regex-copied";
 /// Event carrying a fresh [`LabView`] (plus whether it's showing).
 const LAB_VIEW: &str = "lab-view";
+/// Event: hotkeys another app has taken.
+const HOTKEY_FAILURES: &str = "hotkey-failures";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -74,7 +80,7 @@ struct Status {
     game_running: bool,
 }
 
-fn hotkeys() -> [(Shortcut, Hotkey); 14] {
+fn hotkeys() -> [(Shortcut, Hotkey); 16] {
     let alt = Some(Modifiers::ALT);
     let alt_shift = Some(Modifiers::ALT | Modifiers::SHIFT);
     [
@@ -110,6 +116,14 @@ fn hotkeys() -> [(Shortcut, Hotkey); 14] {
         (Shortcut::new(alt, Code::KeyR), Hotkey::VendorRegex),
         (Shortcut::new(alt, Code::KeyB), Hotkey::LabOverlay),
         (Shortcut::new(alt_shift, Code::KeyB), Hotkey::LabImport),
+        (
+            Shortcut::new(alt_shift, Code::BracketLeft),
+            Hotkey::TreeStage(-1),
+        ),
+        (
+            Shortcut::new(alt_shift, Code::BracketRight),
+            Hotkey::TreeStage(1),
+        ),
     ]
 }
 
@@ -125,6 +139,8 @@ enum Hotkey {
     VendorRegex,
     LabOverlay,
     LabImport,
+    /// Show the previous / next Tree Stage.
+    TreeStage(i32),
 }
 
 fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
@@ -146,13 +162,15 @@ fn on_hotkey(app: &AppHandle, hotkey: Hotkey) {
             state.tracker.lock().unwrap().toggle_calibration();
             emit_tree(app);
         }
-        Hotkey::Guide(command) => {
-            state.tracker.lock().unwrap().guide_command(command);
-            emit_guide(app);
-        }
+        Hotkey::Guide(command) => run_guide_command(app, command),
         Hotkey::ActView => {
             state.act_view.fetch_xor(true, Ordering::SeqCst);
+            *state.act_browse.lock().unwrap() = None;
             emit_guide(app);
+        }
+        Hotkey::TreeStage(delta) => {
+            state.tracker.lock().unwrap().cycle_tree_stage(delta);
+            emit_tree(app);
         }
         Hotkey::GemLinks => {
             state.gems_visible.fetch_xor(true, Ordering::SeqCst);
@@ -247,7 +265,7 @@ struct RegexCopied {
 fn copy_vendor_regex(app: &AppHandle) {
     use tauri_plugin_clipboard_manager::ClipboardExt;
     let state = app.state::<AppState>();
-    let regexes = state.tracker.lock().unwrap().guide_view().vendor_regex;
+    let regexes = state.tracker.lock().unwrap().guide_view(None).vendor_regex;
     let mut cursor = state.regex_cursor.lock().unwrap();
     if cursor.0 != regexes {
         *cursor = (regexes.clone(), 0);
@@ -395,7 +413,8 @@ struct GuidePayload {
 
 fn guide_payload(app: &AppHandle) -> GuidePayload {
     let state = app.state::<AppState>();
-    let view = state.tracker.lock().unwrap().guide_view();
+    let browse = *state.act_browse.lock().unwrap();
+    let view = state.tracker.lock().unwrap().guide_view(browse);
     GuidePayload {
         view,
         act_view: state.act_view.load(Ordering::SeqCst),
@@ -423,14 +442,65 @@ fn get_guide_view(app: AppHandle) -> GuidePayload {
 }
 
 #[tauri::command]
-fn guide_command(app: AppHandle, state: tauri::State<AppState>, command: GuideCommand) {
-    state.tracker.lock().unwrap().guide_command(command);
+fn guide_command(app: AppHandle, command: GuideCommand) {
+    run_guide_command(&app, command);
+}
+
+/// Event: a short note from the Guide (e.g. why find me didn't move).
+const GUIDE_MESSAGE: &str = "guide-message";
+
+fn run_guide_command(app: &AppHandle, command: GuideCommand) {
+    let state = app.state::<AppState>();
+    let message = state.tracker.lock().unwrap().guide_command(command);
+    if matches!(command, GuideCommand::Jump { .. }) {
+        *state.act_browse.lock().unwrap() = None;
+    }
+    if let Some(m) = message {
+        let _ = app.emit(GUIDE_MESSAGE, m);
+    }
+    emit_guide(app);
+}
+
+/// Show another act in the full-act view (`None` = the current act).
+#[tauri::command]
+fn browse_act(app: AppHandle, state: tauri::State<AppState>, act: Option<u8>) {
+    *state.act_browse.lock().unwrap() = act;
     emit_guide(&app);
+}
+
+#[tauri::command]
+fn set_skill_set(app: AppHandle, state: tauri::State<AppState>, name: String, set: Option<String>) {
+    state.tracker.lock().unwrap().set_skill_set(&name, set);
+    emit_gems(&app);
+}
+
+#[tauri::command]
+fn set_tree_stage(
+    app: AppHandle,
+    state: tauri::State<AppState>,
+    name: String,
+    stage: Option<usize>,
+) {
+    state.tracker.lock().unwrap().set_tree_stage(&name, stage);
+    emit_tree(&app);
+}
+
+#[tauri::command]
+fn cycle_tree_stage(app: AppHandle, state: tauri::State<AppState>, delta: i32) {
+    state.tracker.lock().unwrap().cycle_tree_stage(delta);
+    emit_tree(&app);
+}
+
+/// Hide or show the tree Overlay (the tree bar's button).
+#[tauri::command]
+fn hotkey_failures(state: tauri::State<AppState>) -> Vec<String> {
+    state.hotkey_failures.lock().unwrap().clone()
 }
 
 #[tauri::command]
 fn toggle_act_view(app: AppHandle, state: tauri::State<AppState>) {
     state.act_view.fetch_xor(true, Ordering::SeqCst);
+    *state.act_browse.lock().unwrap() = None;
     emit_guide(&app);
 }
 
@@ -582,6 +652,35 @@ fn get_interact(state: tauri::State<AppState>) -> bool {
     state.interact.load(Ordering::SeqCst)
 }
 
+/// A key press anywhere. While the game is focused, the passive tree key
+/// toggles the tree Overlay along with the game's tree, and Escape hides it.
+fn on_key(app: &AppHandle, vk: u32) {
+    let Some(game) = platform::find_game_window() else {
+        return;
+    };
+    if platform::foreground_window() != game {
+        return;
+    }
+    let state = app.state::<AppState>();
+    let Some(tree_vk) = state
+        .settings
+        .lock()
+        .unwrap()
+        .tree_key
+        .as_deref()
+        .and_then(platform::vk_for)
+    else {
+        return;
+    };
+    let mut tracker = state.tracker.lock().unwrap();
+    let visible = tracker.tree_overlay().visible;
+    if vk == tree_vk || (vk == platform::VK_ESCAPE && visible) {
+        tracker.toggle_tree();
+        drop(tracker);
+        emit_tree(app);
+    }
+}
+
 /// A middle-click anywhere. Aligns the tree Overlay when it is showing, the
 /// game is focused and the click landed inside the game window.
 fn on_middle_click(app: &AppHandle, x: i32, y: i32) {
@@ -696,6 +795,12 @@ fn spawn_tracking_loop(app: AppHandle) {
                         clickable: true,
                     },
                     overlay::Wanted {
+                        label: overlay::TREEBAR,
+                        anchor: overlay::Anchor::At(settings.treebar_overlay),
+                        visible: tree.visible && !tree.calibrating.is_some(),
+                        clickable: true,
+                    },
+                    overlay::Wanted {
                         label: overlay::LAB,
                         anchor: overlay::Anchor::At(settings.lab_overlay),
                         visible: lab_shown,
@@ -717,6 +822,13 @@ fn spawn_tracking_loop(app: AppHandle) {
             };
             let interact = state.interact.load(Ordering::SeqCst);
             let moved = overlays.sync(&app, game, interact, &wanted);
+            {
+                let mut failures = state.hotkey_failures.lock().unwrap();
+                if *failures != overlays.failed {
+                    failures.clone_from(&overlays.failed);
+                    let _ = app.emit(HOTKEY_FAILURES, failures.clone());
+                }
+            }
             if !moved.is_empty() {
                 let mut settings = state.settings.lock().unwrap();
                 for (label, placement) in moved {
@@ -726,6 +838,7 @@ fn spawn_tracking_loop(app: AppHandle) {
                         overlay::ACT => settings.act_overlay = placement,
                         overlay::GEMS => settings.gems_overlay = placement,
                         overlay::LAB => settings.lab_overlay = placement,
+                        overlay::TREEBAR => settings.treebar_overlay = placement,
                         _ => {}
                     }
                 }
@@ -808,6 +921,8 @@ pub fn run() {
             regex_cursor: Mutex::new((Vec::new(), 0)),
             lab_import: Mutex::new(None),
             lab_manual: Mutex::new(None),
+            act_browse: Mutex::new(None),
+            hotkey_failures: Mutex::new(Vec::new()),
         })
         .invoke_handler(tauri::generate_handler![
             get_timer_view,
@@ -837,6 +952,11 @@ pub fn run() {
             lab_load_clipboard,
             lab_toggle,
             set_lab_detour,
+            browse_act,
+            set_skill_set,
+            set_tree_stage,
+            cycle_tree_stage,
+            hotkey_failures,
             rebuild_passives,
         ])
         .on_window_event(|window, event| {
@@ -860,6 +980,8 @@ pub fn run() {
             spawn_tracking_loop(app.handle().clone());
             let handle = app.handle().clone();
             platform::watch_middle_clicks(move |x, y| on_middle_click(&handle, x, y));
+            let handle = app.handle().clone();
+            platform::watch_keys(move |vk| on_key(&handle, vk));
             Ok(())
         })
         .run(tauri::generate_context!())

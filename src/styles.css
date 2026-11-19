@@ -35,7 +35,9 @@ html[data-window="act"] body,
 html[data-window="gems"],
 html[data-window="gems"] body,
 html[data-window="lab"],
-html[data-window="lab"] body {
+html[data-window="lab"] body,
+html[data-window="treebar"],
+html[data-window="treebar"] body {
 	background: transparent;
 	overflow: hidden;
 	user-select: none;
@@ -306,6 +308,13 @@ tr.active td {
 .act {
 	font-size: 13px;
 	line-height: 1.35;
+}
+
+/* Never taller than the window; scroll instead of being cut off. */
+.guide,
+.gems {
+	max-height: calc(100vh - 8px);
+	overflow-y: auto;
 }
 
 .act {
@@ -606,7 +615,7 @@ tr.disabled td {
 
 /* Lab */
 .lab {
-	font-size: 13px;
+	font-size: 14px;
 }
 
 .toast.warn {
@@ -655,7 +664,7 @@ tr.disabled td {
 
 .lab-name {
 	fill: var(--muted);
-	font-size: 10px;
+	font-size: 14px;
 	text-anchor: middle;
 }
 
@@ -666,7 +675,7 @@ tr.disabled td {
 
 .lab-marks {
 	fill: var(--gold);
-	font-size: 10px;
+	font-size: 14px;
 	font-weight: 700;
 	text-anchor: middle;
 }
@@ -682,4 +691,102 @@ tr.disabled td {
 	display: flex;
 	gap: 6px;
 	align-items: center;
+}
+
+/* Tree bar */
+.treebar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	white-space: nowrap;
+}
+
+.treebar button {
+	padding: 2px 8px;
+}
+
+.treebar-name {
+	font-weight: 600;
+	color: var(--gold);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 300px;
+}
+
+.treebar-hide {
+	margin-left: auto;
+}
+
+/* Full-act view */
+.act-tabs {
+	display: flex;
+	gap: 2px;
+}
+
+.act-tabs button {
+	padding: 1px 7px;
+}
+
+.act-tabs button.on {
+	border-color: var(--accent);
+	color: var(--accent);
+}
+
+.act-tabs button.here {
+	font-weight: 700;
+}
+
+.act-hint {
+	font-size: 11px;
+	margin-bottom: 4px;
+}
+
+button.act-step {
+	display: block;
+	width: 100%;
+	text-align: left;
+	background: transparent;
+	border: 1px solid transparent;
+	font: inherit;
+	color: inherit;
+	cursor: pointer;
+}
+
+button.act-step:hover {
+	border-color: var(--line);
+}
+
+.pickers {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 6px 0;
+}
+
+.pickers label {
+	display: grid;
+	gap: 4px;
+	color: var(--muted);
+}
+
+table.characters td,
+table.characters th {
+	white-space: nowrap;
+}
+
+.passives {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+button.small {
+	padding: 0 6px;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.warn-text {
+	color: #ff9a8a;
 }

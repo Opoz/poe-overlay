@@ -7,6 +7,7 @@ import GuideOverlay from "./guide/GuideOverlay";
 import LabOverlay from "./lab/LabOverlay";
 import MainWindow from "./main/MainWindow";
 import TimerOverlay from "./timer/TimerOverlay";
+import TreeBar from "./tree/TreeBar";
 import TreeOverlay from "./tree/TreeOverlay";
 import "./styles.css";
 
@@ -21,5 +22,6 @@ render(() => {
 	if (label === "act") return <ActOverlay />;
 	if (label === "gems") return <GemsOverlay />;
 	if (label === "lab") return <LabOverlay />;
+	if (label === "treebar") return <TreeBar />;
 	return <MainWindow />;
 }, document.getElementById("root") as HTMLElement);

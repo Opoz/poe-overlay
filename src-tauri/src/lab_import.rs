@@ -179,7 +179,7 @@ pub fn tick(app: &AppHandle, game_focused: bool) {
                     status(
                         &app,
                         "opened",
-                        "Opened the compass file: select all and copy its text (Ctrl+A, Ctrl+C).",
+                        "Opened the compass file: copy its text (Firefox: Raw Data → Copy; otherwise Ctrl+A, Ctrl+C).",
                     );
                 }
             }

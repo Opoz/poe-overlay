@@ -4,9 +4,9 @@ import { createSignal, For, onCleanup, Show } from "solid-js";
 import { onEvent } from "../events";
 import type { LabImportStatus, LabPayload, LabRoom } from "../types";
 
-const W = 540;
-const H = 300;
-const PAD = 22;
+const W = 760;
+const H = 420;
+const PAD = 34;
 
 /** The day's Labyrinth: rooms, where you are, and the way to Izaro. */
 export default function LabOverlay() {
@@ -121,8 +121,8 @@ export default function LabOverlay() {
 				fallback={
 					<p class="muted">
 						No layout loaded. Click "Open today's lab", open the lab on poelab
-						and copy its compass file link; when it opens, copy the text
-						(Ctrl+A, Ctrl+C).
+						and copy its compass file link. When the file opens, copy its text:
+						in Firefox use Raw Data → Copy; elsewhere Ctrl+A, Ctrl+C.
 					</p>
 				}
 			>
@@ -170,18 +170,18 @@ export default function LabOverlay() {
 											: ""}
 									</title>
 									<rect
-										x={pos().x - 9}
-										y={pos().y - 9}
-										width="18"
-										height="18"
+										x={pos().x - 13}
+										y={pos().y - 13}
+										width="26"
+										height="26"
 										rx="3"
 									/>
-									<text x={pos().x} y={pos().y - 13} class="lab-name">
+									<text x={pos().x} y={pos().y - 19} class="lab-name">
 										{room.izaro
 											? "Izaro"
 											: titleCase(room.name.split(" ").pop() ?? "")}
 									</text>
-									<text x={pos().x} y={pos().y + 22} class="lab-marks">
+									<text x={pos().x} y={pos().y + 30} class="lab-marks">
 										{room.contents.darkshrine ? "D" : ""}
 										{room.contents.silverKey ? "K" : ""}
 										{room.contents.silverDoor ? "🔒" : ""}

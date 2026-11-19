@@ -105,4 +105,5 @@ Feature-parity target: Exile UI's levelling tools, rebuilt independently (see [A
   - [x] Lab Overlay: auto in plaza/lab, Alt+B toggle, Alt+Shift+B open poelab
   - [x] Trials: not tracked (no log line); they stay Guide Steps
   - [ ] Test against a real compass file; verify in-game
+- [x] **Feedback round 1** (2026-11-19): PoB colour codes / link counts / `{n}` ignored; one skill set at a time; tree titles are targets; stable Next Points; tree bar (◀ ▶, Auto, Hide) + Alt+Shift+[ / ]; passive tree key + Escape follow the game's tree; find me uses the last campaign Area and the nearest Step; full-act view act tabs + click to jump; overlays clamp inside the game window; hotkey conflicts shown; bigger lab map.
 - [ ] **M5**: hotkey rebinding, layout persistence, Runs tab polish, signed releases + updater.

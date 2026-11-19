@@ -66,11 +66,13 @@ export interface Profile {
 		class: string;
 		ascendancy: string | null;
 		skillGroups: SkillGroupData[];
-		treeStages: unknown[];
+		treeStages: { title: string | null }[];
 	} | null;
 	buildSource: string | null;
 	banditSetByHand: boolean;
 	groupLevels: Record<string, LevelRange | null>;
+	skillSet: string | null;
+	treeStage: number | null;
 }
 
 export interface SkillGroupData {
@@ -120,6 +122,9 @@ export interface TreeView {
 	allocated: number[];
 	masteries: { node: number; option: number }[];
 	stage: string | null;
+	stageIndex: number | null;
+	stages: string[];
+	stageByHand: boolean;
 	planned: number[];
 	plannedMasteries: { node: number; option: number }[];
 }
@@ -139,6 +144,7 @@ export interface Settings {
 	category: string;
 	pauseInHideout: boolean;
 	timerOverlay: OverlayPlacement;
+	treeKey: string | null;
 	overlayOpacity: number;
 }
 
@@ -209,6 +215,7 @@ export interface GemPick {
 
 export interface GuidePayload {
 	character: string | null;
+	act: number;
 	options: GuideOptions;
 	position: number;
 	total: number;
@@ -244,6 +251,9 @@ export interface GemsPayload {
 	character: string | null;
 	level: number;
 	hasBuild: boolean;
+	skillSet: string | null;
+	skillSets: string[];
+	skillSetByHand: boolean;
 	groups: GroupView[];
 	visible: boolean;
 }
@@ -261,7 +271,11 @@ export interface BuildSummary {
 	treeStages: number;
 }
 
-export type GuideCommand = "next" | "previous" | "findMe";
+export type GuideCommand =
+	| { kind: "next" }
+	| { kind: "previous" }
+	| { kind: "findMe" }
+	| { kind: "jump"; step: number };
 
 export type LabDifficulty = "normal" | "cruel" | "merciless" | "eternal";
 

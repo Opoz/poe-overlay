@@ -50,6 +50,12 @@ pub struct Profile {
     /// overriding what the labels say. `None` = always shown.
     #[serde(default)]
     pub group_levels: BTreeMap<usize, Option<LevelRange>>,
+    /// Skill set picked by hand (by title); `None` = by level.
+    #[serde(default)]
+    pub skill_set: Option<String>,
+    /// Tree Stage picked by hand (index); `None` = by level.
+    #[serde(default)]
+    pub tree_stage: Option<usize>,
 }
 
 impl Profile {
@@ -69,6 +75,8 @@ impl Profile {
             build_source: None,
             bandit_set_by_hand: false,
             group_levels: BTreeMap::new(),
+            skill_set: None,
+            tree_stage: None,
         }
     }
 
@@ -80,8 +88,10 @@ impl Profile {
         {
             self.guide_options.bandit = bandit;
         }
-        // Group indexes refer to the old Build.
+        // Indexes and titles refer to the old Build.
         self.group_levels.clear();
+        self.skill_set = None;
+        self.tree_stage = None;
         self.build = Some(build);
         self.build_source = Some(source);
     }

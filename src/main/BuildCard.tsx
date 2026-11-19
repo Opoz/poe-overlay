@@ -1,8 +1,21 @@
 import { invoke } from "@tauri-apps/api/core";
 import { createResource, createSignal, For, onCleanup, Show } from "solid-js";
 import { onEvent } from "../events";
-import type { BuildSummary, Characters, GuidePayload } from "../types";
+import type { BuildSummary, Characters, GuidePayload, Profile } from "../types";
 import GroupLevels from "./GroupLevels";
+
+/** Skill set titles in build order. */
+function skillSets(p: Profile): string[] {
+	const out: string[] = [];
+	for (const g of p.build?.skillGroups ?? []) {
+		if (g.skillSet && !out.includes(g.skillSet)) out.push(g.skillSet);
+	}
+	return out;
+}
+
+function treeTitles(p: Profile): string[] {
+	return (p.build?.treeStages ?? []).map((t, i) => t.title ?? `Tree ${i + 1}`);
+}
 
 /** Import a Path of Building build for the Active Character. */
 export default function BuildCard() {
@@ -89,6 +102,45 @@ export default function BuildCard() {
 							</button>
 						</div>
 						<Show when={p().build}>
+							<div class="pickers">
+								<label>
+									Skill set (gem links)
+									<select
+										value={p().skillSet ?? ""}
+										onChange={(e) =>
+											invoke("set_skill_set", {
+												name: p().name,
+												set: e.currentTarget.value || null,
+											}).then(refetch)
+										}
+									>
+										<option value="">Auto (by level)</option>
+										<For each={skillSets(p())}>
+											{(t) => <option value={t}>{t}</option>}
+										</For>
+									</select>
+								</label>
+								<label>
+									Passive tree
+									<select
+										value={p().treeStage ?? ""}
+										onChange={(e) =>
+											invoke("set_tree_stage", {
+												name: p().name,
+												stage:
+													e.currentTarget.value === ""
+														? null
+														: Number(e.currentTarget.value),
+											}).then(refetch)
+										}
+									>
+										<option value="">Auto (by level)</option>
+										<For each={treeTitles(p())}>
+											{(t, i) => <option value={i()}>{t}</option>}
+										</For>
+									</select>
+								</label>
+							</div>
 							<GroupLevels profile={p()} onChange={refetch} />
 						</Show>
 						<Show when={message()}>

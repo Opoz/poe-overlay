@@ -24,15 +24,18 @@ pub const ACT: &str = "act";
 pub const GEMS: &str = "gems";
 /// The Labyrinth map.
 pub const LAB: &str = "lab";
+/// Controls for the tree Overlay (which itself lets clicks through).
+pub const TREEBAR: &str = "treebar";
 
 /// (label, logical width, logical height, opacity)
-const WINDOWS: [(&str, f64, f64, f64); 6] = [
+const WINDOWS: [(&str, f64, f64, f64); 7] = [
     (TIMER, 280.0, 340.0, 1.0),
     (TREE, 800.0, 600.0, 1.0),
     (GUIDE, 380.0, 420.0, 1.0),
     (ACT, 520.0, 720.0, 1.0),
     (GEMS, 320.0, 420.0, 1.0),
-    (LAB, 560.0, 440.0, 1.0),
+    (LAB, 780.0, 560.0, 1.0),
+    (TREEBAR, 640.0, 52.0, 1.0),
 ];
 
 pub fn create_overlays(app: &AppHandle, opacity: f64) -> tauri::Result<()> {
@@ -89,6 +92,8 @@ struct Applied {
 /// Keeps Overlays and hotkeys in step with the game window.
 pub struct Follower {
     shortcuts: Vec<Shortcut>,
+    /// Hotkeys Windows refused (another app has them), as text.
+    pub failed: Vec<String>,
     hotkeys_on: bool,
     applied: HashMap<&'static str, Applied>,
     was_interact: bool,
@@ -99,6 +104,7 @@ impl Follower {
     pub fn new(shortcuts: Vec<Shortcut>) -> Self {
         Self {
             shortcuts,
+            failed: Vec::new(),
             hotkeys_on: false,
             applied: HashMap::new(),
             was_interact: false,
@@ -135,12 +141,19 @@ impl Follower {
         if active != self.hotkeys_on {
             // Hotkeys only exist while the game is focused, so they never
             // swallow keys in other apps.
-            let shortcuts = self.shortcuts.clone();
-            let _ = if active {
-                app.global_shortcut().register_multiple(shortcuts)
+            if active {
+                // One at a time, so one taken hotkey doesn't block the rest.
+                self.failed.clear();
+                for s in &self.shortcuts {
+                    if app.global_shortcut().register(*s).is_err() {
+                        self.failed.push(s.into_string());
+                    }
+                }
             } else {
-                app.global_shortcut().unregister_multiple(shortcuts)
-            };
+                for s in &self.shortcuts {
+                    let _ = app.global_shortcut().unregister(*s);
+                }
+            }
             self.hotkeys_on = active;
         }
 
@@ -156,15 +169,21 @@ impl Follower {
                 && movable
                 && let (Some(r), Ok(pos)) = (self.last_rect, window.outer_position())
             {
-                // Remember where the player put it.
+                // Remember where the player put it, kept inside the game window.
+                let size = window.outer_size().unwrap_or_default();
+                let max_x = (r.width - size.width as i32).max(0);
+                let max_y = (r.height - size.height as i32).max(0);
+                let x = (pos.x - r.x).clamp(0, max_x);
+                let y = (pos.y - r.y).clamp(0, max_y);
                 moved.push((
                     w.label,
                     OverlayPlacement {
-                        x: f64::from(pos.x - r.x) / f64::from(r.width),
-                        y: f64::from(pos.y - r.y) / f64::from(r.height),
+                        x: f64::from(x) / f64::from(r.width),
+                        y: f64::from(y) / f64::from(r.height),
                     },
                 ));
-                applied.target = Some((pos.x, pos.y, 0, 0));
+                // Snaps back next tick if it was dropped outside.
+                applied.target = None;
                 continue;
             }
 

@@ -13,6 +13,14 @@ export default function GuideOverlay() {
 	onEvent<boolean>("interact-mode", setInteract);
 	invoke<boolean>("get_interact").then(setInteract);
 
+	const [note, setNote] = createSignal<string | null>(null);
+	let hideNote: number | undefined;
+	onEvent<string>("guide-message", (m) => {
+		setNote(m);
+		clearTimeout(hideNote);
+		hideNote = window.setTimeout(() => setNote(null), 4000);
+	});
+
 	const [copied, setCopied] = createSignal<RegexCopied | null>(null);
 	let hideCopied: number | undefined;
 	onEvent<RegexCopied>("regex-copied", (c) => {
@@ -40,21 +48,21 @@ export default function GuideOverlay() {
 					<button
 						type="button"
 						title="Previous step (Alt+[)"
-						onClick={() => guideCommand("previous")}
+						onClick={() => guideCommand({ kind: "previous" })}
 					>
 						◀
 					</button>
 					<button
 						type="button"
 						title="Next step (Alt+])"
-						onClick={() => guideCommand("next")}
+						onClick={() => guideCommand({ kind: "next" })}
 					>
 						▶
 					</button>
 					<button
 						type="button"
 						title="Find me: jump to the area you're in (Alt+J)"
-						onClick={() => guideCommand("findMe")}
+						onClick={() => guideCommand({ kind: "findMe" })}
 					>
 						⌖
 					</button>
@@ -77,6 +85,9 @@ export default function GuideOverlay() {
 					</button>
 				</span>
 			</header>
+			<Show when={note()}>
+				<div class="toast">{note()}</div>
+			</Show>
 			<Show when={copied()}>
 				{(c) => (
 					<div class="toast">

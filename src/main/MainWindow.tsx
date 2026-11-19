@@ -20,6 +20,9 @@ export default function MainWindow() {
 	);
 
 	onEvent<Status>("status", setStatus);
+	const [hotkeyFailures, setHotkeyFailures] = createSignal<string[]>([]);
+	onEvent<string[]>("hotkey-failures", setHotkeyFailures);
+	invoke<string[]>("hotkey_failures").then(setHotkeyFailures);
 	invoke<Status>("get_status").then(setStatus);
 
 	// A finished run lands in history; refresh when the phase flips.
@@ -67,6 +70,13 @@ export default function MainWindow() {
 				<p class="muted">
 					Client log: {status()?.logPath ?? "waiting for the game…"}
 				</p>
+				<Show when={hotkeyFailures().length > 0}>
+					<p class="warn-text">
+						These hotkeys are taken by another app (the NVIDIA App uses Alt+R,
+						for example), so they won't work: {hotkeyFailures().join(", ")}.
+						Change them in that app or wait for hotkey rebinding.
+					</p>
+				</Show>
 				<p class="muted">
 					Run the game in windowed fullscreen. Overlays show while the game is
 					focused; Alt+E unlocks them for moving.
@@ -166,6 +176,21 @@ export default function MainWindow() {
 									placeholder="…\Path of Exile\logs\Client.txt"
 									onChange={(e) =>
 										save({ logPath: e.currentTarget.value.trim() || null })
+									}
+								/>
+							</label>
+							<label>
+								Passive tree key (opening the game's tree also shows the
+								overlay; Escape hides it). Leave empty to turn off.
+								<input
+									class="level-input"
+									maxLength={1}
+									value={s().treeKey ?? ""}
+									onChange={(e) =>
+										save({
+											treeKey:
+												e.currentTarget.value.trim().toUpperCase() || null,
+										})
 									}
 								/>
 							</label>
