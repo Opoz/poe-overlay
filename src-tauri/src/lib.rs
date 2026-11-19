@@ -128,7 +128,10 @@ fn get_tree_view(state: tauri::State<AppState>) -> TreeView {
 
 #[tauri::command]
 fn tree_click(app: AppHandle, state: tauri::State<AppState>, x: f64, y: f64) {
-    state.tracker.lock().unwrap().tree_click(x, y);
+    let height = platform::find_game_window()
+        .and_then(platform::game_rect)
+        .map_or(0.0, |r| f64::from(r.height));
+    state.tracker.lock().unwrap().tree_click(x, y, height);
     emit_tree(&app);
 }
 

@@ -73,6 +73,7 @@ export interface TreeNode {
 		| "ascendancyStart";
 	x: number;
 	y: number;
+	classStart?: number;
 	out: number[];
 }
 
@@ -83,6 +84,7 @@ export interface Transform {
 }
 
 export type Calibrating =
+	| { step: "quick" }
 	| { step: "classStart" }
 	| { step: "partner"; classStartAt: [number, number] };
 

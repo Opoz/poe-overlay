@@ -159,11 +159,12 @@ impl Tracker {
         self.save_session();
     }
 
-    /// A Calibration click at game-window pixels.
-    pub fn tree_click(&mut self, x: f64, y: f64) {
+    /// A Calibration click at game-window pixels, in a window `game_height` tall.
+    pub fn tree_click(&mut self, x: f64, y: f64, game_height: f64) {
         let view = self.tree_view();
         if let Some(start) = view.class_start {
-            self.tree_overlay.click(&self.tree, start.id, (x, y));
+            self.tree_overlay
+                .click(&self.tree, start.id, (x, y), game_height);
             self.save_session();
         }
     }

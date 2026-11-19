@@ -106,9 +106,11 @@ export default function MainWindow() {
 			<section class="card">
 				<h2>Passive tree overlay (preview)</h2>
 				<p class="muted">
-					Open the in-game passive tree, calibrate by clicking your class start
-					and the named keystone, and your allocated passives are ringed on top.
-					Recalibrate after panning or zooming the in-game tree.
+					Zoom the in-game passive tree all the way out and calibrate: click
+					your class start, then the Scion start in the middle (the Witch start
+					for a Scion). After the first time, one click on your class start is
+					enough. Your allocated passives are ringed on top; recalibrate after
+					panning or zooming.
 				</p>
 				<div class="buttons">
 					<button

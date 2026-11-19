@@ -107,19 +107,20 @@ impl PassiveTree {
             .collect()
     }
 
-    /// The keystone nearest a class start: big and easy to click, so it is the
-    /// second Calibration point.
+    /// The second Calibration point: the Scion start in the middle of the tree
+    /// (the Witch start at the top for a Scion). Big, obvious, and far from
+    /// every other class start, so the scale comes out accurate.
     pub fn calibration_partner(&self, start: u32) -> Option<&TreeNode> {
-        let s = self.node(start)?;
-        self.nodes
-            .iter()
-            .filter(|n| n.kind == NodeKind::Keystone && n.ascendancy.is_none())
-            .min_by(|a, b| distance(s, a).total_cmp(&distance(s, b)))
+        const SCION: u8 = 0;
+        const WITCH: u8 = 3;
+        let class_start = |i: u8| self.nodes.iter().find(|n| n.class_start == Some(i));
+        let scion = class_start(SCION)?;
+        if scion.id == start {
+            class_start(WITCH)
+        } else {
+            Some(scion)
+        }
     }
-}
-
-fn distance(a: &TreeNode, b: &TreeNode) -> f64 {
-    (a.x - b.x).hypot(a.y - b.y)
 }
 
 /// Maps tree coordinates onto game-window pixels: `screen = tree * scale + offset`.
@@ -180,12 +181,17 @@ impl Transform {
     }
 }
 
-/// Which point the player is being asked to click.
+/// Which point the player is being asked to click. Calibration is done with
+/// the in-game tree zoomed fully out.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "step", rename_all = "camelCase")]
 pub enum Calibrating {
+    /// One click on the class start, reusing the learned zoomed-out scale.
+    Quick,
     ClassStart,
-    Partner { class_start_at: (f64, f64) },
+    Partner {
+        class_start_at: (f64, f64),
+    },
 }
 
 /// The tree Overlay's own state (persisted between sessions).
@@ -195,6 +201,9 @@ pub struct TreeOverlay {
     pub visible: bool,
     pub calibrating: Option<Calibrating>,
     pub transform: Option<Transform>,
+    /// Fully zoomed out, the in-game tree's scale is proportional to the game
+    /// window's height. Learned from the first two-click Calibration.
+    pub zoomed_out_scale_per_px: Option<f64>,
 }
 
 impl TreeOverlay {
@@ -205,10 +214,12 @@ impl TreeOverlay {
         }
     }
 
-    /// Start Calibration, or cancel it if already running.
+    /// Cycle Calibration: quick (if the zoomed-out scale is known) -> full
+    /// two-click -> cancelled.
     pub fn toggle_calibration(&mut self) {
         self.calibrating = match self.calibrating {
-            None => Some(Calibrating::ClassStart),
+            None if self.zoomed_out_scale_per_px.is_some() => Some(Calibrating::Quick),
+            None | Some(Calibrating::Quick) => Some(Calibrating::ClassStart),
             Some(_) => None,
         };
         if self.calibrating.is_some() {
@@ -216,9 +227,31 @@ impl TreeOverlay {
         }
     }
 
-    /// The player clicked `at` (game-window pixels) during Calibration.
-    pub fn click(&mut self, tree: &PassiveTree, class_start: u32, at: (f64, f64)) {
+    /// The player clicked `at` (game-window pixels) during Calibration, in a
+    /// game window `game_height` pixels tall.
+    pub fn click(
+        &mut self,
+        tree: &PassiveTree,
+        class_start: u32,
+        at: (f64, f64),
+        game_height: f64,
+    ) {
         match self.calibrating {
+            Some(Calibrating::Quick) => {
+                let (Some(start), Some(per_px)) =
+                    (tree.node(class_start), self.zoomed_out_scale_per_px)
+                else {
+                    self.calibrating = Some(Calibrating::ClassStart);
+                    return;
+                };
+                let scale = per_px * game_height;
+                self.transform = Some(Transform {
+                    scale,
+                    offset_x: at.0 - start.x * scale,
+                    offset_y: at.1 - start.y * scale,
+                });
+                self.calibrating = None;
+            }
             Some(Calibrating::ClassStart) => {
                 self.calibrating = Some(Calibrating::Partner { class_start_at: at });
             }
@@ -238,6 +271,9 @@ impl TreeOverlay {
                 ) {
                     self.transform = Some(t);
                     self.calibrating = None;
+                    if game_height > 0.0 {
+                        self.zoomed_out_scale_per_px = Some(t.scale / game_height);
+                    }
                 }
                 // Same spot clicked twice: keep asking for the partner.
             }
@@ -385,18 +421,50 @@ mod tests {
         let mut o = TreeOverlay::default();
         o.toggle_calibration();
         assert!(o.visible);
-        o.click(&tree, start, (960.0, 300.0));
+        o.click(&tree, start, (960.0, 300.0), 1080.0);
         // Pretend the game shows the tree at scale 0.25.
         let want = (
             960.0 + (partner.x - s.x) * 0.25,
             300.0 + (partner.y - s.y) * 0.25,
         );
-        o.click(&tree, start, want);
+        o.click(&tree, start, want, 1080.0);
         assert_eq!(o.calibrating, None);
         let t = o.transform.unwrap();
         assert!((t.scale - 0.25).abs() < 1e-9);
         let (x, y) = t.apply(s.x, s.y);
         assert!((x - 960.0).abs() < 1e-6 && (y - 300.0).abs() < 1e-6);
+
+        // Next time: one click, and the scale follows the window height.
+        o.toggle_calibration();
+        assert_eq!(o.calibrating, Some(Calibrating::Quick));
+        o.click(&tree, start, (700.0, 200.0), 1440.0);
+        let t = o.transform.unwrap();
+        assert!((t.scale - 0.25 * 1440.0 / 1080.0).abs() < 1e-9);
+        let (x, y) = t.apply(s.x, s.y);
+        assert!((x - 700.0).abs() < 1e-6 && (y - 200.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn partner_is_scion_start_or_witch_for_scion() {
+        let tree = PassiveTree::bundled();
+        let witch = tree.base_class("Witch").unwrap().start_node.unwrap();
+        let scion = tree.base_class("Scion").unwrap().start_node.unwrap();
+        assert_eq!(tree.calibration_partner(witch).unwrap().id, scion);
+        assert_eq!(tree.calibration_partner(scion).unwrap().id, witch);
+    }
+
+    #[test]
+    fn calibration_cycles_quick_full_cancel() {
+        let mut o = TreeOverlay {
+            zoomed_out_scale_per_px: Some(0.0002),
+            ..Default::default()
+        };
+        o.toggle_calibration();
+        assert_eq!(o.calibrating, Some(Calibrating::Quick));
+        o.toggle_calibration();
+        assert_eq!(o.calibrating, Some(Calibrating::ClassStart));
+        o.toggle_calibration();
+        assert_eq!(o.calibrating, None);
     }
 
     #[test]

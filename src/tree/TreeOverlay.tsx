@@ -55,10 +55,14 @@ export default function TreeOverlay() {
 		if (!v?.calibrating) return null;
 		if (!v.classStart)
 			return "Level up once so the class is known, then calibrate again.";
-		if (v.calibrating.step === "classStart") {
-			return `Open the passive tree, then click the centre of your class start (${v.classStart.name}).`;
+		const start = className(v.classStart.name);
+		if (v.calibrating.step === "quick") {
+			return `Zoom the passive tree all the way out and click the centre of your class start (${start}). Alt+Shift+T again for full two-click calibration.`;
 		}
-		return `Now click the centre of the keystone ${v.partner?.name ?? "?"}.`;
+		if (v.calibrating.step === "classStart") {
+			return `Zoom the passive tree all the way out, then click the centre of your class start (${start}).`;
+		}
+		return `Now click the centre of the ${className(v.partner?.name ?? "")} start${v.partner?.classStart === 0 ? " in the middle of the tree" : " at the top"}.`;
 	};
 
 	return (
@@ -71,7 +75,9 @@ export default function TreeOverlay() {
 				{(text) => (
 					<div class="tree-prompt">
 						<strong>Calibrating</strong> {text()}
-						<span class="muted"> Alt+Shift+T cancels.</span>
+						<Show when={view()?.calibrating?.step !== "quick"}>
+							<span class="muted"> Alt+Shift+T cancels.</span>
+						</Show>
 					</div>
 				)}
 			</Show>
@@ -82,6 +88,14 @@ export default function TreeOverlay() {
 			</Show>
 		</div>
 	);
+}
+
+/** GGG's export names class starts oddly ("Seven", "SIX"); use the class. */
+const START_NAMES: Record<string, string> = { SEVEN: "Scion", SIX: "Shadow" };
+function className(raw: string): string {
+	const upper = raw.toUpperCase();
+	if (START_NAMES[upper]) return START_NAMES[upper];
+	return upper.charAt(0) + upper.slice(1).toLowerCase();
 }
 
 function draw(
