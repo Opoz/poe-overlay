@@ -285,14 +285,13 @@ fn parse(routes: &[&str], areas: &HashMap<String, AreaInfo>, options: GuideOptio
     };
     let mut steps: Vec<Step> = Vec::new();
     let mut area = "1_1_1".to_owned();
-    let mut portal: Option<String> = None;
     // A move ends the Step; the next line opens a new one in the new Area.
     let mut open = false;
 
     for (index, text) in routes.iter().enumerate() {
         let mut act = index as u8 + 1;
         // A portal placed in one act is never taken in another.
-        portal = None;
+        let mut portal: Option<String> = None;
         let mut active: Vec<bool> = Vec::new();
         for (line_no, raw) in text.lines().enumerate() {
             let line = raw.trim();
