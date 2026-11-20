@@ -19,7 +19,7 @@ Campaign route files and area data in `crates/poe-core/data/exile-leveling/` com
 
 The app ships no third-party zone layout images. Players can add their own to the layouts folder.
 
-`pnpm layouts` installs our own schematics (`scripts/layouts/`, Act 1 so far): simplified diagrams drawn for this project of each zone's shape, start, exits and points of interest, which are facts about the game. Exile UI's layout images were looked at to learn the variants; nothing from them is copied, traced or shipped.
+`pnpm layouts` installs our own schematics (`scripts/layouts/`, Act 1 so far): simplified diagrams drawn for this project of each zone's walkable paths, start, exits and points of interest, which are facts about the game. Exile UI's layout images were looked at to learn the variants; nothing from them is copied, traced or shipped.
 
 ## poelab
 

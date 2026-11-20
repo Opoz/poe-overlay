@@ -1,8 +1,15 @@
 """Render our own schematic zone layouts to SVG.
 
-Each layout is described by hand in `act1.py` (and later acts): a few
-simplified lines and markers on a 600x600 canvas, drawn from what the zone
-looks like. This script turns those descriptions into SVGs in our own style.
+Each layout is described by hand in `act1.py` (and later acts) as the
+walkable paths through the zone on a 600x600 canvas:
+
+- "route": the way from where you arrive to where you leave (dashed line),
+- "branches": other paths worth knowing (side areas, dead ends, loops),
+- "marks": what's where (start, exit, side, wp, quest, boss, text).
+
+The zone itself is drawn as a corridor around the paths, so the outline can
+never disagree with the route. `check()` fails if a marker isn't on a path
+or anything leaves the canvas: rendering refuses broken layouts.
 
 Usage: python scripts/layouts/render.py <out dir>
 """
@@ -15,90 +22,134 @@ import sys
 HERE = pathlib.Path(__file__).parent
 
 BG = "#15191b"
-EDGE = "#7d8a90"
-FILL = "rgba(255,255,255,0.045)"
-HINT = "#7fe0a8"
+EDGE = "#6f7c82"
+FLOOR = "#252c2f"
+ROUTE = "#7fe0a8"
 BONE = "#ede6d6"
+WIDTH = 46  # corridor width, canvas units
 
 
-def smooth(points, closed):
-    """A path through the points with rounded corners (Catmull-Rom)."""
+def smooth(points):
+    """An open path through the points with rounded corners (Catmull-Rom)."""
     if len(points) < 3:
         return "M" + " L".join(f"{x:.0f} {y:.0f}" for x, y in points)
-    pts = points + points[:2] if closed else [points[0], *points, points[-1]]
-    if closed:
-        pts = [points[-1], *points, points[0], points[1]]
+    pts = [points[0], *points, points[-1]]
     d = f"M{pts[1][0]:.0f} {pts[1][1]:.0f}"
     for i in range(1, len(pts) - 2):
         p0, p1, p2, p3 = pts[i - 1], pts[i], pts[i + 1], pts[i + 2]
         c1 = (p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6)
         c2 = (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6)
         d += f" C{c1[0]:.0f} {c1[1]:.0f} {c2[0]:.0f} {c2[1]:.0f} {p2[0]:.0f} {p2[1]:.0f}"
-    return d + (" Z" if closed else "")
+    return d
+
+
+def seg_dist(p, a, b):
+    (px, py), (ax, ay), (bx, by) = p, a, b
+    dx, dy = bx - ax, by - ay
+    if dx == dy == 0:
+        return math.hypot(px - ax, py - ay)
+    t = max(0, min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
+    return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+
+
+def path_dist(p, paths):
+    return min(
+        (seg_dist(p, a, b) for path in paths for a, b in zip(path, path[1:])),
+        default=math.inf,
+    )
+
+
+def paths_of(layout):
+    route = layout.get("route")
+    return ([route] if route else []) + layout.get("branches", [])
+
+
+def check(name, layout):
+    """Problems with a layout: markers off the paths, points off the canvas."""
+    problems = []
+    width = layout.get("width", WIDTH)
+    paths = paths_of(layout)
+    for path in paths:
+        if len(path) < 2:
+            problems.append("a path needs at least two points")
+        for x, y in path:
+            if not (15 <= x <= 585 and 15 <= y <= 585):
+                problems.append(f"path point {(x, y)} is off the canvas")
+    for m in layout.get("marks", []):
+        kind, x, y = m[0], m[1], m[2]
+        if kind == "text":
+            continue
+        if not paths:
+            problems.append(f"{kind} at {(x, y)} but there are no paths")
+        elif path_dist((x, y), paths) > width / 2 + 6:
+            problems.append(f"{kind} at {(x, y)} isn't on a path")
+    return [f"{name}: {p}" for p in problems]
 
 
 def marker(kind, x, y, text=""):
     if kind == "exit":
-        # A gold ring with an arrow: the way onward.
         return (
-            f'<circle cx="{x}" cy="{y}" r="17" fill="{BG}" stroke="#f5cf5a" stroke-width="5"/>'
-            f'<path d="M{x-7} {y+6} L{x+6} {y-7} M{x-3} {y-7} L{x+6} {y-7} L{x+6} {y+2}" '
+            f'<circle cx="{x}" cy="{y}" r="19" fill="{BG}" stroke="#f5cf5a" stroke-width="5"/>'
+            f'<path d="M{x-8} {y+7} L{x+7} {y-8} M{x-3} {y-8} L{x+7} {y-8} L{x+7} {y+2}" '
             f'stroke="#f5cf5a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
         )
     if kind == "side":
-        # A side exit (another area, not the way onward).
         return (
-            f'<circle cx="{x}" cy="{y}" r="14" fill="{BG}" stroke="#a8a294" stroke-width="4"/>'
-            f'<circle cx="{x}" cy="{y}" r="4" fill="#a8a294"/>'
+            f'<circle cx="{x}" cy="{y}" r="16" fill="{BG}" stroke="#b8b2a4" stroke-width="4"/>'
+            f'<circle cx="{x}" cy="{y}" r="5" fill="#b8b2a4"/>'
         )
     if kind == "start":
-        return f'<circle cx="{x}" cy="{y}" r="11" fill="{HINT}" stroke="{BG}" stroke-width="4"/>'
+        return f'<circle cx="{x}" cy="{y}" r="13" fill="{ROUTE}" stroke="{BG}" stroke-width="4"/>'
     if kind == "wp":
-        # Waypoint: a blue diamond.
         return (
-            f'<path d="M{x} {y-18} L{x+18} {y} L{x} {y+18} L{x-18} {y} Z" '
+            f'<path d="M{x} {y-19} L{x+19} {y} L{x} {y+19} L{x-19} {y} Z" '
             f'fill="{BG}" stroke="#8ad8ff" stroke-width="5" stroke-linejoin="round"/>'
             f'<circle cx="{x}" cy="{y}" r="4" fill="#8ad8ff"/>'
         )
     if kind == "quest":
         return (
-            f'<circle cx="{x}" cy="{y}" r="16" fill="#f5cf5a"/>'
+            f'<circle cx="{x}" cy="{y}" r="17" fill="#f5cf5a" stroke="{BG}" stroke-width="3"/>'
             f'<path d="M{x} {y-9} L{x} {y+2}" stroke="{BG}" stroke-width="5" stroke-linecap="round"/>'
             f'<circle cx="{x}" cy="{y+8}" r="3" fill="{BG}"/>'
         )
     if kind == "boss":
         return (
-            f'<circle cx="{x}" cy="{y}" r="16" fill="#ff8070"/>'
+            f'<circle cx="{x}" cy="{y}" r="17" fill="#ff8070" stroke="{BG}" stroke-width="3"/>'
             f'<path d="M{x-7} {y-7} L{x+7} {y+7} M{x+7} {y-7} L{x-7} {y+7}" '
             f'stroke="{BG}" stroke-width="5" stroke-linecap="round"/>'
         )
     if kind == "text":
         return (
             f'<text x="{x}" y="{y}" fill="{BONE}" font-family="Segoe UI, sans-serif" '
-            f'font-size="40" font-weight="700" text-anchor="middle">{text}</text>'
+            f'font-size="38" font-weight="700" text-anchor="middle" '
+            f'stroke="{BG}" stroke-width="8" paint-order="stroke">{text}</text>'
         )
     raise ValueError(kind)
 
 
 def svg(layout):
+    width = layout.get("width", WIDTH)
+    paths = paths_of(layout)
     parts = [
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="300" height="300">',
         f'<rect width="600" height="600" rx="28" fill="{BG}"/>',
     ]
-    for line in layout.get("areas", []):
+    # The zone: an outlined corridor around every path.
+    for path in paths:
         parts.append(
-            f'<path d="{smooth(line, True)}" fill="{FILL}" stroke="{EDGE}" '
-            'stroke-width="6" stroke-linejoin="round"/>'
+            f'<path d="{smooth(path)}" fill="none" stroke="{EDGE}" stroke-width="{width + 10}" '
+            'stroke-linecap="round" stroke-linejoin="round"/>'
         )
-    for line in layout.get("edges", []):
+    for path in paths:
         parts.append(
-            f'<path d="{smooth(line, False)}" fill="none" stroke="{BONE}" '
-            'stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>'
+            f'<path d="{smooth(path)}" fill="none" stroke="{FLOOR}" stroke-width="{width}" '
+            'stroke-linecap="round" stroke-linejoin="round"/>'
         )
-    for line in layout.get("hints", []):
+    route = layout.get("route")
+    if route:
         parts.append(
-            f'<path d="{smooth(line, False)}" fill="none" stroke="{HINT}" '
-            'stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 14"/>'
+            f'<path d="{smooth(route)}" fill="none" stroke="{ROUTE}" stroke-width="7" '
+            'stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 15"/>'
         )
     for m in layout.get("marks", []):
         parts.append(marker(*m))
@@ -115,10 +166,14 @@ def load(name):
 
 if __name__ == "__main__":
     out = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "layouts")
+    layouts = {k: v for act in ["act1"] for k, v in load(act).items()}
+    problems = [p for k, v in layouts.items() for p in check(k, v)]
+    if problems:
+        print("\n".join(problems))
+        sys.exit(f"{len(problems)} problems: nothing rendered")
     out.mkdir(parents=True, exist_ok=True)
-    count = 0
-    for act in ["act1"]:
-        for name, layout in load(act).items():
-            (out / f"{name}.svg").write_text(svg(layout), encoding="utf8")
-            count += 1
-    print(f"wrote {count} layouts to {out}")
+    for old in out.glob("*.svg"):
+        old.unlink()
+    for name, layout in layouts.items():
+        (out / f"{name}.svg").write_text(svg(layout), encoding="utf8")
+    print(f"wrote {len(layouts)} layouts to {out}")
