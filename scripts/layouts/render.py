@@ -11,9 +11,10 @@ The zone itself is drawn as a corridor around the paths, so the outline can
 never disagree with the route.
 
 Arrival guides ("kind": "arrival") are different: they show what you see on
-arriving, to tell a zone's variants apart. They're the landmark edges
-("edges", the shoreline or wall, white) and the edge to follow ("follow",
-green), with no corridor. `check()` fails if a marker isn't on a path
+arriving, to tell a zone's variants apart. They're not paths: the terrain
+edges ("edges", grey), the distinctive edge that identifies the variant
+("feature", green, highlighted), and where you are ("start", a "you are
+here" ring), with no corridor. `check()` fails if a marker isn't on a path
 or anything leaves the canvas: rendering refuses broken layouts.
 
 Usage: python scripts/layouts/render.py <out dir>
@@ -94,10 +95,10 @@ def check(name, layout):
 
 
 def check_arrival(name, layout):
-    lines = layout.get("edges", []) + layout.get("follow", [])
+    lines = layout.get("edges", []) + layout.get("feature", [])
     problems = []
     if not lines:
-        problems.append("an arrival guide needs edges or a line to follow")
+        problems.append("an arrival guide needs edges or a feature")
     for line in lines:
         for x, y in line:
             if not (10 <= x <= 590 and 10 <= y <= 590):
@@ -115,16 +116,27 @@ def svg_arrival(layout):
     ]
     for line in layout.get("edges", []):
         parts.append(
-            f'<path d="{smooth(line)}" fill="none" stroke="{BONE}" stroke-width="8" '
+            f'<path d="{smooth(line)}" fill="none" stroke="#8f9a9f" stroke-width="6" '
             'stroke-linecap="round" stroke-linejoin="round"/>'
         )
-    for line in layout.get("follow", []):
-        parts.append(
-            f'<path d="{smooth(line)}" fill="none" stroke="{ROUTE}" stroke-width="8" '
-            'stroke-linecap="round" stroke-linejoin="round"/>'
-        )
+    # The identifying feature: highlighted, with a dark halo.
+    for line in layout.get("feature", []):
+        for width, colour in ((20, BG), (10, ROUTE)):
+            parts.append(
+                f'<path d="{smooth(line)}" fill="none" stroke="{colour}" stroke-width="{width}" '
+                'stroke-linecap="round" stroke-linejoin="round"/>'
+            )
     for m in layout.get("marks", []):
-        parts.append(marker(*m))
+        kind, x, y = m[0], m[1], m[2]
+        if kind == "start":
+            # "You are here", not the start of a route.
+            parts.append(
+                f'<circle cx="{x}" cy="{y}" r="20" fill="none" stroke="{BG}" stroke-width="9"/>'
+                f'<circle cx="{x}" cy="{y}" r="20" fill="none" stroke="{BONE}" stroke-width="4"/>'
+                f'<circle cx="{x}" cy="{y}" r="6" fill="{BONE}"/>'
+            )
+        else:
+            parts.append(marker(*m))
     parts.append("</svg>")
     return "".join(parts)
 
