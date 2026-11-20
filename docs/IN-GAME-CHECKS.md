@@ -44,7 +44,7 @@ Run the game in windowed fullscreen. Start the app with `pnpm tauri dev`.
 ## Act 1 layout schematics (pilot)
 
 - [ ] `pnpm layouts`, then play Act 1. On entering each zone you see its variants; clicking one shows its follow-up steps; "All layouts" goes back.
-- [ ] Compare our drawings with the references side by side (comparison page from the session) and note any that are wrong or unhelpful.
+- [ ] Compare our drawings with the references side by side (`.local/layout-compare-act1/index.html`, kept out of git) and note any that are wrong or unhelpful.
 - [ ] Decide: do the other acts this way, or not.
 
 ## Screen copies
