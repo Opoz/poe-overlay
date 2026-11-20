@@ -8,7 +8,12 @@ walkable paths through the zone on a 600x600 canvas:
 - "marks": what's where (start, exit, side, wp, quest, boss, text).
 
 The zone itself is drawn as a corridor around the paths, so the outline can
-never disagree with the route. `check()` fails if a marker isn't on a path
+never disagree with the route.
+
+Arrival guides ("kind": "arrival") are different: they show what you see on
+arriving, to tell a zone's variants apart. They're the landmark edges
+("edges", the shoreline or wall, white) and the edge to follow ("follow",
+green), with no corridor. `check()` fails if a marker isn't on a path
 or anything leaves the canvas: rendering refuses broken layouts.
 
 Usage: python scripts/layouts/render.py <out dir>
@@ -66,6 +71,8 @@ def paths_of(layout):
 
 def check(name, layout):
     """Problems with a layout: markers off the paths, points off the canvas."""
+    if layout.get("kind") == "arrival":
+        return check_arrival(name, layout)
     problems = []
     width = layout.get("width", WIDTH)
     paths = paths_of(layout)
@@ -84,6 +91,42 @@ def check(name, layout):
         elif path_dist((x, y), paths) > width / 2 + 6:
             problems.append(f"{kind} at {(x, y)} isn't on a path")
     return [f"{name}: {p}" for p in problems]
+
+
+def check_arrival(name, layout):
+    lines = layout.get("edges", []) + layout.get("follow", [])
+    problems = []
+    if not lines:
+        problems.append("an arrival guide needs edges or a line to follow")
+    for line in lines:
+        for x, y in line:
+            if not (10 <= x <= 590 and 10 <= y <= 590):
+                problems.append(f"line point {(x, y)} is off the canvas")
+    for m in layout.get("marks", []):
+        if m[0] != "text" and path_dist((m[1], m[2]), lines) > 45:
+            problems.append(f"{m[0]} at {(m[1], m[2])} is far from every line")
+    return [f"{name}: {p}" for p in problems]
+
+
+def svg_arrival(layout):
+    parts = [
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="300" height="300">',
+        f'<rect width="600" height="600" rx="28" fill="{BG}"/>',
+    ]
+    for line in layout.get("edges", []):
+        parts.append(
+            f'<path d="{smooth(line)}" fill="none" stroke="{BONE}" stroke-width="8" '
+            'stroke-linecap="round" stroke-linejoin="round"/>'
+        )
+    for line in layout.get("follow", []):
+        parts.append(
+            f'<path d="{smooth(line)}" fill="none" stroke="{ROUTE}" stroke-width="8" '
+            'stroke-linecap="round" stroke-linejoin="round"/>'
+        )
+    for m in layout.get("marks", []):
+        parts.append(marker(*m))
+    parts.append("</svg>")
+    return "".join(parts)
 
 
 def marker(kind, x, y, text=""):
@@ -128,6 +171,8 @@ def marker(kind, x, y, text=""):
 
 
 def svg(layout):
+    if layout.get("kind") == "arrival":
+        return svg_arrival(layout)
     width = layout.get("width", WIDTH)
     paths = paths_of(layout)
     parts = [
