@@ -128,28 +128,46 @@ impl AtlasOverlay {
 
 /// Read an atlas plan from a tree link or code: the official
 /// `pathofexile.com/fullscreen-atlas-skill-tree/<code>` format (also used by
-/// planners that link there). Nodes not on the atlas are dropped.
+/// planners that link there), or a `poeplanner.com/atlas-tree/<code>` link.
+/// Nodes not on the atlas are dropped.
 pub fn parse_plan(text: &str, tree: &PassiveTree) -> Result<AtlasPlan, String> {
     let text = text.trim();
-    let code = text
-        .rsplit('/')
-        .next()
-        .unwrap_or(text)
-        .split(['?', '#'])
-        .next()
-        .unwrap_or_default()
-        .trim_end_matches('=')
-        .replace('+', "-")
-        .replace('/', "_");
+    let code = link_code(text);
     let bytes = general_purpose::URL_SAFE_NO_PAD
         .decode(code.as_bytes())
         .map_err(|_| "That isn't an atlas tree link or code.".to_owned())?;
-    let mut r = Reader {
-        bytes: &bytes,
-        at: 0,
-    };
+    let poeplanner = text.contains("poeplanner");
+    let plan = if poeplanner {
+        parse_poeplanner(&bytes, tree)
+    } else {
+        // A bare code could be either: the official format first.
+        parse_official(&bytes, tree).or_else(|e| parse_poeplanner(&bytes, tree).map_err(|_| e))
+    }?;
+    if plan.nodes.is_empty() {
+        return Err("That link has no atlas nodes in it.".to_owned());
+    }
+    Ok(plan)
+}
+
+/// The code part of a link, as URL-safe base64 without padding. Codes can
+/// contain `/` (standard base64), so it's everything after the tree path.
+fn link_code(text: &str) -> String {
+    let text = text.split(['?', '#']).next().unwrap_or_default();
+    let code = ["atlas-skill-tree/", "atlas-tree/"]
+        .iter()
+        .find_map(|marker| text.split_once(marker).map(|(_, c)| c))
+        .unwrap_or(text);
+    code.trim_end_matches('=')
+        .replace('+', "-")
+        .replace('/', "_")
+}
+
+/// GGG's format: version (u32), class, ascendancy, node count (u8), nodes
+/// (u16), cluster nodes, mastery picks (effect u16, node u16). Big-endian.
+fn parse_official(bytes: &[u8], tree: &PassiveTree) -> Result<AtlasPlan, String> {
+    let mut r = Reader { bytes, at: 0 };
     let version = r.u32().ok_or("The tree code is too short.")?;
-    if version < 4 {
+    if !(4..=6).contains(&version) {
         return Err(format!("Tree code version {version} isn't supported."));
     }
     r.u8(); // class
@@ -182,16 +200,38 @@ pub fn parse_plan(text: &str, tree: &PassiveTree) -> Result<AtlasPlan, String> {
             }
         }
     }
+    Ok(finish(nodes, masteries, tree))
+}
+
+/// poeplanner's atlas format (seen at version 5): version (u16), tree
+/// version (u16), one flag byte, node count (u16), nodes (u16), then notes.
+/// Little-endian. Refused unless every node is on the atlas, so a format
+/// change shows up as an error rather than a wrong plan.
+fn parse_poeplanner(bytes: &[u8], tree: &PassiveTree) -> Result<AtlasPlan, String> {
+    let unsupported = || "That poeplanner link's format isn't supported yet.".to_owned();
+    let le = |at: usize| -> Option<u16> {
+        Some(u16::from(*bytes.get(at)?) | u16::from(*bytes.get(at + 1)?) << 8)
+    };
+    let count = usize::from(le(5).ok_or_else(unsupported)?);
+    let nodes: Vec<u32> = (0..count)
+        .map(|i| le(7 + 2 * i).map(u32::from))
+        .collect::<Option<_>>()
+        .ok_or_else(unsupported)?;
+    if nodes.is_empty() || nodes.iter().any(|id| tree.node(*id).is_none()) {
+        return Err(unsupported());
+    }
+    Ok(finish(nodes, Vec::new(), tree))
+}
+
+/// Keep atlas nodes only, and make sure picked masteries are planned.
+fn finish(mut nodes: Vec<u32>, masteries: Vec<(u32, u32)>, tree: &PassiveTree) -> AtlasPlan {
     nodes.retain(|id| tree.node(*id).is_some());
     for (node, _) in &masteries {
         if !nodes.contains(node) {
             nodes.push(*node);
         }
     }
-    if nodes.is_empty() {
-        return Err("That link has no atlas nodes in it.".to_owned());
-    }
-    Ok(AtlasPlan { nodes, masteries })
+    AtlasPlan { nodes, masteries }
 }
 
 struct Reader<'a> {
@@ -289,6 +329,20 @@ mod tests {
         );
         assert_eq!(plan.masteries, [(mastery, 7)]);
         assert!(parse_plan("not a tree", &tree).is_err());
+    }
+
+    #[test]
+    fn reads_a_poeplanner_link() {
+        let tree = PassiveTree::atlas();
+        let link = "https://poeplanner.com/atlas-tree/BQAeAAAKAL0JnQl9kZ87TdeDMyRqs8eRiclYFAAfiwgAAAAAAAADAwAAAAAAAAAAAA==";
+        let plan = parse_plan(link, &tree).unwrap();
+        assert_eq!(
+            plan.nodes,
+            [
+                2493, 2461, 37245, 15263, 55117, 13187, 27172, 51123, 35217, 22729
+            ]
+        );
+        assert_eq!(tree.node(2493).unwrap().name, "Wellspring of Creation");
     }
 
     #[test]

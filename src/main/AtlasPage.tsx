@@ -35,7 +35,7 @@ export default function AtlasPage() {
 			</p>
 			<div class="import-row">
 				<input
-					placeholder="Paste a pathofexile.com atlas tree link"
+					placeholder="Paste a pathofexile.com or poeplanner atlas tree link"
 					value={input()}
 					onInput={(e) => setInput(e.currentTarget.value)}
 					onKeyDown={(e) => e.key === "Enter" && doImport()}
@@ -50,8 +50,8 @@ export default function AtlasPage() {
 				</button>
 			</div>
 			<p class="muted small-text">
-				Use the share link of the official atlas tree, or a planner's "open on
-				pathofexile.com" link.
+				Official atlas tree links and poeplanner atlas links work, as do
+				planners' "open on pathofexile.com" links.
 			</p>
 			<Show when={message()}>
 				<p class="muted">{message()}</p>

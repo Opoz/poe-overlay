@@ -56,7 +56,7 @@ Run the game in windowed fullscreen. Start the app with `pnpm tauri dev`.
 
 ## Atlas overlay (Alt+A, calibrate Alt+Shift+A)
 
-- [ ] Import an official pathofexile.com atlas tree link.
+- [ ] Import an official pathofexile.com atlas tree link, and a poeplanner one (only version 5 links without mastery picks have been seen so far).
 - [ ] Two-click calibration: the start in the centre, then the named keystone at the top. Rings sit around the planned nodes. If they're off, check whether the centre hub is really where the game draws the start.
 - [ ] After that, one click (or a middle-click on the start) lines it up again after panning.
 - [ ] Rings never cover the nodes, and lit / unlit is easy to see through them.
